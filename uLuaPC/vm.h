@@ -12,7 +12,8 @@
 #define NUMBER_TYPE 0x03
 #define STRING_TYPE 0x04
 
+
 void vmInit();
-u08 vmRun(vmstate* state);
+u08 vmRun(vm* state);
 
 #endif

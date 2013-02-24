@@ -80,18 +80,46 @@ u16 getConstPt(u16 constspt, u16 N)
 	return constspt;
 }
 
-u08 vmRun(vmstate* state)
+//Find global variable by name .Return global index
+u08 getGlobalByName(vm* vm, u08* name)
 {
+	u08 foundGlobal = 0;
+	for(foundGlobal=0; foundGlobal<GLOBALSIZE; foundGlobal++)
+	{
+		if(vm->global[foundGlobal].val.type == VAR_NULL) //global not found - return free one
+			break;
+
+		u08 match = 1;
+		for(int i=0; i<GLOBALNAMESIZE && name[i] != 0 && vm->global[foundGlobal].name[i] != 0; i++)
+		{
+			if(vm->global[foundGlobal].name[i] != name[i])
+			{
+				match = 0;
+				break;
+			}
+		}
+				
+		if(match == 1)
+			break;
+	}
+
+	return foundGlobal;
+}
+
+u08 vmRun(vm* vm)
+{
+	//vmstate* state = &vm->state[0];
 	//set running state
-	state->thstate = RUN;
+	vm->status = RUN;
 
 	//skip header
-	state->pc = 0x1c;
+	vm->pc = 0x1c;
 
 	//get code size for top function
-	u32 codesize = platformReadDWord(state->pc); state->pc += 4;
-	state->constp = state->pc + codesize * 4;
-	state->funcp = getFuncsPt(state->constp);
+	u32 codesize = platformReadDWord(vm->pc); 
+	vm->pc += 4;
+	vm->state[vm->statept].constp = vm->pc + codesize * 4;
+	vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
 
 
 	u08 a = 0;
@@ -100,16 +128,19 @@ u08 vmRun(vmstate* state)
 	u16 bx = 0;
 	u16 constpt = 0;
 	u08 type;
+	u08 glindex;
+	u08* name;
 
 	//for(u08 i=0; i<codesize; i++)
-	while(state->thstate == RUN)
+	while(vm->status == RUN)
 	{
+		vmstate* curstate = &vm->state[vm->statept];
 		//get first instruction
-		u32 inst = platformReadDWord(state->pc);
+		u32 inst = platformReadDWord(vm->pc);
 		u08 opcode = GET_OPCODE(inst);
 
 		//go to next instruction
-		state->pc += 4;
+		vm->pc += 4;
 
 		//get operands
 		a = GETARG_A(inst);
@@ -120,68 +151,113 @@ u08 vmRun(vmstate* state)
 		switch(opcode)
 		{ 
 		case OP_CLOSURE: //Create closure and put it into R(A)
-			state->reg[a].type = VAR_FILE_POINTER;
-			state->reg[a].numval = getFuncPt(state->funcp, bx);
+			curstate->reg[a].type = VAR_FILE_POINTER;
+			curstate->reg[a].numval = getFuncPt(curstate->funcp, bx);
 			break;
 
 		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
-			state->global[bx].type = state->reg[a].type;
-			state->global[bx].numval = state->reg[a].numval;
+			//read global name
+			constpt = getConstPt(curstate->constp, bx);
+			type = platformReadByte(constpt++);
+			codesize = platformReadDWord(constpt);
+			constpt += 4;
+			name = platformReadBuffer(constpt, codesize);
+
+			//search global
+			glindex = getGlobalByName(vm, name);
+			//copy name
+			for(int i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
+			{
+				vm->global[glindex].name[i] = name[i];
+			}
+			//set global value
+			vm->global[glindex].val.type = curstate->reg[a].type;
+			vm->global[glindex].val.numval = curstate->reg[a].numval;
 			break;
 
 		case OP_GETGLOBAL: // A Bx	R(A) := Gbl[Kst(Bx)]
-			state->reg[a].type = state->global[bx].type;
-			state->reg[a].numval = state->global[bx].numval;
+			//read global name
+			constpt = getConstPt(curstate->constp, bx);
+			type = platformReadByte(constpt++);
+			codesize = platformReadDWord(constpt);
+			constpt += 4;
+			name = platformReadBuffer(constpt, codesize);
+
+			//search global
+			glindex = getGlobalByName(vm, name);
+
+			curstate->reg[a].type = vm->global[glindex].val.type;
+			curstate->reg[a].numval = vm->global[glindex].val.numval;
 			break;
 
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
-			constpt = getConstPt(state->constp, bx);
+			constpt = getConstPt(curstate->constp, bx);
 			type = platformReadByte(constpt++);
 
 			switch(type)
 			{
 			case BOOL_TYPE:
-				state->reg[a].type = VAR_BOOLEAN;
+				curstate->reg[a].type = VAR_BOOLEAN;
 				break;
 
 			case NUMBER_TYPE:
-				state->reg[a].type = VAR_FLOAT;
-				state->reg[a].floatval = platformReadNumber(constpt);
+				curstate->reg[a].type = VAR_FLOAT;
+				curstate->reg[a].floatval = platformReadNumber(constpt);
 				break;
 
 			case STRING_TYPE:
-				state->reg[a].type = VAR_FILE_POINTER;
-				state->reg[a].numval = constpt;
+				curstate->reg[a].type = VAR_FILE_POINTER;
+				curstate->reg[a].numval = constpt;
 				break;
 
 			default:
 			case NULL_TYPE:
-				state->reg[a].type = VAR_NULL;
+				curstate->reg[a].type = VAR_NULL;
 				break;
 			}
 			break;
 
 		case OP_CALL: //A B C	R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
 			//save next pc instruction address to the stack
-			state->pcstack[state->pcstackpt++] = state->pc;
+			vm->pcstack[vm->pcstackpt++] = vm->pc;
 			//set pc = call function address
 			//TODO: check reg type
-			state->pc = state->reg[a].numval;
+			vm->pc = curstate->reg[a].numval;
+
+			//prepare state
+			vm->statept++;
 			//get code size function
-			codesize = platformReadDWord(state->pc); 
-			state->pc += 4;
+			codesize = platformReadDWord(vm->pc); 
+			vm->pc += 4;
+			vm->state[vm->statept].constp = vm->pc + codesize * 4;
+			vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
+			//copy args to the new state
+			//TODO: support copy all values on the top of the stack (b=0)
+			for(int i=0; i<b-1 && b!=0; i++)
+			{
+				vm->state[vm->statept].reg[i].type   = vm->state[vm->statept-1].reg[a+1+i].type;
+				vm->state[vm->statept].reg[i].numval = vm->state[vm->statept-1].reg[a+1+i].numval;
+			}
 			break;
 
 		case OP_RETURN: //A B	return R(A), ... ,R(A+B-2)	(see note)
 			//check if return from main function
-			if(state->pcstackpt == 0)
+			if(vm->pcstackpt == 0)
 			{
-				state->thstate = STOP;
+				vm->status = STOP;
 			}
 			else
 			{
 				//restore pc stack address
-				state->pc = state->pcstack[--state->pcstackpt];
+				vm->pc = vm->pcstack[--vm->pcstackpt];
+				vm->statept--;
+				//save result to the prev state
+				//TODO: support return top of the stack (b=0)
+				for(int i=0; i<b-1 && b!=0; i++)
+				{
+					vm->state[vm->statept].reg[i].type   = vm->state[vm->statept+1].reg[a+i].type;
+					vm->state[vm->statept].reg[i].numval = vm->state[vm->statept+1].reg[a+i].numval;
+				}
 			}
 			break;
 
@@ -189,22 +265,28 @@ u08 vmRun(vmstate* state)
 		//TODO: string support
 		//TODO: check types and nulls
 		case OP_ADD://	A B C	R(A) := RK(B) + RK(C)
-			state->reg[a].floatval = state->reg[b].floatval + state->reg[c].floatval;
+			curstate->reg[a].type = VAR_FLOAT;
+			curstate->reg[a].floatval = curstate->reg[b].floatval + curstate->reg[c].floatval;
 			break;
 		case OP_SUB://	A B C	R(A) := RK(B) - RK(C)
-			state->reg[a].floatval = state->reg[b].floatval - state->reg[c].floatval;
+			curstate->reg[a].type = VAR_FLOAT;
+			curstate->reg[a].floatval = curstate->reg[b].floatval - curstate->reg[c].floatval;
 			break;
 		case OP_MUL://	A B C	R(A) := RK(B) * RK(C)
-			state->reg[a].floatval = state->reg[b].floatval * state->reg[c].floatval;
+			curstate->reg[a].type = VAR_FLOAT;
+			curstate->reg[a].floatval = curstate->reg[b].floatval * curstate->reg[c].floatval;
 			break;
 		case OP_DIV://	A B C	R(A) := RK(B) / RK(C)
-			state->reg[a].floatval = state->reg[b].floatval / state->reg[c].floatval;
+			curstate->reg[a].type = VAR_FLOAT;
+			curstate->reg[a].floatval = curstate->reg[b].floatval / curstate->reg[c].floatval;
 			break;
 		case OP_MOD://	A B C	R(A) := RK(B) % RK(C)
-			state->reg[a].floatval = fmod(state->reg[b].floatval, state->reg[c].floatval);
+			curstate->reg[a].type = VAR_FLOAT;
+			curstate->reg[a].floatval = fmod(curstate->reg[b].floatval, curstate->reg[c].floatval);
 			break;
 		case OP_POW://	A B C	R(A) := RK(B) ^ RK(C)
-			state->reg[a].floatval = pow(state->reg[b].floatval , state->reg[c].floatval);
+			curstate->reg[a].type = VAR_FLOAT;
+			curstate->reg[a].floatval = pow(curstate->reg[b].floatval , curstate->reg[c].floatval);
 			break;
 
 		default:

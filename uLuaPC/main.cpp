@@ -25,12 +25,15 @@ void testGC()
 
 int main()
 {
-	vmstate state;
-	initState(&state);
+	vm thread;
+
+	initvm(&thread);
+	initState(&thread.state[0]);
+
 	platformInit();
 
 	vmInit();
 	testGC();
-	vmRun(&state);
+	vmRun(&thread);
 	return 0;
 }
