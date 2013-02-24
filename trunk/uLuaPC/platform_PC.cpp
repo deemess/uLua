@@ -52,3 +52,8 @@ float platformReadNumber(u16 offset)
 	curpos += 8;*/
 	return (float)( *(double*)(&buffer[offset]) );
 }
+
+u08* platformReadBuffer(u16 offset, u08 size)
+{
+	return &buffer[offset];
+}

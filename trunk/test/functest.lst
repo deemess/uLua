@@ -121,81 +121,61 @@ Pos   Hex Data           Description or Code
 0139  00                 is_vararg (0)
 013A  03                 maxstacksize (3)
                          * code:
-013B  05000000           sizecode (5)
+013B  03000000           sizecode (3)
 013F  8C400000           [1] add        2   0   1  
-0143  87000000           [2] setglobal  2   0        ; local1
-0147  85000000           [3] getglobal  2   0        ; local1
-014B  9E000001           [4] return     2   2      
-014F  1E008000           [5] return     0   1      
+0143  9E000001           [2] return     2   2      
+0147  1E008000           [3] return     0   1      
                          * constants:
-0153  01000000           sizek (1)
-0157  04                 const type 4
-0158  07000000           string size (7)
-015C  6C6F63616C3100     "local1\0"
-                         const [0]: "local1"
+014B  00000000           sizek (0)
                          * functions:
-0163  00000000           sizep (0)
+014F  00000000           sizep (0)
                          * lines:
-0167  00000000           sizelineinfo (0)
+0153  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-016B  00000000           sizelocvars (0)
+0157  00000000           sizelocvars (0)
                          * upvalues:
-016F  00000000           sizeupvalues (0)
+015B  00000000           sizeupvalues (0)
                          ** end of function **
 
                          
-0173                     ** function [1] definition (level 2)
+015F                     ** function [1] definition (level 2)
                          ** start of function **
-0173  00000000           string size (0)
+015F  00000000           string size (0)
                          source name: (none)
-0177  06000000           line defined (6)
-017B  0B000000           last line defined (11)
-017F  00                 nups (0)
-0180  03                 numparams (3)
-0181  00                 is_vararg (0)
-0182  05                 maxstacksize (5)
+0163  06000000           line defined (6)
+0167  0B000000           last line defined (11)
+016B  00                 nups (0)
+016C  03                 numparams (3)
+016D  00                 is_vararg (0)
+016E  05                 maxstacksize (5)
                          * code:
-0183  0B000000           sizecode (11)
-0187  CC400000           [01] add        3   0   1  
-018B  C7000000           [02] setglobal  3   0        ; local1
-018F  CE800001           [03] mul        3   2   2  
-0193  C7400000           [04] setglobal  3   1        ; local2
-0197  C5000000           [05] getglobal  3   0        ; local1
-019B  05410000           [06] getglobal  4   1        ; local2
-019F  CC008101           [07] add        3   3   4  
-01A3  C7000000           [08] setglobal  3   0        ; local1
-01A7  C5000000           [09] getglobal  3   0        ; local1
-01AB  DE000001           [10] return     3   2      
-01AF  1E008000           [11] return     0   1      
+016F  05000000           sizecode (5)
+0173  CC400000           [1] add        3   0   1  
+0177  0E810001           [2] mul        4   2   2  
+017B  CC008101           [3] add        3   3   4  
+017F  DE000001           [4] return     3   2      
+0183  1E008000           [5] return     0   1      
                          * constants:
-01B3  02000000           sizek (2)
-01B7  04                 const type 4
-01B8  07000000           string size (7)
-01BC  6C6F63616C3100     "local1\0"
-                         const [0]: "local1"
-01C3  04                 const type 4
-01C4  07000000           string size (7)
-01C8  6C6F63616C3200     "local2\0"
-                         const [1]: "local2"
+0187  00000000           sizek (0)
                          * functions:
-01CF  00000000           sizep (0)
+018B  00000000           sizep (0)
                          * lines:
-01D3  00000000           sizelineinfo (0)
+018F  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-01D7  00000000           sizelocvars (0)
+0193  00000000           sizelocvars (0)
                          * upvalues:
-01DB  00000000           sizeupvalues (0)
+0197  00000000           sizeupvalues (0)
                          ** end of function **
 
                          * lines:
-01DF  00000000           sizelineinfo (0)
+019B  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-01E3  00000000           sizelocvars (0)
+019F  00000000           sizelocvars (0)
                          * upvalues:
-01E7  00000000           sizeupvalues (0)
+01A3  00000000           sizeupvalues (0)
                          ** end of function **
 
-01EB                     ** end of chunk **
+01A7                     ** end of chunk **
