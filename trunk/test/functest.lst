@@ -1,0 +1,201 @@
+Pos   Hex Data           Description or Code
+------------------------------------------------------------------------
+0000                     ** source chunk: functest.luc
+                         ** global header start **
+0000  1B4C7561           header signature: "\27Lua"
+0004  51                 version (major:minor hex digits)
+0005  00                 format (0=official)
+0006  01                 endianness (1=little endian)
+0007  04                 size of int (bytes)
+0008  04                 size of size_t (bytes)
+0009  04                 size of Instruction (bytes)
+000A  08                 size of number (bytes)
+000B  00                 integral (1=integral)
+                         * number type: double
+                         * x86 standard (32-bit, little endian, doubles)
+                         ** global header end **
+                         
+000C                     ** function [0] definition (level 1)
+                         ** start of function **
+000C  00000000           string size (0)
+                         source name: (none)
+0010  00000000           line defined (0)
+0014  00000000           last line defined (0)
+0018  00                 nups (0)
+0019  00                 numparams (0)
+001A  02                 is_vararg (2)
+001B  04                 maxstacksize (4)
+                         * code:
+001C  1E000000           sizecode (30)
+0020  24000000           [01] closure    0   0        ; 0 upvalues
+0024  07000000           [02] setglobal  0   0        ; func1
+0028  24400000           [03] closure    0   1        ; 0 upvalues
+002C  07400000           [04] setglobal  0   1        ; func2
+0030  01C00000           [05] loadk      0   3        ; 1
+0034  07800000           [06] setglobal  0   2        ; a
+0038  01400100           [07] loadk      0   5        ; 3
+003C  07000100           [08] setglobal  0   4        ; b
+0040  01C00100           [09] loadk      0   7        ; 3.5
+0044  07800100           [10] setglobal  0   6        ; c
+0048  05000000           [11] getglobal  0   0        ; func1
+004C  45800000           [12] getglobal  1   2        ; a
+0050  85000100           [13] getglobal  2   4        ; b
+0054  1C808001           [14] call       0   3   2  
+0058  07000200           [15] setglobal  0   8        ; result1
+005C  05400000           [16] getglobal  0   1        ; func2
+0060  45800000           [17] getglobal  1   2        ; a
+0064  85000100           [18] getglobal  2   4        ; b
+0068  C5800100           [19] getglobal  3   6        ; c
+006C  1C800002           [20] call       0   4   2  
+0070  07400200           [21] setglobal  0   9        ; result2
+0074  05800200           [22] getglobal  0   10       ; print
+0078  41C00200           [23] loadk      1   11       ; "Result1 = "
+007C  85000200           [24] getglobal  2   8        ; result1
+0080  1C408001           [25] call       0   3   1  
+0084  05800200           [26] getglobal  0   10       ; print
+0088  41000300           [27] loadk      1   12       ; "Result2 = "
+008C  85400200           [28] getglobal  2   9        ; result2
+0090  1C408001           [29] call       0   3   1  
+0094  1E008000           [30] return     0   1      
+                         * constants:
+0098  0D000000           sizek (13)
+009C  04                 const type 4
+009D  06000000           string size (6)
+00A1  66756E633100       "func1\0"
+                         const [0]: "func1"
+00A7  04                 const type 4
+00A8  06000000           string size (6)
+00AC  66756E633200       "func2\0"
+                         const [1]: "func2"
+00B2  04                 const type 4
+00B3  02000000           string size (2)
+00B7  6100               "a\0"
+                         const [2]: "a"
+00B9  03                 const type 3
+00BA  000000000000F03F   const [3]: (1)
+00C2  04                 const type 4
+00C3  02000000           string size (2)
+00C7  6200               "b\0"
+                         const [4]: "b"
+00C9  03                 const type 3
+00CA  0000000000000840   const [5]: (3)
+00D2  04                 const type 4
+00D3  02000000           string size (2)
+00D7  6300               "c\0"
+                         const [6]: "c"
+00D9  03                 const type 3
+00DA  0000000000000C40   const [7]: (3.5)
+00E2  04                 const type 4
+00E3  08000000           string size (8)
+00E7  726573756C743100   "result1\0"
+                         const [8]: "result1"
+00EF  04                 const type 4
+00F0  08000000           string size (8)
+00F4  726573756C743200   "result2\0"
+                         const [9]: "result2"
+00FC  04                 const type 4
+00FD  06000000           string size (6)
+0101  7072696E7400       "print\0"
+                         const [10]: "print"
+0107  04                 const type 4
+0108  0B000000           string size (11)
+010C  526573756C743120+  "Result1 "
+0114  3D2000             "= \0"
+                         const [11]: "Result1 = "
+0117  04                 const type 4
+0118  0B000000           string size (11)
+011C  526573756C743220+  "Result2 "
+0124  3D2000             "= \0"
+                         const [12]: "Result2 = "
+                         * functions:
+0127  02000000           sizep (2)
+                         
+012B                     ** function [0] definition (level 2)
+                         ** start of function **
+012B  00000000           string size (0)
+                         source name: (none)
+012F  01000000           line defined (1)
+0133  04000000           last line defined (4)
+0137  00                 nups (0)
+0138  02                 numparams (2)
+0139  00                 is_vararg (0)
+013A  03                 maxstacksize (3)
+                         * code:
+013B  05000000           sizecode (5)
+013F  8C400000           [1] add        2   0   1  
+0143  87000000           [2] setglobal  2   0        ; local1
+0147  85000000           [3] getglobal  2   0        ; local1
+014B  9E000001           [4] return     2   2      
+014F  1E008000           [5] return     0   1      
+                         * constants:
+0153  01000000           sizek (1)
+0157  04                 const type 4
+0158  07000000           string size (7)
+015C  6C6F63616C3100     "local1\0"
+                         const [0]: "local1"
+                         * functions:
+0163  00000000           sizep (0)
+                         * lines:
+0167  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+016B  00000000           sizelocvars (0)
+                         * upvalues:
+016F  00000000           sizeupvalues (0)
+                         ** end of function **
+
+                         
+0173                     ** function [1] definition (level 2)
+                         ** start of function **
+0173  00000000           string size (0)
+                         source name: (none)
+0177  06000000           line defined (6)
+017B  0B000000           last line defined (11)
+017F  00                 nups (0)
+0180  03                 numparams (3)
+0181  00                 is_vararg (0)
+0182  05                 maxstacksize (5)
+                         * code:
+0183  0B000000           sizecode (11)
+0187  CC400000           [01] add        3   0   1  
+018B  C7000000           [02] setglobal  3   0        ; local1
+018F  CE800001           [03] mul        3   2   2  
+0193  C7400000           [04] setglobal  3   1        ; local2
+0197  C5000000           [05] getglobal  3   0        ; local1
+019B  05410000           [06] getglobal  4   1        ; local2
+019F  CC008101           [07] add        3   3   4  
+01A3  C7000000           [08] setglobal  3   0        ; local1
+01A7  C5000000           [09] getglobal  3   0        ; local1
+01AB  DE000001           [10] return     3   2      
+01AF  1E008000           [11] return     0   1      
+                         * constants:
+01B3  02000000           sizek (2)
+01B7  04                 const type 4
+01B8  07000000           string size (7)
+01BC  6C6F63616C3100     "local1\0"
+                         const [0]: "local1"
+01C3  04                 const type 4
+01C4  07000000           string size (7)
+01C8  6C6F63616C3200     "local2\0"
+                         const [1]: "local2"
+                         * functions:
+01CF  00000000           sizep (0)
+                         * lines:
+01D3  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+01D7  00000000           sizelocvars (0)
+                         * upvalues:
+01DB  00000000           sizeupvalues (0)
+                         ** end of function **
+
+                         * lines:
+01DF  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+01E3  00000000           sizelocvars (0)
+                         * upvalues:
+01E7  00000000           sizeupvalues (0)
+                         ** end of function **
+
+01EB                     ** end of chunk **
