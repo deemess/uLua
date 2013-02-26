@@ -1,14 +1,19 @@
 #ifndef GC_H
 #define GC_H
 
+#include "vmconfig.h"
 #include "basetypes.h"
 
-//memory total size
-#define GC_SIZE 256
-//maximum data size which variable can hold
-#define GC_MAX_VAR_SIZE 32
-//maximum variables which GC could create
-#define GC_VAR_PT_SIZE 64
+//vm types
+//variable types
+enum vartype {
+	VAR_BOOLEAN,
+	VAR_NUMBER,
+	VAR_FLOAT,
+	VAR_STRING,
+	VAR_NULL,
+	VAR_FILE_POINTER
+};
 
 //variable accessors
 #define GCVALUE(type,var) ((type*)(*var)->data)[0]
@@ -31,10 +36,15 @@ typedef gcvar* gcvarpt;
 //initialize garbage collector and memory management
 void gcInit();
 //create new variable and return its number
-gcvarpt* gcNew(u08 type);
+gcvarpt* gcNew(vartype type);
+//create new variable with given size and return its number
+gcvarpt* gcNew(vartype type, u08 size);
 //delete variable
 void gcDelete(gcvarpt* variable);
 
-
+#ifdef DEBUGVM
+//dump gc memory
+void gcDump();
+#endif
 
 #endif
