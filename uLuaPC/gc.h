@@ -3,17 +3,7 @@
 
 #include "vmconfig.h"
 #include "basetypes.h"
-
-//vm types
-//variable types
-enum vartype {
-	VAR_BOOLEAN,
-	VAR_NUMBER,
-	VAR_FLOAT,
-	VAR_STRING,
-	VAR_NULL,
-	VAR_FILE_POINTER
-};
+#include "platform.h"
 
 //variable accessors
 #define GCVALUE(type,var) ((type*)(*var)->data)[0]

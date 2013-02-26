@@ -63,10 +63,12 @@
     <ClCompile Include="gc.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="platform_PC.cpp" />
+    <ClCompile Include="table.cpp" />
     <ClCompile Include="vm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basetypes.h" />
+    <ClInclude Include="table.h" />
     <ClInclude Include="vmconfig.h" />
     <ClInclude Include="gc.h" />
     <ClInclude Include="opcodes.h" />

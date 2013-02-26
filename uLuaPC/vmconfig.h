@@ -1,8 +1,6 @@
 #ifndef VMCONFIG_H
 #define VMCONFIG_H
 
-#include "platform.h"
-
 // -----  GC ---------
 //memory total size
 #define GC_SIZE 256
@@ -10,6 +8,9 @@
 #define GC_MAX_VAR_SIZE 32
 //maximum variables which GC could create
 #define GC_VAR_PT_SIZE 64
+
+// ------ TABLE ------
+#define DEFAULT_TABLE_SIZE 32
 
 // ------ VM ---------
 #define DEBUGVM //comment it out to optimize code
