@@ -1,6 +1,5 @@
 #include "basetypes.h"
 #include "platform.h"
-#include "state.h"
 #include "vm.h"
 #include "gc.h"
 
@@ -13,27 +12,31 @@ void testGC()
 	GCVALUE(s32,num1) = 10;
 	GCVALUE(u08,num2) = TRUE;
 	GCVALUE(float,num3) = 1.5f;
-
-	/*(*num1)->var.number = 10;
-	(*num2)->var.boolean = TRUE;
-	(*num3)->var.fnumber = 1.5f;*/
+	GCVALUE(u08,num2) = FALSE;
 
 	gcDelete(num2);
 
-	gcvarpt* num4 = gcNew(VAR_STRING);
+	gcvarpt* num4 = gcNew(VAR_FLOAT);
+	GCVALUE(float,num4) = 9.99f;
+
+	if(GCVALUE(s32,num1) != 10 || GCVALUE(float,num3) != 1.5f || GCVALUE(float,num4) != 9.99f)
+	{
+		platformPrintf("GC test failed!");
+	}
+	gcDump();
 }
 
 int main()
 {
 	vm thread;
 
-	initvm(&thread);
-	initState(&thread.state[0]);
-
 	platformInit();
+	vmInit(&thread);
 
-	vmInit();
+	//tests
 	testGC();
+
 	vmRun(&thread);
+
 	return 0;
 }

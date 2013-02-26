@@ -1,14 +1,23 @@
 #include "basetypes.h"
 #include <stdio.h>
+#include <stdarg.h>
 
 FILE* file;
 u16 curpos;
 //u08 buffer[8];
 u08 buffer[1024*1024];
 
+void platformPrintf(const char* text, ...)
+{
+    va_list argptr;
+    va_start(argptr, text);
+    vfprintf(stdout, text, argptr);
+    va_end(argptr);
+}
+
 void platformInit()
 {
-	file = fopen("d:\\Lua\\src\\uLua\\test\\functest.luc", "r");
+	file = fopen("..\\test\\functest.luc", "r");
 	fread(buffer, 1, 1024*1024, file);
 	curpos = 0;
 }

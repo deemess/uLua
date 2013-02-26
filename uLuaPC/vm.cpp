@@ -1,9 +1,46 @@
 #include "vm.h"
 #include <math.h>
 
-//Initialize virtual machine
-void vmInit()
+//reset structs functions
+static void initStructState(vmstate* state)
 {
+	state->constp = 0;
+	state->funcp = 0;
+
+	for(int i=0; i<REGISTERSIZE; i++) {
+		state->reg[i].type = VAR_NULL;
+		state->reg[i].numval = 0;
+	}
+
+}
+
+void initStructVM(vm* vm)
+{
+	vm->status = STOP;
+	vm->pc = 0;
+	vm->pcstackpt = 0;
+	vm->statept = 0;
+
+	for(int i=0; i<PCSTACKSIZE; i++)
+		vm->pcstack[i] = 0;
+
+	for(int i=0; i<GLOBALSIZE; i++) {
+		vm->global[i].val.type = VAR_NULL;
+		vm->global[i].val.numval = 0;
+
+		for(int j=0; j<GLOBALNAMESIZE; j++)
+			vm->global[i].name[j] = 0;
+	}
+
+	for(int i=0; i<STATEMAXCOUNT; i++)
+		initStructState(&vm->state[i]);
+}
+
+//Initialize virtual machine
+void vmInit(vm* vm)
+{
+	//reset structure
+	initStructVM(vm);
 	//Init garbage collector and mamory management
 	gcInit();
 }

@@ -12,18 +12,8 @@ typedef int16_t s16;
 typedef int32_t s32;
 
 #define NULL 0
-#define TRUE 1
-#define FALSE 0
 
-//vm types
-//variable types
-enum vartype {
-	VAR_BOOLEAN,
-	VAR_NUMBER,
-	VAR_FLOAT,
-	VAR_STRING,
-	VAR_NULL,
-	VAR_FILE_POINTER
-};
+#define TRUE  1
+#define FALSE 0
 
 #endif

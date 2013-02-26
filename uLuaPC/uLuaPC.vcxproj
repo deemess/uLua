@@ -67,11 +67,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basetypes.h" />
-    <ClInclude Include="chunk.h" />
+    <ClInclude Include="vmconfig.h" />
     <ClInclude Include="gc.h" />
     <ClInclude Include="opcodes.h" />
     <ClInclude Include="platform.h" />
-    <ClInclude Include="state.h" />
     <ClInclude Include="vm.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
