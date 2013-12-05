@@ -43,6 +43,8 @@ void vmInit(vm* vm)
 	initStructVM(vm);
 	//Init garbage collector and mamory management
 	gcInit();
+	//pre load native functions in global namespace
+	nativeInit(vm);
 }
 
 //Get pointer to sub functions
@@ -162,7 +164,7 @@ u08 vmRun(vm* vm)
 	u08 a = 0;
 	u08 b = 0;
 	u08 c = 0;
-	u16 bx = 0;
+	s16 bx = 0;
 	u16 constpt = 0;
 	u08 type;
 	u08 glindex;
@@ -187,8 +189,14 @@ u08 vmRun(vm* vm)
 
 		switch(opcode)
 		{ 
+
+		case OP_MOVE: //copy R(A) = R(B)
+			curstate->reg[a].type = curstate->reg[b].type;
+			curstate->reg[a].numval = curstate->reg[b].numval;
+			break;
+
 		case OP_CLOSURE: //Create closure and put it into R(A)
-			curstate->reg[a].type = VAR_FILE_POINTER;
+			curstate->reg[a].type = VAR_FILE_POINTER_FUNC;
 			curstate->reg[a].numval = getFuncPt(curstate->funcp, bx);
 			break;
 
@@ -243,7 +251,7 @@ u08 vmRun(vm* vm)
 				break;
 
 			case STRING_TYPE:
-				curstate->reg[a].type = VAR_FILE_POINTER;
+				curstate->reg[a].type = VAR_FILE_POINTER_STR;
 				curstate->reg[a].numval = constpt;
 				break;
 
@@ -255,25 +263,34 @@ u08 vmRun(vm* vm)
 			break;
 
 		case OP_CALL: //A B C	R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
-			//save next pc instruction address to the stack
-			vm->pcstack[vm->pcstackpt++] = vm->pc;
-			//set pc = call function address
-			//TODO: check reg type
-			vm->pc = curstate->reg[a].numval;
+			if(curstate->reg[a].type == VAR_NATIVE_FUNC)
+			{//native function call
+				nativeCall(vm, a, b, c);
+			}
+			else
+			{//lua function call
 
-			//prepare state
-			vm->statept++;
-			//get code size function
-			codesize = platformReadDWord(vm->pc); 
-			vm->pc += 4;
-			vm->state[vm->statept].constp = vm->pc + codesize * 4;
-			vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
-			//copy args to the new state
-			//TODO: support copy all values on the top of the stack (b=0)
-			for(int i=0; i<b-1 && b!=0; i++)
-			{
-				vm->state[vm->statept].reg[i].type   = vm->state[vm->statept-1].reg[a+1+i].type;
-				vm->state[vm->statept].reg[i].numval = vm->state[vm->statept-1].reg[a+1+i].numval;
+				//save next pc instruction address to the stack
+				vm->pcstack[vm->pcstackpt++] = vm->pc;
+				//set pc = call function address
+				//TODO: check reg type
+				vm->pc = curstate->reg[a].numval;
+
+				//prepare state
+				vm->statept++;
+				//get code size function
+				codesize = platformReadDWord(vm->pc); 
+				vm->pc += 4;
+				vm->state[vm->statept].constp = vm->pc + codesize * 4;
+				vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
+				//copy args to the new state
+				//TODO: support copy all values on the top of the stack (b=0)
+				for(int i=0; i<b-1 && b!=0; i++)
+				{
+					vm->state[vm->statept].reg[i].type   = vm->state[vm->statept-1].reg[a+1+i].type;
+					vm->state[vm->statept].reg[i].numval = vm->state[vm->statept-1].reg[a+1+i].numval;
+				}
+
 			}
 			break;
 
@@ -324,6 +341,23 @@ u08 vmRun(vm* vm)
 		case OP_POW://	A B C	R(A) := RK(B) ^ RK(C)
 			curstate->reg[a].type = VAR_FLOAT;
 			curstate->reg[a].floatval = pow(curstate->reg[b].floatval , curstate->reg[c].floatval);
+			break;
+		
+		//execution logic functions
+		//FOR LOOPS
+		case OP_FORPREP:
+			//TODO: add checking numeric types in for loops variables
+			curstate->reg[a+3].type = VAR_FLOAT;
+			curstate->reg[a].floatval -= curstate->reg[a+2].floatval;
+			vm->pc += (bx+1)*4; //TODO: why +1???
+			break;
+		case OP_FORLOOP:
+			curstate->reg[a].floatval += curstate->reg[a+2].floatval; //add step
+			if(curstate->reg[a].floatval <= curstate->reg[a+1].floatval) //check limit
+			{
+				curstate->reg[a+3].floatval = curstate->reg[a].floatval;
+				vm->pc += (bx+1)*4; //TODO: why +1???
+			}
 			break;
 
 		default:

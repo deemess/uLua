@@ -1,0 +1,97 @@
+Pos   Hex Data           Description or Code
+------------------------------------------------------------------------
+0000                     ** source chunk: for_table_function_test.luc
+                         ** global header start **
+0000  1B4C7561           header signature: "\27Lua"
+0004  51                 version (major:minor hex digits)
+0005  00                 format (0=official)
+0006  01                 endianness (1=little endian)
+0007  04                 size of int (bytes)
+0008  04                 size of size_t (bytes)
+0009  04                 size of Instruction (bytes)
+000A  08                 size of number (bytes)
+000B  00                 integral (1=integral)
+                         * number type: double
+                         * x86 standard (32-bit, little endian, doubles)
+                         ** global header end **
+                         
+000C                     ** function [0] definition (level 1)
+                         ** start of function **
+000C  00000000           string size (0)
+                         source name: (none)
+0010  00000000           line defined (0)
+0014  00000000           last line defined (0)
+0018  00                 nups (0)
+0019  00                 numparams (0)
+001A  02                 is_vararg (2)
+001B  06                 maxstacksize (6)
+                         * code:
+001C  0F000000           sizecode (15)
+0020  0A000000           [01] newtable   0   0   0    ; array=0, hash=0
+0024  41000000           [02] loadk      1   0        ; 1
+0028  81400000           [03] loadk      2   1        ; 10
+002C  C1000000           [04] loadk      3   0        ; 1
+0030  60C00080           [05] forprep    1   4        ; to [10]
+0034  64010000           [06] closure    5   0        ; 1 upvalues
+0038  00000002           [07] move       0   4      
+003C  09400102           [08] settable   0   4   5  
+0040  23010000           [09] close      4  
+0044  5F80FE7F           [10] forloop    1   -5       ; to [6] if loop
+0048  45800000           [11] getglobal  1   2        ; print
+004C  86C04000           [12] gettable   2   0   259  ; 5
+0050  9C008000           [13] call       2   1   0  
+0054  5C400000           [14] call       1   0   1  
+0058  1E008000           [15] return     0   1      
+                         * constants:
+005C  04000000           sizek (4)
+0060  03                 const type 3
+0061  000000000000F03F   const [0]: (1)
+0069  03                 const type 3
+006A  0000000000002440   const [1]: (10)
+0072  04                 const type 4
+0073  06000000           string size (6)
+0077  7072696E7400       "print\0"
+                         const [2]: "print"
+007D  03                 const type 3
+007E  0000000000001440   const [3]: (5)
+                         * functions:
+0086  01000000           sizep (1)
+                         
+008A                     ** function [0] definition (level 2)
+                         ** start of function **
+008A  00000000           string size (0)
+                         source name: (none)
+008E  03000000           line defined (3)
+0092  03000000           last line defined (3)
+0096  01                 nups (1)
+0097  00                 numparams (0)
+0098  00                 is_vararg (0)
+0099  02                 maxstacksize (2)
+                         * code:
+009A  03000000           sizecode (3)
+009E  04000000           [1] getupval   0   0      
+00A2  1E000001           [2] return     0   2      
+00A6  1E008000           [3] return     0   1      
+                         * constants:
+00AA  00000000           sizek (0)
+                         * functions:
+00AE  00000000           sizep (0)
+                         * lines:
+00B2  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+00B6  00000000           sizelocvars (0)
+                         * upvalues:
+00BA  00000000           sizeupvalues (0)
+                         ** end of function **
+
+                         * lines:
+00BE  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+00C2  00000000           sizelocvars (0)
+                         * upvalues:
+00C6  00000000           sizeupvalues (0)
+                         ** end of function **
+
+00CA                     ** end of chunk **

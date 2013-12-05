@@ -30,6 +30,9 @@
     <ClCompile Include="table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="native.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basetypes.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

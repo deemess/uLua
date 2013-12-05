@@ -2,6 +2,7 @@
 #include "platform.h"
 #include "vm.h"
 #include "gc.h"
+#include <stdio.h>
 
 void testGC()
 {
@@ -26,17 +27,26 @@ void testGC()
 	gcDump();
 }
 
-int main()
+int main(int argc, char **argv)
 {
+	if(argc < 2) 
+	{
+		printf("Usage: \n");
+		printf("uLua file.luc");
+		return 1;
+	}
+
 	vm thread;
 
-	platformInit();
+	platformInit(argv[1]);
 	vmInit(&thread);
 
 	//tests
-	testGC();
+	//testGC();
 
 	vmRun(&thread);
+
+	//gcDump();
 
 	return 0;
 }

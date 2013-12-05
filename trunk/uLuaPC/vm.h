@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "opcodes.h"
 #include "gc.h"
+#include "native.h"
 
 #define NULL_TYPE	0x00
 #define BOOL_TYPE	0x01
@@ -15,8 +16,6 @@
 //exported functions
 void vmInit(vm* vm);
 u08 vmRun(vm* vm);
-
-
 
 
 #endif

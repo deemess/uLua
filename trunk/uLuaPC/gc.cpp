@@ -34,7 +34,8 @@ gcvarpt* gcNew(vartype type)
 	case VAR_STRING:
 		size = 0;//empty string
 		break;
-	case VAR_FILE_POINTER:
+	case VAR_FILE_POINTER_FUNC:
+	case VAR_FILE_POINTER_STR:
 		size = 4;//u32 - point to some address in the source byte code
 		break;
 	case VAR_NULL:
@@ -127,6 +128,10 @@ void gcDelete(gcvarpt* variable)
 void gcDump()
 {
 	platformPrintf("Dumping memory: size=%d, address=%d\n", GC_SIZE, &memory);
+	u16 constpt;
+	u32 size;
+	u08* name;
+
 	for(int i=0; i<GC_VAR_PT_SIZE; i++)
 	{
 		if(vars[i] == NULL)
@@ -145,7 +150,13 @@ void gcDump()
 		case VAR_STRING:
 			platformPrintf("VAR_STRING: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, vars[i]->data);
 			break;
-		case VAR_FILE_POINTER:
+		case VAR_FILE_POINTER_STR:
+			constpt = GCVALUE(u16, &vars[i]);
+			size = platformReadDWord(constpt); constpt += 4;
+			name = platformReadBuffer(constpt, size);
+			platformPrintf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, name);
+			break;
+		case VAR_FILE_POINTER_FUNC:
 			platformPrintf("VAR_FILE_POINTER: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
 			break;
 		case VAR_NULL:
