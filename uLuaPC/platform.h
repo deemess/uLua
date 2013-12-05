@@ -3,7 +3,7 @@
 
 #include "basetypes.h"
 
-void platformInit();
+void platformInit(void* arg);
 u08 platformReadByte(u16 offset);
 u16 platformReadWord(u16 offset);
 u32 platformReadDWord(u16 offset);

@@ -41,6 +41,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -62,18 +63,27 @@
   <ItemGroup>
     <ClCompile Include="gc.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="native.cpp" />
     <ClCompile Include="platform_PC.cpp" />
     <ClCompile Include="table.cpp" />
     <ClCompile Include="vm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basetypes.h" />
+    <ClInclude Include="native.h" />
     <ClInclude Include="table.h" />
     <ClInclude Include="vmconfig.h" />
     <ClInclude Include="gc.h" />
     <ClInclude Include="opcodes.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="vm.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

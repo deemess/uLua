@@ -15,9 +15,10 @@ void platformPrintf(const char* text, ...)
     va_end(argptr);
 }
 
-void platformInit()
+void platformInit(void* arg)
 {
-	file = fopen("..\\test\\functest.luc", "r");
+	//file = fopen("..\\test\\functest.luc", "r");
+	file = fopen((char*)arg, "r");
 	fread(buffer, 1, 1024*1024, file);
 	curpos = 0;
 }

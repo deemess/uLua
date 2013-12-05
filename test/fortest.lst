@@ -1,0 +1,60 @@
+Pos   Hex Data           Description or Code
+------------------------------------------------------------------------
+0000                     ** source chunk: fortest.luc
+                         ** global header start **
+0000  1B4C7561           header signature: "\27Lua"
+0004  51                 version (major:minor hex digits)
+0005  00                 format (0=official)
+0006  01                 endianness (1=little endian)
+0007  04                 size of int (bytes)
+0008  04                 size of size_t (bytes)
+0009  04                 size of Instruction (bytes)
+000A  08                 size of number (bytes)
+000B  00                 integral (1=integral)
+                         * number type: double
+                         * x86 standard (32-bit, little endian, doubles)
+                         ** global header end **
+                         
+000C                     ** function [0] definition (level 1)
+                         ** start of function **
+000C  00000000           string size (0)
+                         source name: (none)
+0010  00000000           line defined (0)
+0014  00000000           last line defined (0)
+0018  00                 nups (0)
+0019  00                 numparams (0)
+001A  02                 is_vararg (2)
+001B  06                 maxstacksize (6)
+                         * code:
+001C  09000000           sizecode (9)
+0020  01000000           [1] loadk      0   0        ; 1
+0024  41400000           [2] loadk      1   1        ; 10
+0028  81000000           [3] loadk      2   0        ; 1
+002C  20800080           [4] forprep    0   3        ; to [8]
+0030  05810000           [5] getglobal  4   2        ; print
+0034  40018001           [6] move       5   3      
+0038  1C410001           [7] call       4   2   1  
+003C  1FC0FE7F           [8] forloop    0   -4       ; to [5] if loop
+0040  1E008000           [9] return     0   1      
+                         * constants:
+0044  03000000           sizek (3)
+0048  03                 const type 3
+0049  000000000000F03F   const [0]: (1)
+0051  03                 const type 3
+0052  0000000000002440   const [1]: (10)
+005A  04                 const type 4
+005B  06000000           string size (6)
+005F  7072696E7400       "print\0"
+                         const [2]: "print"
+                         * functions:
+0065  00000000           sizep (0)
+                         * lines:
+0069  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+006D  00000000           sizelocvars (0)
+                         * upvalues:
+0071  00000000           sizeupvalues (0)
+                         ** end of function **
+
+0075                     ** end of chunk **
