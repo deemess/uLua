@@ -1,9 +1,36 @@
--- for test
-for i = 1, 10, 1 do
+--load nil test
+function loadtest()
+	local a,b,c,d,e = nil,nil,0
+	local aa,bb = true,false
+	print(a,b,c)
+	print(aa,bb)
+end
+loadtest()
+
+-- for loop test
+for i = 1, 3, 1 do
 	print(i)
 end 
 
--- func test
+for i = 3, 1, -1 do
+	print(i)
+end 
+
+-- upvalue test
+function newCounter ()
+	local i = 0
+	return function ()   -- anonymous function
+			i = i + 1
+			return i
+		end
+end
+c1 = newCounter()
+print(c1())  --> 1
+print(c1())  --> 2
+print(c1())  --> 3
+
+
+-- function call test
 function func1(par1,par2)
 	local local1 = par1 + par2
 	return local1
