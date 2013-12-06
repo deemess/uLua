@@ -32,38 +32,38 @@ void nativePrint(vm* vm, u08 a, u08 b, u08 c)
 		switch(reg.type)
 		{
 			case VAR_BOOLEAN:
-				if(reg.numval == TRUE) platformPrintf("TRUE"); else platformPrintf("FALSE");
+				if(reg.numval == TRUE) platformPrintf("true\t"); else platformPrintf("false\t");
 				break;
 
 			case VAR_NUMBER:
-				platformPrintf("%d", reg.numval);
+				platformPrintf("%d\t", reg.numval);
 				break;
 
 			case VAR_FLOAT:
-				platformPrintf("%f", reg.floatval);
+				platformPrintf("%f\t", reg.floatval);
 				break;
 
 			case VAR_STRING:
-				platformPrintf("%s", (char*)reg.numval);
+				platformPrintf("%s\t", (char*)reg.numval);
 				break;
 
 			case VAR_NULL:
-				platformPrintf("Nil");
+				platformPrintf("nil\t");
 				break;
 
 			case VAR_FILE_POINTER_FUNC:
-				platformPrintf("luc function at %d", reg.numval);
+				platformPrintf("luc function at %d\t", reg.numval);
 				break;
 
 			case VAR_FILE_POINTER_STR:
 				constpt = reg.numval;
 				size = platformReadDWord(constpt); constpt += 4;
 				name = platformReadBuffer(constpt, size);
-				platformPrintf("%s", name);
+				platformPrintf("%s\t", name);
 				break;
 
 			case VAR_TABLE:
-				platformPrintf("Table{}");
+				platformPrintf("Table{}\t");
 				break;
 		}
 	}

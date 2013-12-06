@@ -12,6 +12,10 @@ static void initStructState(vmstate* state)
 		state->reg[i].numval = 0;
 	}
 
+	for(int i=0; i<UPVALUESIZE; i++) {
+		state->upval[i].type = VAR_NULL;
+		state->upval[i].numval = 0;
+	}
 }
 
 void initStructVM(vm* vm)
@@ -235,6 +239,16 @@ u08 vmRun(vm* vm)
 			curstate->reg[a].numval = vm->global[glindex].val.numval;
 			break;
 
+		case OP_GETUPVAL: //R(A) := UpValue[B]
+			curstate->reg[a].type = curstate->upval[b].type;
+			curstate->reg[a].numval = curstate->upval[b].numval;
+			break;
+
+		case OP_SETUPVAL: //UpValue[B] := R(A)
+			curstate->upval[b].type = curstate->reg[a].type;
+			curstate->upval[b].numval = curstate->reg[a].numval;
+			break;
+
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
 			constpt = getConstPt(curstate->constp, bx);
 			type = platformReadByte(constpt++);
@@ -260,6 +274,22 @@ u08 vmRun(vm* vm)
 				curstate->reg[a].type = VAR_NULL;
 				break;
 			}
+			break;
+
+		
+		case OP_LOADNIL: //R(A) := ... := R(B) := nil
+			for(u08 i=a; i<=b; i++)
+			{
+				curstate->reg[i].type = VAR_NULL;
+				curstate->reg[i].numval = 0;
+			}
+			break;
+
+		case OP_LOADBOOL:
+			curstate->reg[a].type = VAR_BOOLEAN;
+			curstate->reg[a].numval = b;
+			if(c > 0) //skip instruction
+				vm->pc += 4;
 			break;
 
 		case OP_CALL: //A B C	R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
@@ -353,7 +383,12 @@ u08 vmRun(vm* vm)
 			break;
 		case OP_FORLOOP:
 			curstate->reg[a].floatval += curstate->reg[a+2].floatval; //add step
-			if(curstate->reg[a].floatval <= curstate->reg[a+1].floatval) //check limit
+			
+			if( //check limit
+				((curstate->reg[a+2].floatval < 0) && (curstate->reg[a].floatval >= curstate->reg[a+1].floatval))
+				||
+				((curstate->reg[a+2].floatval >= 0) && (curstate->reg[a].floatval <= curstate->reg[a+1].floatval))
+			) 
 			{
 				curstate->reg[a+3].floatval = curstate->reg[a].floatval;
 				vm->pc += (bx+1)*4; //TODO: why +1???

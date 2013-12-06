@@ -53,11 +53,13 @@ struct vmglobal {
 };
 
 struct vmstate {
-	u16 constp; //pointer to constants for the current functino
+	u16 constp; //pointer to constants for the current function
 	u16 funcp; //pointer to subfunctions in the current function
 	
 	//registers
 	vmregister reg[REGISTERSIZE];
+	//upvalues registers
+	vmregister upval[UPVALUESIZE];
 };
 
 //virtual machine single thread main structure

@@ -16,6 +16,7 @@
 #define DEBUGVM //comment it out to optimize code
 #define PCSTACKSIZE 32
 #define REGISTERSIZE 32
+#define UPVALUESIZE 32
 #define GLOBALSIZE 32
 #define GLOBALNAMESIZE 32
 #define STATEMAXCOUNT 32
