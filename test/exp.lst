@@ -1,0 +1,204 @@
+Pos   Hex Data           Description or Code
+------------------------------------------------------------------------
+0000                     ** source chunk: exp.luc
+                         ** global header start **
+0000  1B4C7561           header signature: "\27Lua"
+0004  51                 version (major:minor hex digits)
+0005  00                 format (0=official)
+0006  01                 endianness (1=little endian)
+0007  04                 size of int (bytes)
+0008  04                 size of size_t (bytes)
+0009  04                 size of Instruction (bytes)
+000A  08                 size of number (bytes)
+000B  00                 integral (1=integral)
+                         * number type: double
+                         * x86 standard (32-bit, little endian, doubles)
+                         ** global header end **
+                         
+000C                     ** function [0] definition (level 1)
+                         ** start of function **
+000C  00000000           string size (0)
+                         source name: (none)
+0010  00000000           line defined (0)
+0014  00000000           last line defined (0)
+0018  00                 nups (0)
+0019  00                 numparams (0)
+001A  02                 is_vararg (2)
+001B  05                 maxstacksize (5)
+                         * code:
+001C  16000000           sizecode (22)
+0020  01400000           [01] loadk      0   1        ; 100
+0024  07000000           [02] setglobal  0   0        ; explim
+0028  01C00000           [03] loadk      0   3        ; 1e-006
+002C  07800000           [04] setglobal  0   2        ; step
+0030  24000000           [05] closure    0   0        ; 0 upvalues
+0034  07000100           [06] setglobal  0   4        ; myexp
+0038  24400000           [07] closure    0   1        ; 0 upvalues
+003C  07400100           [08] setglobal  0   5        ; integrate
+0040  05800100           [09] getglobal  0   6        ; print
+0044  41C00100           [10] loadk      1   7        ; "exponent( 1.0)="
+0048  85000100           [11] getglobal  2   4        ; myexp
+004C  C1000200           [12] loadk      3   8        ; 1
+0050  9C000001           [13] call       2   2   0  
+0054  1C400000           [14] call       0   0   1  
+0058  05800100           [15] getglobal  0   6        ; print
+005C  41400200           [16] loadk      1   9        ; "integral(0..1)="
+0060  85400100           [17] getglobal  2   5        ; integrate
+0064  C1800200           [18] loadk      3   10       ; 0
+0068  01010200           [19] loadk      4   8        ; 1
+006C  9C008001           [20] call       2   3   0  
+0070  1C400000           [21] call       0   0   1  
+0074  1E008000           [22] return     0   1      
+                         * constants:
+0078  0B000000           sizek (11)
+007C  04                 const type 4
+007D  07000000           string size (7)
+0081  6578706C696D00     "explim\0"
+                         const [0]: "explim"
+0088  03                 const type 3
+0089  0000000000005940   const [1]: (100)
+0091  04                 const type 4
+0092  05000000           string size (5)
+0096  7374657000         "step\0"
+                         const [2]: "step"
+009B  03                 const type 3
+009C  8DEDB5A0F7C6B03E   const [3]: (1e-006)
+00A4  04                 const type 4
+00A5  06000000           string size (6)
+00A9  6D7965787000       "myexp\0"
+                         const [4]: "myexp"
+00AF  04                 const type 4
+00B0  0A000000           string size (10)
+00B4  696E746567726174+  "integrat"
+00BC  6500               "e\0"
+                         const [5]: "integrate"
+00BE  04                 const type 4
+00BF  06000000           string size (6)
+00C3  7072696E7400       "print\0"
+                         const [6]: "print"
+00C9  04                 const type 4
+00CA  10000000           string size (16)
+00CE  6578706F6E656E74+  "exponent"
+00D6  2820312E30293D00   "( 1.0)=\0"
+                         const [7]: "exponent( 1.0)="
+00DE  03                 const type 3
+00DF  000000000000F03F   const [8]: (1)
+00E7  04                 const type 4
+00E8  10000000           string size (16)
+00EC  696E74656772616C+  "integral"
+00F4  28302E2E31293D00   "(0..1)=\0"
+                         const [9]: "integral(0..1)="
+00FC  03                 const type 3
+00FD  0000000000000000   const [10]: (0)
+                         * functions:
+0105  02000000           sizep (2)
+                         
+0109                     ** function [0] definition (level 2)
+                         ** start of function **
+0109  00000000           string size (0)
+                         source name: (none)
+010D  04000000           line defined (4)
+0111  11000000           last line defined (17)
+0115  00                 nups (0)
+0116  01                 numparams (1)
+0117  00                 is_vararg (0)
+0118  0A                 maxstacksize (10)
+                         * code:
+0119  10000000           sizecode (16)
+011D  41000000           [01] loadk      1   0        ; 0
+0121  81400000           [02] loadk      2   1        ; 1
+0125  C1400000           [03] loadk      3   1        ; 1
+0129  03010002           [04] loadnil    4   4      
+012D  41410000           [05] loadk      5   1        ; 1
+0131  85810000           [06] getglobal  6   2        ; explim
+0135  C1410000           [07] loadk      7   1        ; 1
+0139  60C10080           [08] forprep    5   4        ; to [13]
+013D  8E000201           [09] mul        2   2   8  
+0141  CE008001           [10] mul        3   3   0  
+0145  4F828001           [11] div        9   3   2  
+0149  4C408200           [12] add        1   1   9  
+014D  5F81FE7F           [13] forloop    5   -5       ; to [9] if loop
+0151  4C41C000           [14] add        5   1   257  ; 1
+0155  5E010001           [15] return     5   2      
+0159  1E008000           [16] return     0   1      
+                         * constants:
+015D  03000000           sizek (3)
+0161  03                 const type 3
+0162  0000000000000000   const [0]: (0)
+016A  03                 const type 3
+016B  000000000000F03F   const [1]: (1)
+0173  04                 const type 4
+0174  07000000           string size (7)
+0178  6578706C696D00     "explim\0"
+                         const [2]: "explim"
+                         * functions:
+017F  00000000           sizep (0)
+                         * lines:
+0183  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+0187  00000000           sizelocvars (0)
+                         * upvalues:
+018B  00000000           sizeupvalues (0)
+                         ** end of function **
+
+                         
+018F                     ** function [1] definition (level 2)
+                         ** start of function **
+018F  00000000           string size (0)
+                         source name: (none)
+0193  13000000           line defined (19)
+0197  1B000000           last line defined (27)
+019B  00                 nups (0)
+019C  02                 numparams (2)
+019D  00                 is_vararg (0)
+019E  05                 maxstacksize (5)
+                         * code:
+019F  0E000000           sizecode (14)
+01A3  81000000           [01] loadk      2   0        ; 0
+01A7  18400000           [02] lt         0   0   1    ; to [4] if true
+01AB  16000280           [03] jmp        9            ; to [13]
+01AF  C5400000           [04] getglobal  3   1        ; myexp
+01B3  00010000           [05] move       4   0      
+01B7  DC800001           [06] call       3   2   2  
+01BB  05810000           [07] getglobal  4   2        ; step
+01BF  CE008101           [08] mul        3   3   4  
+01C3  8CC00001           [09] add        2   2   3  
+01C7  C5800000           [10] getglobal  3   2        ; step
+01CB  0CC00000           [11] add        0   0   3  
+01CF  1600FD7F           [12] jmp        -11          ; to [2]
+01D3  9E000001           [13] return     2   2      
+01D7  1E008000           [14] return     0   1      
+                         * constants:
+01DB  03000000           sizek (3)
+01DF  03                 const type 3
+01E0  0000000000000000   const [0]: (0)
+01E8  04                 const type 4
+01E9  06000000           string size (6)
+01ED  6D7965787000       "myexp\0"
+                         const [1]: "myexp"
+01F3  04                 const type 4
+01F4  05000000           string size (5)
+01F8  7374657000         "step\0"
+                         const [2]: "step"
+                         * functions:
+01FD  00000000           sizep (0)
+                         * lines:
+0201  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+0205  00000000           sizelocvars (0)
+                         * upvalues:
+0209  00000000           sizeupvalues (0)
+                         ** end of function **
+
+                         * lines:
+020D  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+0211  00000000           sizelocvars (0)
+                         * upvalues:
+0215  00000000           sizeupvalues (0)
+                         ** end of function **
+
+0219                     ** end of chunk **

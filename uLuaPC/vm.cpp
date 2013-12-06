@@ -149,6 +149,34 @@ u08 getGlobalByName(vm* vm, u08* name)
 	return foundGlobal;
 }
 
+//compare values in register a and b. return:  0: a!=b   1: a=b  -1: a>b  -2: a<b 
+s08 compare(vmregister* a, vmregister* b)
+{
+	if(a->type != b->type)
+		return 0;
+
+	if(a->numval == b->numval)
+		return 1;
+
+	if(a->type == VAR_FLOAT)
+	{ 
+		if(a->floatval > b->floatval)
+			return -1;
+		if(a->floatval < b->floatval)
+			return -2;
+	}
+
+	if(a->type == VAR_NUMBER)
+	{ 
+		if(a->numval > b->numval)
+			return -1;
+		if(a->numval < b->numval)
+			return -2;
+	}
+
+	return 0;
+}
+
 u08 vmRun(vm* vm)
 {
 	//vmstate* state = &vm->state[0];
@@ -297,7 +325,7 @@ u08 vmRun(vm* vm)
 			{//native function call
 				nativeCall(vm, a, b, c);
 			}
-			else
+			else if(curstate->reg[a].type == VAR_FILE_POINTER_FUNC)
 			{//lua function call
 
 				//save next pc instruction address to the stack
@@ -321,6 +349,10 @@ u08 vmRun(vm* vm)
 					vm->state[vm->statept].reg[i].numval = vm->state[vm->statept-1].reg[a+1+i].numval;
 				}
 
+			} else {
+#ifdef DEBUGVM
+				platformPrintf("VM: Cant make CALL. Got non function pointer at %d. Type: %d Numval: %d Floatval: %f\n", vm->pc-4, curstate->reg[a].type, curstate->reg[a].numval, curstate->reg[a].floatval);
+#endif
 			}
 			break;
 
@@ -394,9 +426,37 @@ u08 vmRun(vm* vm)
 				vm->pc += (bx+1)*4; //TODO: why +1???
 			}
 			break;
+		//jumps and condition jumps
+		case OP_JMP: //	sBx	pc+=sBx	
+			vm->pc += bx*4;
+			break;
+		case OP_EQ: //	A B C	if ((RK(B) == RK(C)) ~= A) then pc++
+			if((compare(&curstate->reg[b], &curstate->reg[c]) == 1) != a)
+			{
+				vm->pc += 4;
+			}
+			break;
+		case OP_LT: //	A B C	if ((RK(B) <  RK(C)) ~= A) then pc++
+			if((compare(&curstate->reg[b], &curstate->reg[c]) == -2) != a)
+			{
+				vm->pc += 4;
+			}
+			break;
+		case OP_LE: //	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++
+			if((compare(&curstate->reg[b], &curstate->reg[c]) == -2 || compare(&curstate->reg[b], &curstate->reg[c]) == 0) != a)
+			{
+				vm->pc += 4;
+			}
+			break;
+
+
 
 		default:
-			return 1;//TODO: unknown instruction
+#ifdef DEBUGVM
+			platformPrintf("VM: Unknown opcode %d at %d\n", opcode, vm->pc-4);
+#endif
+			break;
+			//return 1;//TODO: unknown instruction
 		}
 
 	}
