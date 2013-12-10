@@ -341,6 +341,7 @@ u08 vmRun(vm* vm)
 				vm->pc += 4;
 				vm->state[vm->statept].constp = vm->pc + codesize * 4;
 				vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
+				vm->state[vm->statept].retreg = a;
 				//copy args to the new state
 				//TODO: support copy all values on the top of the stack (b=0)
 				for(int i=0; i<b-1 && b!=0; i++)
@@ -351,7 +352,7 @@ u08 vmRun(vm* vm)
 
 			} else {
 #ifdef DEBUGVM
-				platformPrintf("VM: Cant make CALL. Got non function pointer at %d. Type: %d Numval: %d Floatval: %f\n", vm->pc-4, curstate->reg[a].type, curstate->reg[a].numval, curstate->reg[a].floatval);
+				platformPrintf("VM: Cant make CALL. Got non function pointer at %#x. Type: %d Numval: %d Floatval: %f\n", vm->pc-4, curstate->reg[a].type, curstate->reg[a].numval, curstate->reg[a].floatval);
 #endif
 			}
 			break;
@@ -371,14 +372,14 @@ u08 vmRun(vm* vm)
 				//TODO: support return top of the stack (b=0)
 				for(int i=0; i<b-1 && b!=0; i++)
 				{
-					vm->state[vm->statept].reg[i].type   = vm->state[vm->statept+1].reg[a+i].type;
-					vm->state[vm->statept].reg[i].numval = vm->state[vm->statept+1].reg[a+i].numval;
+					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].type   = vm->state[vm->statept+1].reg[a+i].type;
+					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].numval = vm->state[vm->statept+1].reg[a+i].numval;
 				}
 			}
 			break;
 
 		//mathematic function
-		//TODO: string support
+		//TODO: string support ?? seems not
 		//TODO: check types and nulls
 		case OP_ADD://	A B C	R(A) := RK(B) + RK(C)
 			curstate->reg[a].type = VAR_FLOAT;
@@ -453,7 +454,7 @@ u08 vmRun(vm* vm)
 
 		default:
 #ifdef DEBUGVM
-			platformPrintf("VM: Unknown opcode %d at %d\n", opcode, vm->pc-4);
+			platformPrintf("VM: Unknown opcode %d at %#x\n", opcode, vm->pc-4);
 #endif
 			break;
 			//return 1;//TODO: unknown instruction

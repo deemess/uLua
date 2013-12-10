@@ -55,7 +55,8 @@ struct vmglobal {
 struct vmstate {
 	u16 constp; //pointer to constants for the current function
 	u16 funcp; //pointer to subfunctions in the current function
-	
+	u08 retreg; //return register pointer to store function call result
+
 	//registers
 	vmregister reg[REGISTERSIZE];
 	//upvalues registers

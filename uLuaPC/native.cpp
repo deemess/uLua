@@ -1,8 +1,8 @@
 #include "native.h"
 
-//////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 //Native functions
-//////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 //with register R(A) holding the reference to the
 //function object to be called. Parameters to the function are placed in the
 //registers following R(A). If B is 1, the function has no parameters. If B is 2
@@ -17,61 +17,68 @@
 //(C-1) return values are saved. If C is 0, th
 
 
-//native print(..) function
-void nativePrint(vm* vm, u08 a, u08 b, u08 c)
+void printRegister(vmregister reg)
 {
 	u16 constpt;
 	u32 size;
 	u08* name;
+	switch(reg.type)
+	{
+		case VAR_BOOLEAN:
+			if(reg.numval == TRUE) platformPrintf("true\t"); else platformPrintf("false\t");
+			break;
+
+		case VAR_NUMBER:
+			platformPrintf("%d\t", reg.numval);
+			break;
+
+		case VAR_FLOAT:
+			platformPrintf("%f\t", reg.floatval);
+			break;
+
+		case VAR_STRING:
+			platformPrintf("%s\t", (char*)reg.numval);
+			break;
+
+		case VAR_NULL:
+			platformPrintf("nil\t");
+			break;
+
+		case VAR_FILE_POINTER_FUNC:
+			platformPrintf("luc function at %d\t", reg.numval);
+			break;
+
+		case VAR_FILE_POINTER_STR:
+			constpt = reg.numval;
+			size = platformReadDWord(constpt); constpt += 4;
+			name = platformReadBuffer(constpt, size);
+			platformPrintf("%s\t", name);
+			break;
+
+		case VAR_TABLE:
+			platformPrintf("Table{}\t");
+			break;
+	}
+}
+
+//native print(..) function
+void nativePrint(vm* vm, u08 a, u08 b, u08 c)
+{
 
 	//print all variables
 	for(u08 i=0; i<b-1; i++)
 	{
 		vmregister reg = vm->state[vm->statept].reg[a+1+i];
-
-		switch(reg.type)
-		{
-			case VAR_BOOLEAN:
-				if(reg.numval == TRUE) platformPrintf("true\t"); else platformPrintf("false\t");
-				break;
-
-			case VAR_NUMBER:
-				platformPrintf("%d\t", reg.numval);
-				break;
-
-			case VAR_FLOAT:
-				platformPrintf("%f\t", reg.floatval);
-				break;
-
-			case VAR_STRING:
-				platformPrintf("%s\t", (char*)reg.numval);
-				break;
-
-			case VAR_NULL:
-				platformPrintf("nil\t");
-				break;
-
-			case VAR_FILE_POINTER_FUNC:
-				platformPrintf("luc function at %d\t", reg.numval);
-				break;
-
-			case VAR_FILE_POINTER_STR:
-				constpt = reg.numval;
-				size = platformReadDWord(constpt); constpt += 4;
-				name = platformReadBuffer(constpt, size);
-				platformPrintf("%s\t", name);
-				break;
-
-			case VAR_TABLE:
-				platformPrintf("Table{}\t");
-				break;
-		}
+		printRegister(reg);
 	}
+
+	if(b==0)
+		printRegister(vm->state[vm->statept].reg[a+1]);
 
 	platformPrintf("\n");
 }
 
-//////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 
 

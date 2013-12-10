@@ -1,9 +1,9 @@
 #include "gc.h"
 
 //global variables for gc
-u08 memory[GC_SIZE];
-gcvarpt vars[GC_VAR_PT_SIZE];
-u08 freePt;
+u08 memory[GC_SIZE]; //gc heap
+gcvarpt vars[GC_VAR_PT_SIZE];//gc pointers to the heap
+u08 freePt;//free pointer in vars[]
 
 //initialize garbage collector and memory management
 void gcInit()

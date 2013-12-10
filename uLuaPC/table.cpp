@@ -43,7 +43,7 @@ void tablePut(gcvarpt* table, vmregister* key, vmregister* val)
 	//get table structure
 	hashtable* tb = (hashtable*)(*table)->data;
 
-	//compute hash for the key and index
+	//calculate hash for the key and index
 	u32 hashkey = getHash(key);
 	u08 keyindex = hashkey % tb->size;
 
