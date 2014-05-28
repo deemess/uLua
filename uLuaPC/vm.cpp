@@ -212,6 +212,9 @@ u08 vmRun(vm* vm)
 	u08 glindex;
 	u08* name;
 	gcvarpt* gcpointer = NULL;
+	vmregister tmp;
+	tmp.type = VAR_NULL;
+	tmp.numval = 0;
 
 	//for(u08 i=0; i<codesize; i++)
 	while(vm->status == RUN)
@@ -453,55 +456,173 @@ u08 vmRun(vm* vm)
 		//TODO: check types and nulls
 		case OP_ADD://	A B C	R(A) := RK(B) + RK(C)
 			clearRegister(&curstate->reg[a]);
+			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
+			tmp.type = VAR_FLOAT;
 
 			if(b > 255)
 			{
 				constpt = getConstPt(curstate->constp, b - 256);
 				type = platformReadByte(constpt++);
-				curstate->reg[a].floatval = platformReadNumber(constpt);
+				tmp.floatval = platformReadNumber(constpt);
 			}
 			else
 			{
-				curstate->reg[a].floatval = curstate->reg[b].floatval;
+				tmp.floatval = curstate->reg[b].floatval;
 			}
 
 			if(c > 255)
 			{
 				constpt = getConstPt(curstate->constp, c - 256);
 				type = platformReadByte(constpt++);
-				curstate->reg[a].floatval += platformReadNumber(constpt);
+				curstate->reg[a].floatval = tmp.floatval + platformReadNumber(constpt);
 			}
 			else
 			{
-				curstate->reg[a].floatval += curstate->reg[c].floatval;
+				curstate->reg[a].floatval = tmp.floatval + curstate->reg[c].floatval;
 			}
 
 			break;
 		case OP_SUB://	A B C	R(A) := RK(B) - RK(C)
 			clearRegister(&curstate->reg[a]);
+			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
-			curstate->reg[a].floatval = curstate->reg[b].floatval - curstate->reg[c].floatval;
+			tmp.type = VAR_FLOAT;
+
+			if(b > 255)
+			{
+				constpt = getConstPt(curstate->constp, b - 256);
+				type = platformReadByte(constpt++);
+				tmp.floatval = platformReadNumber(constpt);
+			}
+			else
+			{
+				tmp.floatval = curstate->reg[b].floatval;
+			}
+
+			if(c > 255)
+			{
+				constpt = getConstPt(curstate->constp, c - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval = tmp.floatval - platformReadNumber(constpt);
+			}
+			else
+			{
+				curstate->reg[a].floatval = tmp.floatval - curstate->reg[c].floatval;
+			}
+
 			break;
 		case OP_MUL://	A B C	R(A) := RK(B) * RK(C)
 			clearRegister(&curstate->reg[a]);
+			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
-			curstate->reg[a].floatval = curstate->reg[b].floatval * curstate->reg[c].floatval;
+			tmp.type = VAR_FLOAT;
+			if(b > 255)
+			{
+				constpt = getConstPt(curstate->constp, b - 256);
+				type = platformReadByte(constpt++);
+				tmp.floatval = platformReadNumber(constpt);
+			}
+			else
+			{
+				tmp.floatval = curstate->reg[b].floatval;
+			}
+
+			if(c > 255)
+			{
+				constpt = getConstPt(curstate->constp, c - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval = tmp.floatval * platformReadNumber(constpt);
+			}
+			else
+			{
+				curstate->reg[a].floatval = tmp.floatval * curstate->reg[c].floatval;
+			}
+
 			break;
 		case OP_DIV://	A B C	R(A) := RK(B) / RK(C)
 			clearRegister(&curstate->reg[a]);
+			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
-			curstate->reg[a].floatval = curstate->reg[b].floatval / curstate->reg[c].floatval;
+			tmp.type = VAR_FLOAT;
+			if(b > 255)
+			{
+				constpt = getConstPt(curstate->constp, b - 256);
+				type = platformReadByte(constpt++);
+				tmp.floatval = platformReadNumber(constpt);
+			}
+			else
+			{
+				tmp.floatval = curstate->reg[b].floatval;
+			}
+
+			if(c > 255)
+			{
+				constpt = getConstPt(curstate->constp, c - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval = tmp.floatval / platformReadNumber(constpt);
+			}
+			else
+			{
+				curstate->reg[a].floatval = tmp.floatval / curstate->reg[c].floatval;
+			}
+
 			break;
 		case OP_MOD://	A B C	R(A) := RK(B) % RK(C)
 			clearRegister(&curstate->reg[a]);
+			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
-			curstate->reg[a].floatval = fmod(curstate->reg[b].floatval, curstate->reg[c].floatval);
+			tmp.type = VAR_FLOAT;
+			if(b > 255)
+			{
+				constpt = getConstPt(curstate->constp, b - 256);
+				type = platformReadByte(constpt++);
+				tmp.floatval = platformReadNumber(constpt);
+			}
+			else
+			{
+				tmp.floatval = curstate->reg[b].floatval;
+			}
+
+			if(c > 255)
+			{
+				constpt = getConstPt(curstate->constp, c - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval = fmod(tmp.floatval, platformReadNumber(constpt));
+			}
+			else
+			{
+				curstate->reg[a].floatval = fmod(tmp.floatval, curstate->reg[c].floatval);
+			}
+
 			break;
 		case OP_POW://	A B C	R(A) := RK(B) ^ RK(C)
 			clearRegister(&curstate->reg[a]);
+			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
-			curstate->reg[a].floatval = pow(curstate->reg[b].floatval , curstate->reg[c].floatval);
+			tmp.type = VAR_FLOAT;
+			if(b > 255)
+			{
+				constpt = getConstPt(curstate->constp, b - 256);
+				type = platformReadByte(constpt++);
+				tmp.floatval = platformReadNumber(constpt);
+			}
+			else
+			{
+				tmp.floatval = curstate->reg[b].floatval;
+			}
+
+			if(c > 255)
+			{
+				constpt = getConstPt(curstate->constp, c - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval = pow(tmp.floatval, platformReadNumber(constpt));
+			}
+			else
+			{
+				curstate->reg[a].floatval = pow(tmp.floatval, curstate->reg[c].floatval);
+			}
+
 			break;
 		
 		//execution logic functions

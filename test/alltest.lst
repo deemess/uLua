@@ -85,59 +85,59 @@ Pos   Hex Data           Description or Code
 00FC  C5C00200           [056] getglobal  3   11       ; c
 0100  1C800002           [057] call       0   4   2  
 0104  07800300           [058] setglobal  0   14       ; result2
-0108  05400200           [059] getglobal  0   9        ; a
-010C  45800200           [060] getglobal  1   10       ; b
-0110  57400000           [061] eq         1   0   1    ; to [63] if false
-0114  16800080           [062] jmp        3            ; to [66]
+0108  05C00000           [059] getglobal  0   3        ; print
+010C  41C00300           [060] loadk      1   15       ; "Result1 = "
+0110  85400300           [061] getglobal  2   13       ; result1
+0114  1C408001           [062] call       0   3   1  
 0118  05C00000           [063] getglobal  0   3        ; print
-011C  41C00300           [064] loadk      1   15       ; "a != b"
-0120  1C400001           [065] call       0   2   1  
-0124  05400200           [066] getglobal  0   9        ; a
-0128  45800200           [067] getglobal  1   10       ; b
-012C  18008000           [068] lt         0   1   0    ; to [70] if true
-0130  16800080           [069] jmp        3            ; to [73]
-0134  05C00000           [070] getglobal  0   3        ; print
-0138  41000400           [071] loadk      1   16       ; "a > b"
-013C  1C400001           [072] call       0   2   1  
-0140  05400200           [073] getglobal  0   9        ; a
-0144  45800200           [074] getglobal  1   10       ; b
-0148  19008000           [075] le         0   1   0    ; to [77] if true
-014C  16800080           [076] jmp        3            ; to [80]
-0150  05C00000           [077] getglobal  0   3        ; print
-0154  41400400           [078] loadk      1   17       ; "a >= b"
-0158  1C400001           [079] call       0   2   1  
-015C  05400200           [080] getglobal  0   9        ; a
-0160  45800200           [081] getglobal  1   10       ; b
-0164  18400000           [082] lt         0   0   1    ; to [84] if true
-0168  16800080           [083] jmp        3            ; to [87]
-016C  05C00000           [084] getglobal  0   3        ; print
-0170  41800400           [085] loadk      1   18       ; "a < b"
-0174  1C400001           [086] call       0   2   1  
-0178  05400200           [087] getglobal  0   9        ; a
-017C  45800200           [088] getglobal  1   10       ; b
-0180  19400000           [089] le         0   0   1    ; to [91] if true
+011C  41000400           [064] loadk      1   16       ; "Result2 = "
+0120  85800300           [065] getglobal  2   14       ; result2
+0124  1C408001           [066] call       0   3   1  
+0128  01400400           [067] loadk      0   17       ; 2
+012C  41800400           [068] loadk      1   18       ; 4
+0130  8E400089           [069] mul        2   274 1    ; 4
+0134  8C800000           [070] add        2   0   2  
+0138  D1408088           [071] pow        3   273 1    ; 2
+013C  CFC00000           [072] div        3   0   3  
+0140  D080C001           [073] mod        3   3   258  ; 3
+0144  0DC00001           [074] sub        0   2   3  
+0148  85C00000           [075] getglobal  2   3        ; print
+014C  C1C00400           [076] loadk      3   19       ; "a + 4 * b - a / 2 ^ b % 3 = "
+0150  00010000           [077] move       4   0      
+0154  9C408001           [078] call       2   3   1  
+0158  57400000           [079] eq         1   0   1    ; to [81] if false
+015C  16800080           [080] jmp        3            ; to [84]
+0160  85C00000           [081] getglobal  2   3        ; print
+0164  C1000500           [082] loadk      3   20       ; "a != b"
+0168  9C400001           [083] call       2   2   1  
+016C  18008000           [084] lt         0   1   0    ; to [86] if true
+0170  16800080           [085] jmp        3            ; to [89]
+0174  85C00000           [086] getglobal  2   3        ; print
+0178  C1400500           [087] loadk      3   21       ; "a > b"
+017C  9C400001           [088] call       2   2   1  
+0180  19008000           [089] le         0   1   0    ; to [91] if true
 0184  16800080           [090] jmp        3            ; to [94]
-0188  05C00000           [091] getglobal  0   3        ; print
-018C  41C00400           [092] loadk      1   19       ; "a <= b"
-0190  1C400001           [093] call       0   2   1  
-0194  05400200           [094] getglobal  0   9        ; a
-0198  45800200           [095] getglobal  1   10       ; b
-019C  17400000           [096] eq         0   0   1    ; to [98] if true
-01A0  16800080           [097] jmp        3            ; to [101]
-01A4  05C00000           [098] getglobal  0   3        ; print
-01A8  41000500           [099] loadk      1   20       ; "a == b"
-01AC  1C400001           [100] call       0   2   1  
-01B0  05C00000           [101] getglobal  0   3        ; print
-01B4  41400500           [102] loadk      1   21       ; "Result1 = "
-01B8  85400300           [103] getglobal  2   13       ; result1
-01BC  1C408001           [104] call       0   3   1  
-01C0  05C00000           [105] getglobal  0   3        ; print
-01C4  41800500           [106] loadk      1   22       ; "Result2 = "
-01C8  85800300           [107] getglobal  2   14       ; result2
-01CC  1C408001           [108] call       0   3   1  
+0188  85C00000           [091] getglobal  2   3        ; print
+018C  C1800500           [092] loadk      3   22       ; "a >= b"
+0190  9C400001           [093] call       2   2   1  
+0194  18400000           [094] lt         0   0   1    ; to [96] if true
+0198  16800080           [095] jmp        3            ; to [99]
+019C  85C00000           [096] getglobal  2   3        ; print
+01A0  C1C00500           [097] loadk      3   23       ; "a < b"
+01A4  9C400001           [098] call       2   2   1  
+01A8  19400000           [099] le         0   0   1    ; to [101] if true
+01AC  16800080           [100] jmp        3            ; to [104]
+01B0  85C00000           [101] getglobal  2   3        ; print
+01B4  C1000600           [102] loadk      3   24       ; "a <= b"
+01B8  9C400001           [103] call       2   2   1  
+01BC  17400000           [104] eq         0   0   1    ; to [106] if true
+01C0  16800080           [105] jmp        3            ; to [109]
+01C4  85C00000           [106] getglobal  2   3        ; print
+01C8  C1400600           [107] loadk      3   25       ; "a == b"
+01CC  9C400001           [108] call       2   2   1  
 01D0  1E008000           [109] return     0   1      
                          * constants:
-01D4  17000000           sizek (23)
+01D4  1A000000           sizek (26)
 01D8  04                 const type 4
 01D9  09000000           string size (9)
 01DD  6C6F616474657374+  "loadtest"
@@ -193,174 +193,156 @@ Pos   Hex Data           Description or Code
 026A  726573756C743200   "result2\0"
                          const [14]: "result2"
 0272  04                 const type 4
-0273  07000000           string size (7)
-0277  6120213D206200     "a != b\0"
-                         const [15]: "a != b"
-027E  04                 const type 4
-027F  06000000           string size (6)
-0283  61203E206200       "a > b\0"
-                         const [16]: "a > b"
-0289  04                 const type 4
-028A  07000000           string size (7)
-028E  61203E3D206200     "a >= b\0"
-                         const [17]: "a >= b"
-0295  04                 const type 4
-0296  06000000           string size (6)
-029A  61203C206200       "a < b\0"
-                         const [18]: "a < b"
-02A0  04                 const type 4
-02A1  07000000           string size (7)
-02A5  61203C3D206200     "a <= b\0"
-                         const [19]: "a <= b"
-02AC  04                 const type 4
-02AD  07000000           string size (7)
-02B1  61203D3D206200     "a == b\0"
-                         const [20]: "a == b"
-02B8  04                 const type 4
-02B9  0B000000           string size (11)
-02BD  526573756C743120+  "Result1 "
-02C5  3D2000             "= \0"
-                         const [21]: "Result1 = "
-02C8  04                 const type 4
-02C9  0B000000           string size (11)
-02CD  526573756C743220+  "Result2 "
-02D5  3D2000             "= \0"
-                         const [22]: "Result2 = "
+0273  0B000000           string size (11)
+0277  526573756C743120+  "Result1 "
+027F  3D2000             "= \0"
+                         const [15]: "Result1 = "
+0282  04                 const type 4
+0283  0B000000           string size (11)
+0287  526573756C743220+  "Result2 "
+028F  3D2000             "= \0"
+                         const [16]: "Result2 = "
+0292  03                 const type 3
+0293  0000000000000040   const [17]: (2)
+029B  03                 const type 3
+029C  0000000000001040   const [18]: (4)
+02A4  04                 const type 4
+02A5  1D000000           string size (29)
+02A9  61202B2034202A20+  "a + 4 * "
+02B1  62202D2061202F20+  "b - a / "
+02B9  32205E2062202520+  "2 ^ b % "
+02C1  33203D2000         "3 = \0"
+                         const [19]: "a + 4 * b - a / 2 ^ b % 3 = "
+02C6  04                 const type 4
+02C7  07000000           string size (7)
+02CB  6120213D206200     "a != b\0"
+                         const [20]: "a != b"
+02D2  04                 const type 4
+02D3  06000000           string size (6)
+02D7  61203E206200       "a > b\0"
+                         const [21]: "a > b"
+02DD  04                 const type 4
+02DE  07000000           string size (7)
+02E2  61203E3D206200     "a >= b\0"
+                         const [22]: "a >= b"
+02E9  04                 const type 4
+02EA  06000000           string size (6)
+02EE  61203C206200       "a < b\0"
+                         const [23]: "a < b"
+02F4  04                 const type 4
+02F5  07000000           string size (7)
+02F9  61203C3D206200     "a <= b\0"
+                         const [24]: "a <= b"
+0300  04                 const type 4
+0301  07000000           string size (7)
+0305  61203D3D206200     "a == b\0"
+                         const [25]: "a == b"
                          * functions:
-02D8  04000000           sizep (4)
+030C  04000000           sizep (4)
                          
-02DC                     ** function [0] definition (level 2)
+0310                     ** function [0] definition (level 2)
                          ** start of function **
-02DC  00000000           string size (0)
+0310  00000000           string size (0)
                          source name: (none)
-02E0  02000000           line defined (2)
-02E4  07000000           last line defined (7)
-02E8  00                 nups (0)
-02E9  00                 numparams (0)
-02EA  00                 is_vararg (0)
-02EB  0B                 maxstacksize (11)
+0314  02000000           line defined (2)
+0318  07000000           last line defined (7)
+031C  00                 nups (0)
+031D  00                 numparams (0)
+031E  00                 is_vararg (0)
+031F  0B                 maxstacksize (11)
                          * code:
-02EC  0E000000           sizecode (14)
-02F0  81000000           [01] loadk      2   0        ; 0
-02F4  C3000002           [02] loadnil    3   4      
-02F8  42018000           [03] loadbool   5   1   0    ; true
-02FC  82010000           [04] loadbool   6   0   0    ; false
-0300  C5410000           [05] getglobal  7   1        ; print
-0304  00020000           [06] move       8   0      
-0308  40028000           [07] move       9   1      
-030C  80020001           [08] move       10  2      
-0310  DC410002           [09] call       7   4   1  
-0314  C5410000           [10] getglobal  7   1        ; print
-0318  00028002           [11] move       8   5      
-031C  40020003           [12] move       9   6      
-0320  DC418001           [13] call       7   3   1  
-0324  1E008000           [14] return     0   1      
+0320  0E000000           sizecode (14)
+0324  81000000           [01] loadk      2   0        ; 0
+0328  C3000002           [02] loadnil    3   4      
+032C  42018000           [03] loadbool   5   1   0    ; true
+0330  82010000           [04] loadbool   6   0   0    ; false
+0334  C5410000           [05] getglobal  7   1        ; print
+0338  00020000           [06] move       8   0      
+033C  40028000           [07] move       9   1      
+0340  80020001           [08] move       10  2      
+0344  DC410002           [09] call       7   4   1  
+0348  C5410000           [10] getglobal  7   1        ; print
+034C  00028002           [11] move       8   5      
+0350  40020003           [12] move       9   6      
+0354  DC418001           [13] call       7   3   1  
+0358  1E008000           [14] return     0   1      
                          * constants:
-0328  02000000           sizek (2)
-032C  03                 const type 3
-032D  0000000000000000   const [0]: (0)
-0335  04                 const type 4
-0336  06000000           string size (6)
-033A  7072696E7400       "print\0"
+035C  02000000           sizek (2)
+0360  03                 const type 3
+0361  0000000000000000   const [0]: (0)
+0369  04                 const type 4
+036A  06000000           string size (6)
+036E  7072696E7400       "print\0"
                          const [1]: "print"
                          * functions:
-0340  00000000           sizep (0)
+0374  00000000           sizep (0)
                          * lines:
-0344  00000000           sizelineinfo (0)
+0378  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-0348  00000000           sizelocvars (0)
+037C  00000000           sizelocvars (0)
                          * upvalues:
-034C  00000000           sizeupvalues (0)
+0380  00000000           sizeupvalues (0)
                          ** end of function **
 
                          
-0350                     ** function [1] definition (level 2)
+0384                     ** function [1] definition (level 2)
                          ** start of function **
-0350  00000000           string size (0)
+0384  00000000           string size (0)
                          source name: (none)
-0354  14000000           line defined (20)
-0358  1A000000           last line defined (26)
-035C  00                 nups (0)
-035D  00                 numparams (0)
-035E  00                 is_vararg (0)
-035F  02                 maxstacksize (2)
+0388  14000000           line defined (20)
+038C  1A000000           last line defined (26)
+0390  00                 nups (0)
+0391  00                 numparams (0)
+0392  00                 is_vararg (0)
+0393  02                 maxstacksize (2)
                          * code:
-0360  05000000           sizecode (5)
-0364  01000000           [1] loadk      0   0        ; 0
-0368  64000000           [2] closure    1   0        ; 1 upvalues
-036C  00000000           [3] move       0   0      
-0370  5E000001           [4] return     1   2      
-0374  1E008000           [5] return     0   1      
+0394  05000000           sizecode (5)
+0398  01000000           [1] loadk      0   0        ; 0
+039C  64000000           [2] closure    1   0        ; 1 upvalues
+03A0  00000000           [3] move       0   0      
+03A4  5E000001           [4] return     1   2      
+03A8  1E008000           [5] return     0   1      
                          * constants:
-0378  01000000           sizek (1)
-037C  03                 const type 3
-037D  0000000000000000   const [0]: (0)
+03AC  01000000           sizek (1)
+03B0  03                 const type 3
+03B1  0000000000000000   const [0]: (0)
                          * functions:
-0385  01000000           sizep (1)
+03B9  01000000           sizep (1)
                          
-0389                     ** function [0] definition (level 3)
+03BD                     ** function [0] definition (level 3)
                          ** start of function **
-0389  00000000           string size (0)
+03BD  00000000           string size (0)
                          source name: (none)
-038D  16000000           line defined (22)
-0391  19000000           last line defined (25)
-0395  01                 nups (1)
-0396  00                 numparams (0)
-0397  00                 is_vararg (0)
-0398  02                 maxstacksize (2)
+03C1  16000000           line defined (22)
+03C5  19000000           last line defined (25)
+03C9  01                 nups (1)
+03CA  00                 numparams (0)
+03CB  00                 is_vararg (0)
+03CC  02                 maxstacksize (2)
                          * code:
-0399  06000000           sizecode (6)
-039D  04000000           [1] getupval   0   0      
-03A1  0C004000           [2] add        0   0   256  ; 1
-03A5  08000000           [3] setupval   0   0      
-03A9  04000000           [4] getupval   0   0      
-03AD  1E000001           [5] return     0   2      
-03B1  1E008000           [6] return     0   1      
+03CD  06000000           sizecode (6)
+03D1  04000000           [1] getupval   0   0      
+03D5  0C004000           [2] add        0   0   256  ; 1
+03D9  08000000           [3] setupval   0   0      
+03DD  04000000           [4] getupval   0   0      
+03E1  1E000001           [5] return     0   2      
+03E5  1E008000           [6] return     0   1      
                          * constants:
-03B5  01000000           sizek (1)
-03B9  03                 const type 3
-03BA  000000000000F03F   const [0]: (1)
+03E9  01000000           sizek (1)
+03ED  03                 const type 3
+03EE  000000000000F03F   const [0]: (1)
                          * functions:
-03C2  00000000           sizep (0)
+03F6  00000000           sizep (0)
                          * lines:
-03C6  00000000           sizelineinfo (0)
+03FA  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-03CA  00000000           sizelocvars (0)
+03FE  00000000           sizelocvars (0)
                          * upvalues:
-03CE  00000000           sizeupvalues (0)
+0402  00000000           sizeupvalues (0)
                          ** end of function **
 
-                         * lines:
-03D2  00000000           sizelineinfo (0)
-                         [pc] (line)
-                         * locals:
-03D6  00000000           sizelocvars (0)
-                         * upvalues:
-03DA  00000000           sizeupvalues (0)
-                         ** end of function **
-
-                         
-03DE                     ** function [2] definition (level 2)
-                         ** start of function **
-03DE  00000000           string size (0)
-                         source name: (none)
-03E2  22000000           line defined (34)
-03E6  25000000           last line defined (37)
-03EA  00                 nups (0)
-03EB  02                 numparams (2)
-03EC  00                 is_vararg (0)
-03ED  03                 maxstacksize (3)
-                         * code:
-03EE  03000000           sizecode (3)
-03F2  8C400000           [1] add        2   0   1  
-03F6  9E000001           [2] return     2   2      
-03FA  1E008000           [3] return     0   1      
-                         * constants:
-03FE  00000000           sizek (0)
-                         * functions:
-0402  00000000           sizep (0)
                          * lines:
 0406  00000000           sizelineinfo (0)
                          [pc] (line)
@@ -371,43 +353,72 @@ Pos   Hex Data           Description or Code
                          ** end of function **
 
                          
-0412                     ** function [3] definition (level 2)
+0412                     ** function [2] definition (level 2)
                          ** start of function **
 0412  00000000           string size (0)
                          source name: (none)
-0416  27000000           line defined (39)
-041A  2C000000           last line defined (44)
+0416  22000000           line defined (34)
+041A  25000000           last line defined (37)
 041E  00                 nups (0)
-041F  03                 numparams (3)
+041F  02                 numparams (2)
 0420  00                 is_vararg (0)
-0421  05                 maxstacksize (5)
+0421  03                 maxstacksize (3)
                          * code:
-0422  05000000           sizecode (5)
-0426  CC400000           [1] add        3   0   1  
-042A  0E810001           [2] mul        4   2   2  
-042E  CC008101           [3] add        3   3   4  
-0432  DE000001           [4] return     3   2      
-0436  1E008000           [5] return     0   1      
+0422  03000000           sizecode (3)
+0426  8C400000           [1] add        2   0   1  
+042A  9E000001           [2] return     2   2      
+042E  1E008000           [3] return     0   1      
                          * constants:
-043A  00000000           sizek (0)
+0432  00000000           sizek (0)
                          * functions:
-043E  00000000           sizep (0)
+0436  00000000           sizep (0)
                          * lines:
-0442  00000000           sizelineinfo (0)
+043A  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-0446  00000000           sizelocvars (0)
+043E  00000000           sizelocvars (0)
                          * upvalues:
-044A  00000000           sizeupvalues (0)
+0442  00000000           sizeupvalues (0)
+                         ** end of function **
+
+                         
+0446                     ** function [3] definition (level 2)
+                         ** start of function **
+0446  00000000           string size (0)
+                         source name: (none)
+044A  27000000           line defined (39)
+044E  2C000000           last line defined (44)
+0452  00                 nups (0)
+0453  03                 numparams (3)
+0454  00                 is_vararg (0)
+0455  05                 maxstacksize (5)
+                         * code:
+0456  05000000           sizecode (5)
+045A  CC400000           [1] add        3   0   1  
+045E  0E810001           [2] mul        4   2   2  
+0462  CC008101           [3] add        3   3   4  
+0466  DE000001           [4] return     3   2      
+046A  1E008000           [5] return     0   1      
+                         * constants:
+046E  00000000           sizek (0)
+                         * functions:
+0472  00000000           sizep (0)
+                         * lines:
+0476  00000000           sizelineinfo (0)
+                         [pc] (line)
+                         * locals:
+047A  00000000           sizelocvars (0)
+                         * upvalues:
+047E  00000000           sizeupvalues (0)
                          ** end of function **
 
                          * lines:
-044E  00000000           sizelineinfo (0)
+0482  00000000           sizelineinfo (0)
                          [pc] (line)
                          * locals:
-0452  00000000           sizelocvars (0)
+0486  00000000           sizelocvars (0)
                          * upvalues:
-0456  00000000           sizeupvalues (0)
+048A  00000000           sizeupvalues (0)
                          ** end of function **
 
-045A                     ** end of chunk **
+048E                     ** end of chunk **
