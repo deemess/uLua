@@ -49,6 +49,12 @@ c=3.5
 
 result1 = func1(a,b)
 result2 = func2(a,b,c)
+print("Result1 = ", result1)
+print("Result2 = ", result2)
+
+--math test
+local a,b = 2,4; a = a + 4 * b - a / 2 ^ b % 3
+print("a + 4 * b - a / 2 ^ b % 3 = ", a)
 
 --conditional jumps test
 if a ~= b 
@@ -69,6 +75,3 @@ end
 if a == b 
 	then print("a == b")
 end
-
-print("Result1 = ", result1)
-print("Result2 = ", result2)
