@@ -25,7 +25,9 @@ u32 getHash(vmregister* val)
 	case VAR_NULL:
 		return 0;
 
-	case VAR_FILE_POINTER_FUNC:
+	case VAR_CLOSURE:
+		return val->numval;
+
 	case VAR_FILE_POINTER_STR:
 		return val->numval;
 

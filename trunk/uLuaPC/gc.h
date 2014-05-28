@@ -7,30 +7,19 @@
 
 //variable accessors
 #define GCVALUE(type,var) ((type*)(*var)->data)[0]
-
-//variable structure
-struct gcvar {
-	u08 type;
-	u08 size;
-	u08 data[GC_MAX_VAR_SIZE];
-	/*union {
-		u08 boolean;
-		s32 number;
-		float fnumber;
-		u08 data[GC_MAX_VAR_SIZE];
-	} var;*/
-};
-
-typedef gcvar* gcvarpt;
+#define GCREFDEC(var) (*var)->refcount--
+#define GCREFINC(var) (*var)->refcount++
+#define GCCHECK(var) if((*var)->refcount == 0) gcDelete(var);
 
 //initialize garbage collector and memory management
 void gcInit();
 //create new variable and return its number
 gcvarpt* gcNew(vartype type);
 //create new variable with given size and return its number
-gcvarpt* gcNew(vartype type, u08 size);
+gcvarpt* gcNew(vartype type, u16 size);
 //delete variable
 void gcDelete(gcvarpt* variable);
+//check if variable should be deleted
 
 #ifdef DEBUGVM
 //dump gc memory

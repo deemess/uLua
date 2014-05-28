@@ -17,6 +17,23 @@ typedef int32_t s32;
 #define TRUE  1
 #define FALSE 0
 
+//gc types
+//variable structure
+struct gcvar {
+	u08 refcount;
+	u08 type;
+	u16 size;
+	u08 data[GC_MAX_VAR_SIZE];
+	/*union {
+		u08 boolean;
+		s32 number;
+		float fnumber;
+		u08 data[GC_MAX_VAR_SIZE];
+	} var;*/
+};
+
+typedef gcvar* gcvarpt;
+
 //vm types
 //variable types
 enum vartype {
@@ -25,7 +42,7 @@ enum vartype {
 	VAR_FLOAT,
 	VAR_STRING,
 	VAR_NULL,
-	VAR_FILE_POINTER_FUNC,
+	VAR_CLOSURE,
 	VAR_FILE_POINTER_STR,
 	VAR_TABLE,
 	VAR_NATIVE_FUNC,
@@ -38,7 +55,6 @@ enum threadstate {
 	ABORT
 };
 
-
 struct vmregister {
 	vartype type;
 	union {
@@ -46,6 +62,14 @@ struct vmregister {
 		float floatval;
 	};
 };
+
+struct vmclosure {
+	u16			funcp; //pointer to function
+	u08			upvalcount; //count of upvalues
+	//upvalues registers
+	vmregister	upval[UPVALUESIZE]; //upvals from GC
+};
+
 
 struct vmglobal {
 	char		name[GLOBALNAMESIZE];
@@ -56,11 +80,10 @@ struct vmstate {
 	u16 constp; //pointer to constants for the current function
 	u16 funcp; //pointer to subfunctions in the current function
 	u08 retreg; //return register pointer to store function call result
+	gcvarpt* closure;
 
 	//registers
 	vmregister reg[REGISTERSIZE];
-	//upvalues registers
-	vmregister upval[UPVALUESIZE];
 };
 
 //virtual machine single thread main structure

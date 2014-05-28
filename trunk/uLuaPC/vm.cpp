@@ -6,16 +6,14 @@ static void initStructState(vmstate* state)
 {
 	state->constp = 0;
 	state->funcp = 0;
+	state->closure = NULL;
+	state->retreg = 0;
 
 	for(int i=0; i<REGISTERSIZE; i++) {
 		state->reg[i].type = VAR_NULL;
 		state->reg[i].numval = 0;
 	}
 
-	for(int i=0; i<UPVALUESIZE; i++) {
-		state->upval[i].type = VAR_NULL;
-		state->upval[i].numval = 0;
-	}
 }
 
 void initStructVM(vm* vm)
@@ -98,7 +96,7 @@ u16 getFuncPt(u16 pt, u16 N)
 	{
 		pt = skeepFunction(pt);
 	}
-	pt += 16; //function header;
+	//pt += 16; //function header;
 	return pt;
 }
 
@@ -177,6 +175,18 @@ s08 compare(vmregister* a, vmregister* b)
 	return 0;
 }
 
+void clearRegister(vmregister* reg)
+{
+	//check register for GC ref
+	if(reg->type == VAR_CLOSURE) {
+		GCREFDEC((gcvarpt*)reg->numval);
+		GCCHECK((gcvarpt*)reg->numval);
+	}
+	//reg->type = VAR_NULL;
+	//reg->numval = 0;
+}
+
+
 u08 vmRun(vm* vm)
 {
 	//vmstate* state = &vm->state[0];
@@ -192,20 +202,22 @@ u08 vmRun(vm* vm)
 	vm->state[vm->statept].constp = vm->pc + codesize * 4;
 	vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
 
-
 	u08 a = 0;
-	u08 b = 0;
-	u08 c = 0;
-	s16 bx = 0;
+	u16 b = 0;
+	u16 c = 0;
+	u16 bx = 0;
+	s16 sbx = 0;
 	u16 constpt = 0;
 	u08 type;
 	u08 glindex;
 	u08* name;
+	gcvarpt* gcpointer = NULL;
 
 	//for(u08 i=0; i<codesize; i++)
 	while(vm->status == RUN)
 	{
 		vmstate* curstate = &vm->state[vm->statept];
+
 		//get first instruction
 		u32 inst = platformReadDWord(vm->pc);
 		u08 opcode = GET_OPCODE(inst);
@@ -218,18 +230,59 @@ u08 vmRun(vm* vm)
 		b = GETARG_B(inst);
 		c = GETARG_C(inst);
 		bx = GETARG_Bx(inst);
+		sbx = GETARG_sBx(inst);
 
 		switch(opcode)
 		{ 
 
 		case OP_MOVE: //copy R(A) = R(B)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = curstate->reg[b].type;
 			curstate->reg[a].numval = curstate->reg[b].numval;
 			break;
 
 		case OP_CLOSURE: //Create closure and put it into R(A)
-			curstate->reg[a].type = VAR_FILE_POINTER_FUNC;
-			curstate->reg[a].numval = getFuncPt(curstate->funcp, bx);
+			//create closure in GC
+			gcpointer = gcNew(VAR_CLOSURE);
+			GCVALUE(vmclosure, gcpointer).funcp = getFuncPt(curstate->funcp, bx);
+			GCVALUE(vmclosure, gcpointer).upvalcount = platformReadByte(GCVALUE(vmclosure, gcpointer).funcp + 3*4);
+
+			//init upvalues
+			for(int i=0; i < GCVALUE(vmclosure, gcpointer).upvalcount; i++)
+			{
+				u32 nextint = platformReadDWord(vm->pc);
+				u08 nextopcode = GET_OPCODE(nextint);
+				u08 nextb = GETARG_B(nextint);
+
+				switch(nextopcode)
+				{
+				//init upvalue from vm register
+				case OP_MOVE:
+					GCVALUE(vmclosure, gcpointer).upval[i].type = curstate->reg[b].type;
+					GCVALUE(vmclosure, gcpointer).upval[i].numval = curstate->reg[b].numval;
+					break;
+
+				//init upvalue from another upvalue
+				case OP_GETUPVAL:
+					if(curstate->closure != NULL)
+					{
+						GCVALUE(vmclosure, gcpointer).upval[i].type = GCVALUE(vmclosure, curstate->closure).upval[b].type;
+						GCVALUE(vmclosure, gcpointer).upval[i].numval = GCVALUE(vmclosure, curstate->closure).upval[b].numval;
+					}
+					break;
+
+				default:
+					break;
+				}
+
+				vm->pc += 4;
+			}
+
+			//save pointer to the closure into register
+			GCREFINC(gcpointer);
+			clearRegister(&curstate->reg[a]);
+			curstate->reg[a].type = VAR_CLOSURE;
+			curstate->reg[a].numval = (u32)gcpointer;
 			break;
 
 		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
@@ -247,7 +300,13 @@ u08 vmRun(vm* vm)
 			{
 				vm->global[glindex].name[i] = name[i];
 			}
+
 			//set global value
+			if(curstate->reg[a].type == VAR_CLOSURE)
+			{
+				GCREFINC((gcvarpt*)curstate->reg[a].numval);
+			}
+			clearRegister(&vm->global[glindex].val);
 			vm->global[glindex].val.type = curstate->reg[a].type;
 			vm->global[glindex].val.numval = curstate->reg[a].numval;
 			break;
@@ -263,23 +322,29 @@ u08 vmRun(vm* vm)
 			//search global
 			glindex = getGlobalByName(vm, name);
 
+
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = vm->global[glindex].val.type;
 			curstate->reg[a].numval = vm->global[glindex].val.numval;
 			break;
 
 		case OP_GETUPVAL: //R(A) := UpValue[B]
-			curstate->reg[a].type = curstate->upval[b].type;
-			curstate->reg[a].numval = curstate->upval[b].numval;
+			clearRegister(&curstate->reg[a]);
+			curstate->reg[a].type = GCVALUE(vmclosure, curstate->closure).upval[b].type;
+			curstate->reg[a].numval = GCVALUE(vmclosure, curstate->closure).upval[b].numval;
 			break;
 
 		case OP_SETUPVAL: //UpValue[B] := R(A)
-			curstate->upval[b].type = curstate->reg[a].type;
-			curstate->upval[b].numval = curstate->reg[a].numval;
+			clearRegister(&GCVALUE(vmclosure, curstate->closure).upval[b]);
+			GCVALUE(vmclosure, curstate->closure).upval[b].type = curstate->reg[a].type;
+			GCVALUE(vmclosure, curstate->closure).upval[b].numval = curstate->reg[a].numval;
 			break;
-
+		
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
 			constpt = getConstPt(curstate->constp, bx);
 			type = platformReadByte(constpt++);
+
+			clearRegister(&curstate->reg[a]);
 
 			switch(type)
 			{
@@ -308,12 +373,14 @@ u08 vmRun(vm* vm)
 		case OP_LOADNIL: //R(A) := ... := R(B) := nil
 			for(u08 i=a; i<=b; i++)
 			{
+				clearRegister(&curstate->reg[i]);
 				curstate->reg[i].type = VAR_NULL;
 				curstate->reg[i].numval = 0;
 			}
 			break;
 
 		case OP_LOADBOOL:
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_BOOLEAN;
 			curstate->reg[a].numval = b;
 			if(c > 0) //skip instruction
@@ -325,14 +392,16 @@ u08 vmRun(vm* vm)
 			{//native function call
 				nativeCall(vm, a, b, c);
 			}
-			else if(curstate->reg[a].type == VAR_FILE_POINTER_FUNC)
+			else if(curstate->reg[a].type == VAR_CLOSURE)
 			{//lua function call
 
 				//save next pc instruction address to the stack
 				vm->pcstack[vm->pcstackpt++] = vm->pc;
 				//set pc = call function address
 				//TODO: check reg type
-				vm->pc = curstate->reg[a].numval;
+				gcpointer = (gcvarpt*)curstate->reg[a].numval;
+				vm->pc = GCVALUE(vmclosure,gcpointer).funcp;
+				vm->pc += 16; //skip functino header
 
 				//prepare state
 				vm->statept++;
@@ -342,6 +411,7 @@ u08 vmRun(vm* vm)
 				vm->state[vm->statept].constp = vm->pc + codesize * 4;
 				vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
 				vm->state[vm->statept].retreg = a;
+				vm->state[vm->statept].closure = gcpointer;
 				//copy args to the new state
 				//TODO: support copy all values on the top of the stack (b=0)
 				for(int i=0; i<b-1 && b!=0; i++)
@@ -382,26 +452,54 @@ u08 vmRun(vm* vm)
 		//TODO: string support ?? seems not
 		//TODO: check types and nulls
 		case OP_ADD://	A B C	R(A) := RK(B) + RK(C)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
-			curstate->reg[a].floatval = curstate->reg[b].floatval + curstate->reg[c].floatval;
+
+			if(b > 255)
+			{
+				constpt = getConstPt(curstate->constp, b - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval = platformReadNumber(constpt);
+			}
+			else
+			{
+				curstate->reg[a].floatval = curstate->reg[b].floatval;
+			}
+
+			if(c > 255)
+			{
+				constpt = getConstPt(curstate->constp, c - 256);
+				type = platformReadByte(constpt++);
+				curstate->reg[a].floatval += platformReadNumber(constpt);
+			}
+			else
+			{
+				curstate->reg[a].floatval += curstate->reg[c].floatval;
+			}
+
 			break;
 		case OP_SUB://	A B C	R(A) := RK(B) - RK(C)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
 			curstate->reg[a].floatval = curstate->reg[b].floatval - curstate->reg[c].floatval;
 			break;
 		case OP_MUL://	A B C	R(A) := RK(B) * RK(C)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
 			curstate->reg[a].floatval = curstate->reg[b].floatval * curstate->reg[c].floatval;
 			break;
 		case OP_DIV://	A B C	R(A) := RK(B) / RK(C)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
 			curstate->reg[a].floatval = curstate->reg[b].floatval / curstate->reg[c].floatval;
 			break;
 		case OP_MOD://	A B C	R(A) := RK(B) % RK(C)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
 			curstate->reg[a].floatval = fmod(curstate->reg[b].floatval, curstate->reg[c].floatval);
 			break;
 		case OP_POW://	A B C	R(A) := RK(B) ^ RK(C)
+			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
 			curstate->reg[a].floatval = pow(curstate->reg[b].floatval , curstate->reg[c].floatval);
 			break;
@@ -429,7 +527,7 @@ u08 vmRun(vm* vm)
 			break;
 		//jumps and condition jumps
 		case OP_JMP: //	sBx	pc+=sBx	
-			vm->pc += bx*4;
+			vm->pc += sbx*4;
 			break;
 		case OP_EQ: //	A B C	if ((RK(B) == RK(C)) ~= A) then pc++
 			if((compare(&curstate->reg[b], &curstate->reg[c]) == 1) != a)

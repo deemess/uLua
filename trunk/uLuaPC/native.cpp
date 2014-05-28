@@ -44,7 +44,7 @@ void printRegister(vmregister reg)
 			platformPrintf("nil\t");
 			break;
 
-		case VAR_FILE_POINTER_FUNC:
+		case VAR_CLOSURE:
 			platformPrintf("luc function at %d\t", reg.numval);
 			break;
 
@@ -62,7 +62,7 @@ void printRegister(vmregister reg)
 }
 
 //native print(..) function
-void nativePrint(vm* vm, u08 a, u08 b, u08 c)
+void nativePrint(vm* vm, u08 a, u16 b, u16 c)
 {
 
 	//print all variables
@@ -118,7 +118,7 @@ void nativeInit(vm* vm)
 }
 
 //call native function stored in reg
-void nativeCall(vm* vm, u08 a, u08 b, u08 c)
+void nativeCall(vm* vm, u08 a, u16 b, u16 c)
 {
 	nativeFunc func = (nativeFunc)vm->state[vm->statept].reg[a].numval;
 	func(vm, a, b, c);

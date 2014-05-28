@@ -18,7 +18,7 @@ void gcInit()
 //create new variable and return its number
 gcvarpt* gcNew(vartype type)
 {
-	u08 size=0;
+	u16 size=0;
 	//init size for new type
 	switch(type)
 	{
@@ -34,7 +34,12 @@ gcvarpt* gcNew(vartype type)
 	case VAR_STRING:
 		size = 0;//empty string
 		break;
-	case VAR_FILE_POINTER_FUNC:
+	case VAR_CLOSURE:
+		//u16			funcp; //pointer to function
+		//u08			upvalcount; //count of upvalues
+		//vmregister	upval[UPVALUESIZE]; //upvals from GC
+		size = (u16)(sizeof(vmclosure));
+		break;
 	case VAR_FILE_POINTER_STR:
 		size = 4;//u32 - point to some address in the source byte code
 		break;
@@ -48,14 +53,14 @@ gcvarpt* gcNew(vartype type)
 }
 
 //create new variable with given size and return its number
-gcvarpt* gcNew(vartype type, u08 size)
+gcvarpt* gcNew(vartype type, u16 size)
 {
 	//allocate memory for a new variable
 	gcvar* newvar = (gcvar*)(&memory[freePt]);
 	newvar->type = type;
 	newvar->size = size;
 
-	freePt += newvar->size + 2; // + type + size
+	freePt += newvar->size + 4; // + type + size + refcount
 
 	//reset variable
 	for(u16 i=0; i<newvar->size; i++)
@@ -156,8 +161,8 @@ void gcDump()
 			name = platformReadBuffer(constpt, size);
 			platformPrintf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, name);
 			break;
-		case VAR_FILE_POINTER_FUNC:
-			platformPrintf("VAR_FILE_POINTER: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
+		case VAR_CLOSURE:
+			platformPrintf("VAR_CLOSURE: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
 			break;
 		case VAR_NULL:
 			platformPrintf("VAR_NULL: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
