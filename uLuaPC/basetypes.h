@@ -77,13 +77,15 @@ struct vmglobal {
 };
 
 struct vmstate {
+	gcvarpt* closure;
+	u16	pc;
 	u16 constp; //pointer to constants for the current function
 	u16 funcp; //pointer to subfunctions in the current function
+	u08 regcount; //count of register used in current funtion
 	u08 retreg; //return register pointer to store function call result
-	gcvarpt* closure;
 
 	//registers
-	vmregister reg[REGISTERSIZE];
+	vmregister* reg; //registers for current statre reg[regcount]
 };
 
 //virtual machine single thread main structure
