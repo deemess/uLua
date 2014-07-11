@@ -7,13 +7,16 @@
 
 //table structure
 struct hashtable {
-	u08 size; //key\value size
+	u32 size; //key\value size
+	u32 count; //items count stored in this table
 	u32* keys;
 	u32* vals;
 };
 
 //create new table instance
 gcvarpt* tableNew();
+//create new table instance
+gcvarpt* tableNew(u32 size);
 //put value into table for a key
 void tablePut(gcvarpt* table, vmregister* key, vmregister* val);
 //get value from table for key and save it into val
