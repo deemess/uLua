@@ -316,7 +316,7 @@ u16 llex(LexState* ls, Token* t) {
 			  for(i=0; i<21; i++) {
 				  u08 p = 0;
 				  BOOL matched = FALSE;
-				  while(keywords[i].keyword[p] != 0 || p <10) {
+				  while(keywords[i].keyword[p] != 0 && p <10) {
 					  if(keywords[i].keyword[p] == ls->z[ls->buff.bp+p]) {
 						matched = TRUE;
 						p++;
