@@ -275,7 +275,7 @@ static void read_long_string (LexState *ls, SemInfo *seminfo, int sep) {
 }
 
 
-static void read_string (LexState *ls, int del, SemInfo *seminfo) {
+void read_string (LexState *ls, int del, SemInfo *seminfo) {
   save_and_next(ls);
   while (ls->current != del) {
     switch (ls->current) {

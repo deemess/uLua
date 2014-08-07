@@ -21,6 +21,9 @@
     <ClCompile Include="ulexer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="uparser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ulexer.h">
@@ -32,5 +35,13 @@
     <ClInclude Include="llerror.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="uparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="uparser.y" />
+    <None Include="test.lua" />
+    <None Include="test2.lua" />
   </ItemGroup>
 </Project>

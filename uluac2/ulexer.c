@@ -216,7 +216,7 @@ u16 llex(LexState* ls, Token* t) {
 		} else if(c == '-') { //minus ------------------------------------------------------
 			c = nextchar(ls);
 			if(c != '-') {
-				return '-';
+				return TK_MINUS;
 			} else {//is a comment
 				sep = -1;
 				if(nextchar(ls) == '[') {
@@ -238,14 +238,14 @@ u16 llex(LexState* ls, Token* t) {
 				read_long_string(ls, t, sep);
 				return TK_STRING;
 			} else if(sep == -1) {
-				return '[';
+				return TK_SLPAREN;
 			} else {
 				lexerror(E_LONGSTRDELIM);
 			}
 		} else if(c == '=') { //----------------------------------------------------------------
 			c = nextchar(ls);
 			if (c != '=') {
-				return '=';
+				return TK_SET;
 			} else {
 				nextchar(ls); 
 				return TK_EQ; 
@@ -253,7 +253,7 @@ u16 llex(LexState* ls, Token* t) {
 		} else if (c == '<') { //----------------------------------------------------------------
 			c = nextchar(ls);
 			if (c != '=') {
-				return '<';
+				return TK_L;
 			} else { 
 				nextchar(ls); 
 				return TK_LE;
@@ -261,7 +261,7 @@ u16 llex(LexState* ls, Token* t) {
 		} else if (c == '>') { //----------------------------------------------------------------
 			c = nextchar(ls);
 			if (c != '=') {
-				return '>';
+				return TK_G;
 			} else { 
 				nextchar(ls); 
 				return TK_GE;
@@ -285,7 +285,7 @@ u16 llex(LexState* ls, Token* t) {
 				else 
 					return TK_CONCAT;   // .. 
 			} else if (!isdigit(ls->current))  {
-				return '.';
+				return TK_DOT;
 			} else {
 				read_numeral(ls, t);
 				return TK_NUMBER;
@@ -337,7 +337,43 @@ u16 llex(LexState* ls, Token* t) {
 			} else {
 			  int c = ls->current;
 			  nextchar(ls);
-			  return c;  /* single-char tokens (+ - / ...) */
+			  // single-char tokens (+ - / ...)
+			  //return c;  
+			  switch(c) {
+			  case '+':
+				  return TK_PLUS;
+			  case '-':
+				  return TK_MINUS;
+			  case '*':
+				  return TK_TIMES;
+			  case '/':
+			  case '\\':
+				  return TK_DIVIDE;
+			  case '(':
+				  return TK_LPAREN;
+			  case ')':
+				  return TK_RPAREN;
+			  case ';':
+				  return TK_SEMICOL;
+			  case ':':
+				  return TK_COLON;
+			  case ',':
+				  return TK_COMMA;
+			  case ']':
+				  return TK_SRPAREN;
+			  case '{':
+				  return TK_LBRACE;
+			  case '}':
+				  return TK_RBRACE;
+			  case '#':
+				  return TK_HASH;
+			  case '%':
+				  return TK_MOD;
+			  case '^':
+				  return TK_POW;
+			  default:
+				  return c;
+			  }
 			}
 		}
 	}

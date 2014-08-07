@@ -76,11 +76,18 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
     <ClCompile Include="ulexer.c" />
+    <ClCompile Include="uparser.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basetypes.h" />
     <ClInclude Include="llerror.h" />
     <ClInclude Include="ulexer.h" />
+    <ClInclude Include="uparser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="test.lua" />
+    <None Include="test2.lua" />
+    <None Include="uparser.y" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
