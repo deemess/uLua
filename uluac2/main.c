@@ -119,6 +119,8 @@ int main(int argc, char **argv) {
 		printToken(&ls.t);
 		if(ls.t.token == TK_NUMBER)
 			Parse(parser, ls.t.token, ls.t.number.fvalue);
+		else if(ls.t.token == TK_EOS)
+			Parse(parser, TK_RETURN, 0);
 		else
 			Parse(parser, ls.t.token, 0); //TODO: pass structure for each block
 	}
