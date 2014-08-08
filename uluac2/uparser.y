@@ -1,11 +1,18 @@
 %include {
 #include <stdio.h>
 #include "basetypes.h"
+#include "ulexer.h"
 #include "uparser.h"
 }
 
-%token_type {u16}
+%token_type {Token*}
 %token_prefix TK_
+
+%type exp		{uExpression}
+%type var		{uExpression}
+%type setlist	{uExpression}
+%type explist1	{uExpression}
+%type stat		{uExpression}
 
 %syntax_error {
   printf ("Syntax error!\n");
@@ -34,7 +41,9 @@ stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
 stat ::= IF conds END .
 stat ::= FUNCTION funcname funcbody .
-stat ::= setlist SET explist1 .
+stat(A) ::= setlist(B) SET explist1(C) . {
+	A.fvalue = C.fvalue;
+}
 stat ::= functioncall .
 
 repetition ::= FOR NAME SET explist23 .
@@ -63,7 +72,12 @@ dottedname ::= dottedname DOT NAME .
 namelist   ::= NAME .
 namelist   ::= namelist COMMA NAME .
 
-explist1   ::= exp .
+explist1(A) ::= exp(B) . {
+	A.fvalue = B.fvalue;
+	A.name.bempty = B.name.bempty;
+	A.name.bp = B.name.bp;
+	A.name.bplen = B.name.bplen;
+}
 explist1   ::= explist1 COMMA exp .
 explist23  ::= exp COMMA exp .
 explist23  ::= exp COMMA exp COMMA exp .
@@ -77,7 +91,15 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     NOT HASH .
 %right     POW .
 
-exp        ::= NIL|TRUE|FALSE|NUMBER|STRING|DOTS .
+exp        ::= NIL|TRUE|FALSE|DOTS .
+exp(A)        ::= NUMBER(B) . {
+	A.fvalue = B->number.fvalue;
+}
+exp(A)        ::= STRING(B) . {
+	A.name.bempty = B->semInfo.bempty;
+	A.name.bp = B->semInfo.bp;
+	A.name.bplen = B->semInfo.bplen;
+}
 exp        ::= function .
 exp        ::= prefixexp .
 exp        ::= tableconstructor .
@@ -86,14 +108,33 @@ exp        ::= exp OR exp .
 exp        ::= exp AND exp .
 exp        ::= exp L|LE|G|GE|EQ|NE exp .
 exp        ::= exp CONCAT exp .
-exp        ::= exp PLUS|MINUS exp .
-exp        ::= exp TIMES|DIVIDE|MOD exp .
+exp(A) ::= exp(B) PLUS exp(C) .{
+	A.fvalue = B.fvalue + C.fvalue;
+}
+exp(A) ::= exp(B) MINUS exp(C) .{
+	A.fvalue = B.fvalue - C.fvalue;
+}
+exp(A) ::= exp(B) TIMES exp(C) .{
+	A.fvalue = B.fvalue * C.fvalue;
+}
+exp(A) ::= exp(B) DIVIDE exp(C) .{
+	A.fvalue = B.fvalue / C.fvalue;
+}
+exp        ::= exp MOD exp .
 exp        ::= exp POW exp .
 
-setlist ::= var .
+setlist(A) ::= var(B) . {
+	A.name.bempty = B.name.bempty;
+	A.name.bp = B.name.bp;
+	A.name.bplen = B.name.bplen;
+}
 setlist ::= setlist COMMA var .
 
-var        ::= NAME .
+var(A) ::= NAME(B) . {
+	A.name.bempty = B->semInfo.bempty;
+	A.name.bp = B->semInfo.bp;
+	A.name.bplen = B->semInfo.bplen;
+}
 var        ::= prefixexp SLPAREN exp SRPAREN .
 var        ::= prefixexp DOT NAME .
 

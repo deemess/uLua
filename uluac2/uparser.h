@@ -39,9 +39,9 @@
 #define TK_NIL                             39
 #define TK_TRUE                            40
 #define TK_FALSE                           41
-#define TK_NUMBER                          42
-#define TK_STRING                          43
-#define TK_DOTS                            44
+#define TK_DOTS                            42
+#define TK_NUMBER                          43
+#define TK_STRING                          44
 #define TK_SLPAREN                         45
 #define TK_SRPAREN                         46
 #define TK_LPAREN                          47

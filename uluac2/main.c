@@ -4,7 +4,7 @@
 
 #define CODE_BUFFER_SIZE 32*1024
 
-u08* code[CODE_BUFFER_SIZE];
+u08 code[CODE_BUFFER_SIZE];
 
 void printToken(Token* t) {
 	int i;
@@ -17,6 +17,7 @@ void printToken(Token* t) {
 	}
 
 	switch(t->token) {
+		case TK_SET: printf("TK_SET "); break;
 		case TK_MOD: printf("TK_MOD "); break;	
 		case TK_POW: printf("TK_POW "); break;
 		case TK_HASH: printf("TK_HASH "); break;	
@@ -117,12 +118,7 @@ int main(int argc, char **argv) {
 			break;
 		}
 		printToken(&ls.t);
-		if(ls.t.token == TK_NUMBER)
-			Parse(parser, ls.t.token, ls.t.number.fvalue);
-		else if(ls.t.token == TK_EOS)
-			Parse(parser, TK_RETURN, 0);
-		else
-			Parse(parser, ls.t.token, 0); //TODO: pass structure for each block
+		Parse(parser, ls.t.token, &ls.t);
 	}
 
 	ParseFree(parser, free);

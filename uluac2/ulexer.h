@@ -37,7 +37,7 @@
 //#define TK_LE 283
 //#define TK_NE 284
 #define TK_DBCOLON 285
-#define TK_EOS 286
+#define TK_EOS 0
 //#define TK_NUMBER 287
 //#define TK_NAME 288
 //#define TK_STRING 289
@@ -115,6 +115,13 @@ u16 llex(LexState* ls, Token* t);
 void next(LexState* ls);
 void setInput(LexState* ls, u08* stream);
 ERROR_CODE getLastULexError();
+
+//parser structures definition
+
+typedef struct uExpression {
+	float fvalue;
+	SString name;
+} uExpression;
 
 /*
 //parser function export
