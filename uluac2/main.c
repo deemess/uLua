@@ -4,7 +4,7 @@
 
 #define CODE_BUFFER_SIZE 32*1024
 
-u08 code[CODE_BUFFER_SIZE];
+static u08 code[CODE_BUFFER_SIZE];
 
 void printToken(Token* t) {
 	int i;
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
 			break;
 		}
 		printToken(&ls.t);
-		Parse(parser, ls.t.token, &ls.t);
+		Parse(parser, ls.t.token, ls.t, &code[0]);
 	}
 
 	ParseFree(parser, free);

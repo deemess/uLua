@@ -117,11 +117,52 @@ void setInput(LexState* ls, u08* stream);
 ERROR_CODE getLastULexError();
 
 //parser structures definition
+typedef enum {
+	EXP_VARIABLE,
+	EXP_NUMBER,
+	EXP_STRING,
+	EXP_BOOLEAN,
+	EXP_FUNCTION,
+	EXP_FUNCTION_CALL,
+	EXP_ADD,
+	EXP_SUB,
+	EXP_DIV,
+	EXP_MUL,
+	EXP_LIST,
+	EXP_SET,
+	EXP_CHUNK,
+	EXP_RETURN,
+	EXP_BREAK,
+} EXPR_TYPE;
 
-typedef struct uExpression {
+
+
+typedef struct uExpression uExpression;
+typedef struct uNode uNode;
+
+struct uNode {
+	uExpression* expr;
+	uNode* next;
+};
+
+struct uExpression {
+	EXPR_TYPE type;
 	float fvalue;
 	SString name;
-} uExpression;
+	uExpression* arg0;
+	uExpression* arg1;
+	uExpression* arg2;
+	uNode* first;
+};
+
+
+//parser function for AST building
+uExpression* makeExpr(EXPR_TYPE type, uExpression* arg0, uExpression* arg1, uExpression* arg2, u08* code);
+uExpression* makeConst(EXPR_TYPE type, float fval, SString* strval, u08* code);
+uExpression* makeVariable(EXPR_TYPE type, SString* strval, u08* code);
+uExpression* addList(uExpression* list, uExpression* expr, u08* code);
+uExpression* makeList(uExpression* firstExpr, u08* code);
+void makeDump(uExpression* chunk, u08* code);
 
 /*
 //parser function export
