@@ -64,7 +64,36 @@ void debugExpr(uExpression* e, u08* code) {
 }
 
 uExpression* makeExpr(EXPR_TYPE type, uExpression* arg0, uExpression* arg1, uExpression* arg2, u08* code) {
-	uExpression* result = (uExpression*)malloc(sizeof(uExpression));
+	uExpression* result = NULL;
+
+	//perform math calculation for constants
+	if( 
+		(arg0 != NULL && arg0->type == EXP_NUMBER)
+		&&
+		(arg1 != NULL && arg1->type == EXP_NUMBER)
+		)
+	{
+		switch(type) {
+		case EXP_ADD:
+			arg0->fvalue += arg1->fvalue;
+			free(arg1);
+			return arg0;
+		case EXP_SUB:
+			arg0->fvalue -= arg1->fvalue;
+			free(arg1);
+			return arg0;
+		case EXP_MUL:
+			arg0->fvalue *= arg1->fvalue;
+			free(arg1);
+			return arg0;
+		case EXP_DIV:
+			arg0->fvalue = arg0->fvalue / arg1->fvalue;
+			free(arg1);
+			return arg0;
+		}
+	}
+
+	result = (uExpression*)malloc(sizeof(uExpression));
 
 	result->type = type;
 	result->arg0 = arg0;

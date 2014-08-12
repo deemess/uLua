@@ -2,19 +2,12 @@
 #include "ulexer.h"
 #include "uparser.c"
 
-#define CODE_BUFFER_SIZE 32*1024
+#define CODE_BUFFER_SIZE 64*1024
 
 static u08 code[CODE_BUFFER_SIZE];
 
 void printToken(Token* t) {
 	int i;
-
-	if(!t->semInfo.bempty) {// print token
-		for(i=0; i<t->semInfo.bplen; i++) {
-			printf("%c", code[t->semInfo.bp+i]);
-		}
-		printf(" ");
-	}
 
 	switch(t->token) {
 		case TK_SET: printf("TK_SET "); break;
@@ -73,6 +66,13 @@ void printToken(Token* t) {
 		default:
 			printf("%c ", (char)t->token);
 			break;
+	}
+
+	if(!t->semInfo.bempty) {// print token
+		for(i=0; i<t->semInfo.bplen; i++) {
+			printf("%c", code[t->semInfo.bp+i]);
+		}
+		printf(" ");
 	}
 
 	printf("\n");
