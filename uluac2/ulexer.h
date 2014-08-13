@@ -155,6 +155,48 @@ struct uExpression {
 	uNode* first;
 };
 
+//---------------- new structures
+typedef struct uBlock uBlock;
+typedef struct uValNode uValNode;
+typedef struct uInstruction uInstruction;
+
+typedef enum VAL_TYPE {
+	VAL_STRING,
+	VAL_NUMBER,
+	VAL_BOOLEAN,
+	VAL_NIL,
+	VAL_CLOSURE
+} VAL_TYPE ;
+
+struct uInstruction {
+	u08 opCode;
+	u08 A;
+	u16 B;
+	u16 C;
+	uInstruction* next;
+};
+
+struct uValNode {
+	VAL_TYPE type;
+	BOOL isLocal;
+	BOOL boolean;
+	SString name;
+	float value;
+	uBlock* function;
+	uValNode* next;
+};
+
+struct uBlock {
+	uValNode* globals;
+	uValNode* locals;
+	uValNode* functions;
+	uValNode* constants;
+	uValNode* regs[32];
+	u08 regN;
+	u08 regMaxN;
+	uInstruction* instructions;
+	u16 instructionCount;
+};
 
 //parser function for AST building
 uExpression* makeExpr(EXPR_TYPE type, uExpression* arg0, uExpression* arg1, uExpression* arg2, u08* code);

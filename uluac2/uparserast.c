@@ -215,3 +215,77 @@ void makeDump(uExpression* chunk, u08* code) {
 		}
 	}
 }
+
+
+uBlock* createBlock() {
+	uBlock* result = (uBlock*)malloc(sizeof(uBlock));
+
+	result->globals = NULL;
+	result->locals = NULL;
+	result->functions = NULL;
+	result->constants = NULL;
+	result->regN = 0;
+	result->regMaxN = 0;
+	result->instructions = NULL;
+	result->instructionCount = 0;
+
+	return result;
+}
+
+uBlock* mergeBlock(uBlock* a, uBlock* b) {
+	//merge stack and free b block (right side)
+	for(u08 i=0; i < b->regN; i++) {
+		a->regs[a->regN++] = b->regs[i];
+	}
+	if(a->regN > a->regMaxN)  a->regMaxN = a->regN;
+
+	free(b);
+
+	return a;
+}
+
+uBlock* pushConstant(uBlock* b, Token* t, VAL_TYPE type) {
+	uValNode* newnode = (uValNode*)malloc(sizeof(uValNode));
+	
+	newnode->type = type;
+	newnode->isLocal = FALSE;
+	newnode->function = NULL;
+	newnode->next = NULL;
+
+	switch(type) {
+	case VAL_NUMBER:
+		newnode->value = t->number.fvalue;
+		break;
+	case VAL_STRING:
+		newnode->name.bempty = t->semInfo.bempty;
+		newnode->name.bp = t->semInfo.bp;
+		newnode->name.bplen = t->semInfo.bplen;
+		break;
+	case VAL_BOOLEAN:
+		if(t->token == TK_TRUE) 
+			newnode->boolean = TRUE;
+		else
+			newnode->boolean = FALSE;
+		break;
+	}
+
+	b->regs[b->regN++] = newnode;
+	if(b->regN > b->regMaxN)  b->regMaxN = b->regN;
+
+	return b;
+}
+
+uBlock* mathOp(uBlock* a, Token* t) {
+	if(a->regs[a->regN]->type == VAL_NUMBER) {
+		switch(t->token) {
+		case TK_PLUS:
+		case TK_MINUS:
+		case TK_DIVIDE:
+		case TK_TIMES:
+			if(a->regs[a->regN - 1]->type == VAL_NUMBER) { //perform math operation on constant in stack without creating instruction
+			}
+			break;
+		}
+	}
+	uValNode* newnode = (uValNode*)malloc(sizeof(uValNode));
+}
