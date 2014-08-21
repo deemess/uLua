@@ -5,7 +5,7 @@ Lua compiler and iterpreter to run on microcontroller (AVR 8 bit)
 
 About
 
-uLua aimed to run Lua scripts on microcontrollers with very limited resources, like RAM. uLua should work on microcontrollers with RAM >= 1k. Second thing which uLua should achieve is fast code interpreter. At least 10 times worst actual native speed. (1 Million Lua instructions on 10 MIPS (10 MHz for AVR)).
+uLua aimed to run Lua scripts on microcontrollers with very limited resources, like RAM. uLua should work on microcontrollers with RAM >= 1k. Second thing which uLua should achieve is fast code interpreter. Goal is 1 Million Lua instructions on 10 MIPS (10 MHz for AVR).
 Usage
 
 luac.exe -s -o alltest.luc alltest.lua
