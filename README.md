@@ -8,9 +8,11 @@ About
 uLua aimed to run Lua scripts on microcontrollers with very limited resources, like RAM. uLua should work on microcontrollers with RAM >= 1k. Second thing which uLua should achieve is fast code interpreter. Goal is 1 Million Lua instructions on 10 MIPS (10 MHz for AVR).
 Usage
 
+```
 luac.exe -s -o alltest.luc alltest.lua
 ChunkSpy.lua alltest.luc alltest.lua -o alltest.lst
 uLuaPC.exe alltest.luc
+```
 
 ChunkSpy.lua - optional. This script used to generate listing file from compiled luc file.
 Features
@@ -123,7 +125,7 @@ GC - garbage collector. Currenly implemented GC heap standard functions, like:
     void gcDelete(gcvarpt* variable);
 ```
 
-    Tables - widly used in lua variable type. Will be implemented as hash table. GC should be implemented first. 
+Tables - widly used in lua variable type. Will be implemented as hash table. GC should be implemented first. 
 
 Supported Operands
 
