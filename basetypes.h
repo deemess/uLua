@@ -12,8 +12,11 @@ typedef int8_t s08;
 typedef int16_t s16;
 typedef int32_t s32;
 
+#ifndef NULL
 #define NULL 0
+#endif
 
+typedef u08 BOOL;
 #define TRUE  1
 #define FALSE 0
 

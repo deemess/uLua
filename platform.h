@@ -2,6 +2,7 @@
 #define PLATFORM_H
 
 #include "basetypes.h"
+#include <stdlib.h>
 
 void platformInit(void* arg);
 u08 platformReadByte(u16 offset);

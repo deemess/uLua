@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 	if(argc < 2) 
 	{
 		printf("Usage: \n");
-		printf("uluac2 file.lua");
+		printf("uluac file.lua");
 		return 1;
 	}
 

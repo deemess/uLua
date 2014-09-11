@@ -19,7 +19,7 @@ u08 nextchar(LexState* ls) {
 void setInput(LexState* ls, u08* stream) {
 	error = E_NONE;
 
-	ls->decpoint = (u08)".";
+	ls->decpoint = (u08)'.';
 	ls->lookahead.token = TK_EOS;
 	ls->z = stream;
 	ls->zp = 0;
