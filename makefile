@@ -21,9 +21,9 @@ ULUAC_OBJ=$(ULUAC_SRC:.cpp=.o)
 # all projects
 all: ulua_i lemon_p ulua_c
 
-ulua_c_debug: CFLAGS += -DDEBUG -g
-ulua_c_debug: LDFLAGS += -DDEBUG -g
-ulua_c_debug: ulua_c
+alldebug: CFLAGS += -DDEBUG -g
+alldebug: LDFLAGS += -DDEBUG -g
+alldebug: ulua_i lemon_p ulua_c
 
 # project dependencies
 ulua_i: $(ULUA_SRC) $(ULUA_EXE)
