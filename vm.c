@@ -179,8 +179,8 @@ void clearRegister(vmregister* reg)
 {
 	//check register for GC ref
 	if(reg->type == VAR_CLOSURE) {
-		GCREFDEC((gcvarpt*)reg->numval);
-		GCCHECK((gcvarpt*)reg->numval);
+		GCREFDEC((gcvarpt*)reg->pointer);
+		GCCHECK((gcvarpt*)reg->pointer);
 	}
 	//reg->type = VAR_NULL;
 	//reg->numval = 0;
@@ -241,7 +241,7 @@ u08 vmRun(vm* vm)
 		case OP_MOVE: //copy R(A) = R(B)
 			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = curstate->reg[b].type;
-			curstate->reg[a].numval = curstate->reg[b].numval;
+			curstate->reg[a].pointer = curstate->reg[b].pointer;
 			break;
 
 		case OP_CLOSURE: //Create closure and put it into R(A)
@@ -262,7 +262,7 @@ u08 vmRun(vm* vm)
 				//init upvalue from vm register
 				case OP_MOVE:
 					GCVALUE(vmclosure, gcpointer).upval[i].type = curstate->reg[b].type;
-					GCVALUE(vmclosure, gcpointer).upval[i].numval = curstate->reg[b].numval;
+					GCVALUE(vmclosure, gcpointer).upval[i].pointer = curstate->reg[b].pointer;
 					break;
 
 				//init upvalue from another upvalue
@@ -270,7 +270,7 @@ u08 vmRun(vm* vm)
 					if(curstate->closure != NULL)
 					{
 						GCVALUE(vmclosure, gcpointer).upval[i].type = GCVALUE(vmclosure, curstate->closure).upval[b].type;
-						GCVALUE(vmclosure, gcpointer).upval[i].numval = GCVALUE(vmclosure, curstate->closure).upval[b].numval;
+						GCVALUE(vmclosure, gcpointer).upval[i].pointer = GCVALUE(vmclosure, curstate->closure).upval[b].pointer;
 					}
 					break;
 
@@ -285,7 +285,7 @@ u08 vmRun(vm* vm)
 			GCREFINC(gcpointer);
 			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_CLOSURE;
-			curstate->reg[a].numval = (u32)gcpointer;
+			curstate->reg[a].pointer = gcpointer;
 			break;
 
 		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
@@ -307,11 +307,11 @@ u08 vmRun(vm* vm)
 			//set global value
 			if(curstate->reg[a].type == VAR_CLOSURE)
 			{
-				GCREFINC((gcvarpt*)curstate->reg[a].numval);
+				GCREFINC((gcvarpt*)curstate->reg[a].pointer);
 			}
 			clearRegister(&vm->global[glindex].val);
 			vm->global[glindex].val.type = curstate->reg[a].type;
-			vm->global[glindex].val.numval = curstate->reg[a].numval;
+			vm->global[glindex].val.pointer = curstate->reg[a].pointer;
 			break;
 
 		case OP_GETGLOBAL: // A Bx	R(A) := Gbl[Kst(Bx)]
@@ -328,19 +328,19 @@ u08 vmRun(vm* vm)
 
 			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = vm->global[glindex].val.type;
-			curstate->reg[a].numval = vm->global[glindex].val.numval;
+			curstate->reg[a].pointer = vm->global[glindex].val.pointer;
 			break;
 
 		case OP_GETUPVAL: //R(A) := UpValue[B]
 			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = GCVALUE(vmclosure, curstate->closure).upval[b].type;
-			curstate->reg[a].numval = GCVALUE(vmclosure, curstate->closure).upval[b].numval;
+			curstate->reg[a].pointer = GCVALUE(vmclosure, curstate->closure).upval[b].pointer;
 			break;
 
 		case OP_SETUPVAL: //UpValue[B] := R(A)
 			clearRegister(&GCVALUE(vmclosure, curstate->closure).upval[b]);
 			GCVALUE(vmclosure, curstate->closure).upval[b].type = curstate->reg[a].type;
-			GCVALUE(vmclosure, curstate->closure).upval[b].numval = curstate->reg[a].numval;
+			GCVALUE(vmclosure, curstate->closure).upval[b].pointer = curstate->reg[a].pointer;
 			break;
 		
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
@@ -402,7 +402,7 @@ u08 vmRun(vm* vm)
 				vm->pcstack[vm->pcstackpt++] = vm->pc;
 				//set pc = call function address
 				//TODO: check reg type
-				gcpointer = (gcvarpt*)curstate->reg[a].numval;
+				gcpointer = (gcvarpt*)curstate->reg[a].pointer;
 				vm->pc = GCVALUE(vmclosure,gcpointer).funcp;
 				vm->pc += 16; //skip functino header
 
@@ -420,7 +420,7 @@ u08 vmRun(vm* vm)
 				for(int i=0; i<b-1 && b!=0; i++)
 				{
 					vm->state[vm->statept].reg[i].type   = vm->state[vm->statept-1].reg[a+1+i].type;
-					vm->state[vm->statept].reg[i].numval = vm->state[vm->statept-1].reg[a+1+i].numval;
+					vm->state[vm->statept].reg[i].pointer = vm->state[vm->statept-1].reg[a+1+i].pointer;
 				}
 
 			} else {
@@ -446,7 +446,7 @@ u08 vmRun(vm* vm)
 				for(int i=0; i<b-1 && b!=0; i++)
 				{
 					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].type   = vm->state[vm->statept+1].reg[a+i].type;
-					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].numval = vm->state[vm->statept+1].reg[a+i].numval;
+					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].pointer = vm->state[vm->statept+1].reg[a+i].pointer;
 				}
 			}
 			break;

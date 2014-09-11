@@ -109,8 +109,8 @@ int main(int argc, char **argv) {
 	setInput(&ls, (u08*)code);
 
 	//parse source code
+	next(&ls);
 	while(ls.t.token != TK_EOS) {
-		next(&ls);
 		if(getLastULexError() != E_NONE) {
 			printf("Error: %d\n", getLastULexError());
 			printf("Token:");
@@ -120,6 +120,7 @@ int main(int argc, char **argv) {
 		}
 		printToken(&ls.t);
 		Parse(parser, ls.t.token, ls.t, &code[0]);
+		next(&ls);
 	}
 
 	ParseFree(parser, free);

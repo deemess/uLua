@@ -37,7 +37,7 @@ void printRegister(vmregister reg)
 			break;
 
 		case VAR_STRING:
-			platformPrintf("%s\t", (char*)reg.numval);
+			platformPrintf("%s\t", (char*)reg.pointer);
 			break;
 
 		case VAR_NULL:
@@ -100,7 +100,7 @@ void putNative(vm* v, u08* name, nativeFunc func)
 	u08 freeIndex = getFreeGlobal(v);
 	//set global
 	v->global[freeIndex].val.type = VAR_NATIVE_FUNC;
-	v->global[freeIndex].val.numval = (u32)(func);
+	v->global[freeIndex].val.pointer = (void*)(func);
 
 	//copy name
 	for(int i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
@@ -120,6 +120,6 @@ void nativeInit(vm* vm)
 //call native function stored in reg
 void nativeCall(vm* vm, u08 a, u16 b, u16 c)
 {
-	nativeFunc func = (nativeFunc)vm->state[vm->statept].reg[a].numval;
+	nativeFunc func = (nativeFunc)vm->state[vm->statept].reg[a].pointer;
 	func(vm, a, b, c);
 }

@@ -63,6 +63,7 @@ struct vmregister {
 	union {
 		u32   numval;
 		float floatval;
+		void* pointer;
 	};
 };
 
@@ -88,7 +89,8 @@ struct vmstate {
 	u08 retreg; //return register pointer to store function call result
 
 	//registers
-	vmregister* reg; //registers for current statre reg[regcount]
+	vmregister reg[REGISTERSIZE];
+	//vmregister* reg; //registers for current statre reg[regcount]
 };
 
 //virtual machine single thread main structure
