@@ -2,7 +2,7 @@
 #define ULEXER_H
 
 #include <ctype.h>
-#include <stdlib.h>
+#include "platform.h"
 #include "basetypes.h"
 #include "llerror.h"
 #include "uparser.h"

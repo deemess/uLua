@@ -79,6 +79,7 @@ void printToken(Token* t) {
 }
 
 int main(int argc, char **argv) {
+
 	//local variable
 	int i;
 	FILE* file;

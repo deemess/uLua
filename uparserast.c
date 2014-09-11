@@ -234,7 +234,8 @@ uBlock* createBlock() {
 
 uBlock* mergeBlock(uBlock* a, uBlock* b) {
 	//merge stack and free b block (right side)
-	for(u08 i=0; i < b->regN; i++) {
+	u08 i = 0;
+	for(i=0; i < b->regN; i++) {
 		a->regs[a->regN++] = b->regs[i];
 	}
 	if(a->regN > a->regMaxN)  a->regMaxN = a->regN;
@@ -276,6 +277,7 @@ uBlock* pushConstant(uBlock* b, Token* t, VAL_TYPE type) {
 }
 
 uBlock* mathOp(uBlock* a, Token* t) {
+	uValNode* newnode;
 	if(a->regs[a->regN]->type == VAL_NUMBER) {
 		switch(t->token) {
 		case TK_PLUS:
@@ -287,5 +289,5 @@ uBlock* mathOp(uBlock* a, Token* t) {
 			break;
 		}
 	}
-	uValNode* newnode = (uValNode*)malloc(sizeof(uValNode));
+	newnode = (uValNode*)malloc(sizeof(uValNode));
 }
