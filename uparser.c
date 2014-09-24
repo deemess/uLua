@@ -984,25 +984,186 @@ static void yy_reduce(
   **  #line <lineno> <thisfile>
   **     break;
   */
+      case 1: /* semi ::= SEMICOL */
+      case 2: /* semi ::= */ yytestcase(yyruleno==2);
+#line 42 "uparser.y"
+{
+	printf("P_SEMI\n");
+}
+#line 994 "uparser.c"
+        break;
+      case 3: /* block ::= scope statlist */
+      case 4: /* block ::= scope statlist laststat semi */ yytestcase(yyruleno==4);
+#line 49 "uparser.y"
+{
+	printf("P_BLOCK\n");
+}
+#line 1002 "uparser.c"
+        break;
+      case 6: /* scope ::= */
+      case 7: /* scope ::= scope statlist binding semi */ yytestcase(yyruleno==7);
+#line 57 "uparser.y"
+{
+	printf("P_SCOPE\n");
+}
+#line 1010 "uparser.c"
+        break;
+      case 8: /* statlist ::= */
+#line 64 "uparser.y"
+{
+	printf("P_STATLIST_EMPTY\n");
+}
+#line 1017 "uparser.c"
+        break;
+      case 9: /* statlist ::= statlist stat semi */
+#line 67 "uparser.y"
+{
+	printf("P_STATLIST_ADD_STAT\n");
+}
+#line 1024 "uparser.c"
+        break;
+      case 16: /* stat ::= setlist SET explist1 */
+#line 77 "uparser.y"
+{
+	printf("P_STAT_SET\n");
+}
+#line 1031 "uparser.c"
+        break;
+      case 17: /* stat ::= functioncall */
+#line 80 "uparser.y"
+{
+	printf("P_STAT_FCALL\n");
+}
+#line 1038 "uparser.c"
+        break;
+      case 37: /* explist1 ::= exp */
+#line 110 "uparser.y"
+{
+	printf("P_EXPLIST_EXP\n");
+}
+#line 1045 "uparser.c"
+        break;
+      case 38: /* explist1 ::= explist1 COMMA exp */
+#line 113 "uparser.y"
+{
+	printf("P_EXPLIST_ADD_EXP\n");
+}
+#line 1052 "uparser.c"
+        break;
+      case 42: /* exp ::= NUMBER */
+#line 129 "uparser.y"
+{
+	printf("P_EXP_NUMBER\n");
+}
+#line 1059 "uparser.c"
+        break;
+      case 43: /* exp ::= STRING */
+#line 132 "uparser.y"
+{
+	printf("P_EXP_STRING\n");
+}
+#line 1066 "uparser.c"
+        break;
+      case 44: /* exp ::= function */
+#line 135 "uparser.y"
+{
+	printf("P_EXP_FUNCTION\n");
+}
+#line 1073 "uparser.c"
+        break;
+      case 45: /* exp ::= prefixexp */
+#line 138 "uparser.y"
+{
+	printf("P_EXP_PREFIXEXP\n");
+}
+#line 1080 "uparser.c"
+        break;
+      case 52: /* exp ::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp */
+#line 147 "uparser.y"
+{
+	printf("P_EXP_MATH\n");
+}
+#line 1087 "uparser.c"
+        break;
+      case 53: /* setlist ::= var */
+#line 151 "uparser.y"
+{
+	printf("P_SETLIST_VAR\n");
+}
+#line 1094 "uparser.c"
+        break;
+      case 54: /* setlist ::= setlist COMMA var */
+#line 154 "uparser.y"
+{
+	printf("P_SETLIST_ADD_VAR\n");
+}
+#line 1101 "uparser.c"
+        break;
+      case 55: /* var ::= NAME */
+#line 158 "uparser.y"
+{
+	printf("P_VAR_NAME\n");
+}
+#line 1108 "uparser.c"
+        break;
+      case 58: /* prefixexp ::= var */
+#line 164 "uparser.y"
+{
+	printf("P_PREFEXP_VAR\n");
+}
+#line 1115 "uparser.c"
+        break;
+      case 59: /* prefixexp ::= functioncall */
+#line 167 "uparser.y"
+{
+	printf("P_PREFEXP_FCALL\n");
+}
+#line 1122 "uparser.c"
+        break;
+      case 60: /* prefixexp ::= OPEN exp RPAREN */
+#line 170 "uparser.y"
+{
+	printf("P_PREFEXP_EXP\n");
+}
+#line 1129 "uparser.c"
+        break;
+      case 61: /* functioncall ::= prefixexp args */
+#line 174 "uparser.y"
+{
+	printf("P_FCALL_ARGS\n");
+}
+#line 1136 "uparser.c"
+        break;
+      case 62: /* functioncall ::= prefixexp COLON NAME args */
+#line 177 "uparser.y"
+{
+	printf("P_FCALL_NAME_ARGS\n");
+}
+#line 1143 "uparser.c"
+        break;
+      case 63: /* args ::= LPAREN RPAREN */
+#line 181 "uparser.y"
+{
+	printf("P_ARGS_EMPTY\n");
+}
+#line 1150 "uparser.c"
+        break;
+      case 64: /* args ::= LPAREN explist1 RPAREN */
+#line 184 "uparser.y"
+{
+	printf("P_ARGS_EXPLIST\n");
+}
+#line 1157 "uparser.c"
+        break;
       default:
       /* (0) chunk ::= block */ yytestcase(yyruleno==0);
-      /* (1) semi ::= SEMICOL */ yytestcase(yyruleno==1);
-      /* (2) semi ::= */ yytestcase(yyruleno==2);
-      /* (3) block ::= scope statlist */ yytestcase(yyruleno==3);
-      /* (4) block ::= scope statlist laststat semi */ yytestcase(yyruleno==4);
       /* (5) ublock ::= block UNTIL exp */ yytestcase(yyruleno==5);
-      /* (6) scope ::= */ yytestcase(yyruleno==6);
-      /* (7) scope ::= scope statlist binding semi */ yytestcase(yyruleno==7);
-      /* (8) statlist ::= */ yytestcase(yyruleno==8);
-      /* (9) statlist ::= statlist stat semi */ yytestcase(yyruleno==9);
       /* (10) stat ::= DO block END */ yytestcase(yyruleno==10);
       /* (11) stat ::= WHILE exp DO block END */ yytestcase(yyruleno==11);
       /* (12) stat ::= repetition DO block END */ yytestcase(yyruleno==12);
       /* (13) stat ::= REPEAT ublock */ yytestcase(yyruleno==13);
       /* (14) stat ::= IF conds END */ yytestcase(yyruleno==14);
       /* (15) stat ::= FUNCTION funcname params block END */ yytestcase(yyruleno==15);
-      /* (16) stat ::= setlist SET explist1 */ yytestcase(yyruleno==16);
-      /* (17) stat ::= functioncall */ yytestcase(yyruleno==17);
       /* (18) repetition ::= FOR NAME SET explist23 */ yytestcase(yyruleno==18);
       /* (19) repetition ::= FOR namelist IN explist1 */ yytestcase(yyruleno==19);
       /* (20) conds ::= condlist */ yytestcase(yyruleno==20);
@@ -1022,34 +1183,17 @@ static void yy_reduce(
       /* (34) dottedname ::= dottedname DOT NAME */ yytestcase(yyruleno==34);
       /* (35) namelist ::= NAME */ yytestcase(yyruleno==35);
       /* (36) namelist ::= namelist COMMA NAME */ yytestcase(yyruleno==36);
-      /* (37) explist1 ::= exp */ yytestcase(yyruleno==37);
-      /* (38) explist1 ::= explist1 COMMA exp */ yytestcase(yyruleno==38);
       /* (39) explist23 ::= exp COMMA exp */ yytestcase(yyruleno==39);
       /* (40) explist23 ::= exp COMMA exp COMMA exp */ yytestcase(yyruleno==40);
       /* (41) exp ::= NIL|TRUE|FALSE|DOTS */ yytestcase(yyruleno==41);
-      /* (42) exp ::= NUMBER */ yytestcase(yyruleno==42);
-      /* (43) exp ::= STRING */ yytestcase(yyruleno==43);
-      /* (44) exp ::= function */ yytestcase(yyruleno==44);
-      /* (45) exp ::= prefixexp */ yytestcase(yyruleno==45);
       /* (46) exp ::= tableconstructor */ yytestcase(yyruleno==46);
       /* (47) exp ::= NOT|HASH|MINUS exp */ yytestcase(yyruleno==47);
       /* (48) exp ::= exp OR exp */ yytestcase(yyruleno==48);
       /* (49) exp ::= exp AND exp */ yytestcase(yyruleno==49);
       /* (50) exp ::= exp L|LE|G|GE|EQ|NE exp */ yytestcase(yyruleno==50);
       /* (51) exp ::= exp CONCAT exp */ yytestcase(yyruleno==51);
-      /* (52) exp ::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp */ yytestcase(yyruleno==52);
-      /* (53) setlist ::= var */ yytestcase(yyruleno==53);
-      /* (54) setlist ::= setlist COMMA var */ yytestcase(yyruleno==54);
-      /* (55) var ::= NAME */ yytestcase(yyruleno==55);
       /* (56) var ::= prefixexp SLPAREN exp SRPAREN */ yytestcase(yyruleno==56);
       /* (57) var ::= prefixexp DOT NAME */ yytestcase(yyruleno==57);
-      /* (58) prefixexp ::= var */ yytestcase(yyruleno==58);
-      /* (59) prefixexp ::= functioncall */ yytestcase(yyruleno==59);
-      /* (60) prefixexp ::= OPEN exp RPAREN */ yytestcase(yyruleno==60);
-      /* (61) functioncall ::= prefixexp args */ yytestcase(yyruleno==61);
-      /* (62) functioncall ::= prefixexp COLON NAME args */ yytestcase(yyruleno==62);
-      /* (63) args ::= LPAREN RPAREN */ yytestcase(yyruleno==63);
-      /* (64) args ::= LPAREN explist1 RPAREN */ yytestcase(yyruleno==64);
       /* (65) args ::= tableconstructor */ yytestcase(yyruleno==65);
       /* (66) args ::= STRING */ yytestcase(yyruleno==66);
       /* (67) function ::= FUNCTION params block END */ yytestcase(yyruleno==67);
@@ -1128,7 +1272,7 @@ static void yy_syntax_error(
 #line 34 "uparser.y"
 
   printf ("Syntax error!\n");
-#line 1132 "uparser.c"
+#line 1276 "uparser.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

@@ -39,18 +39,34 @@
 
 chunk ::= block . 
 
-semi ::= SEMICOL .
-semi ::= .
+semi ::= SEMICOL . {
+	printf("P_SEMI\n");
+}
+semi ::= . {
+	printf("P_SEMI\n");
+}
 
-block ::= scope statlist . 
-block ::= scope statlist laststat semi . 
+block ::= scope statlist . {
+	printf("P_BLOCK\n");
+}
+block ::= scope statlist laststat semi . {
+	printf("P_BLOCK\n");
+}
 ublock ::= block UNTIL exp .
 
-scope ::= .
-scope ::= scope statlist binding semi.
+scope ::= . {
+	printf("P_SCOPE\n");
+}
+scope ::= scope statlist binding semi. {
+	printf("P_SCOPE\n");
+}
            
-statlist   ::= . 
-statlist   ::= statlist stat semi . 
+statlist   ::= . {
+	printf("P_STATLIST_EMPTY\n");
+}
+statlist   ::= statlist stat semi . {
+	printf("P_STATLIST_ADD_STAT\n");
+}
 
 stat ::= DO block END .
 stat ::= WHILE exp DO block END .
@@ -58,8 +74,12 @@ stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
 stat ::= IF conds END .
 stat ::= FUNCTION funcname params block END . 
-stat ::= setlist SET explist1 . 
-stat ::= functioncall . 
+stat ::= setlist SET explist1 . {
+	printf("P_STAT_SET\n");
+}
+stat ::= functioncall .  {
+	printf("P_STAT_FCALL\n");
+}
 
 repetition ::= FOR NAME SET explist23 .
 repetition ::= FOR namelist IN explist1 .
@@ -87,8 +107,12 @@ dottedname ::= dottedname DOT NAME .
 namelist   ::= NAME .
 namelist   ::= namelist COMMA NAME . 
 
-explist1	::= exp . 
-explist1	::= explist1 COMMA exp . 
+explist1	::= exp . {
+	printf("P_EXPLIST_EXP\n");
+}
+explist1	::= explist1 COMMA exp . {
+	printf("P_EXPLIST_ADD_EXP\n");
+}
 explist23  ::= exp COMMA exp .
 explist23  ::= exp COMMA exp COMMA exp .
 
@@ -102,36 +126,66 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     POW .
 
 exp        ::= NIL|TRUE|FALSE|DOTS .
-exp        ::= NUMBER . 
-exp        ::= STRING . 
-exp        ::= function . 
-exp        ::= prefixexp . 
+exp        ::= NUMBER . {
+	printf("P_EXP_NUMBER\n");
+}
+exp        ::= STRING . {
+	printf("P_EXP_STRING\n");
+}
+exp        ::= function . {
+	printf("P_EXP_FUNCTION\n");
+}
+exp        ::= prefixexp . {
+	printf("P_EXP_PREFIXEXP\n");
+}
 exp        ::= tableconstructor .
 exp        ::= NOT|HASH|MINUS exp .
 exp        ::= exp OR exp .
 exp        ::= exp AND exp .
 exp        ::= exp L|LE|G|GE|EQ|NE exp .
 exp        ::= exp CONCAT exp .
-exp			::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp .
+exp			::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp . {
+	printf("P_EXP_MATH\n");
+}
 
-setlist ::= var . 
-setlist ::= setlist COMMA var . 
+setlist ::= var . {
+	printf("P_SETLIST_VAR\n");
+}
+setlist ::= setlist COMMA var . {
+	printf("P_SETLIST_ADD_VAR\n");
+}
 
-var ::= NAME . 
+var ::= NAME . {
+	printf("P_VAR_NAME\n");
+}
 var ::= prefixexp SLPAREN exp SRPAREN .
 var ::= prefixexp DOT NAME .
 
-prefixexp  ::= var . 
-prefixexp  ::= functioncall . 
-prefixexp  ::= OPEN exp RPAREN .
+prefixexp  ::= var . {
+	printf("P_PREFEXP_VAR\n");
+}
+prefixexp  ::= functioncall .  {
+	printf("P_PREFEXP_FCALL\n");
+}
+prefixexp  ::= OPEN exp RPAREN . {
+	printf("P_PREFEXP_EXP\n");
+}
 
-functioncall ::= prefixexp args . 
-functioncall ::= prefixexp COLON NAME args .
+functioncall ::= prefixexp args . {
+	printf("P_FCALL_ARGS\n");
+}
+functioncall ::= prefixexp COLON NAME args . {
+	printf("P_FCALL_NAME_ARGS\n");
+}
 
-args        ::= LPAREN RPAREN . 
-args        ::= LPAREN explist1 RPAREN . 
+args        ::= LPAREN RPAREN . {
+	printf("P_ARGS_EMPTY\n");
+}
+args        ::= LPAREN explist1 RPAREN . {
+	printf("P_ARGS_EXPLIST\n");
+}
 args        ::= tableconstructor .
-args        ::= STRING . 
+args        ::= STRING .
 function    ::= FUNCTION params block END . 
 params      ::= LPAREN parlist LPAREN . 
 parlist     ::= . 

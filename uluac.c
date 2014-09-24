@@ -102,6 +102,7 @@ int main(int argc, char **argv) {
 
 	file = fopen(argv[1], "r");
 	codelen = (u32)fread(code, 1, CODE_BUFFER_SIZE, file);
+	code[codelen] = 0;
 
 	//init Parser
 	parser = ParseAlloc (malloc); 

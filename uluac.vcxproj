@@ -57,7 +57,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>lemon.exe uparser.y</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -87,6 +88,9 @@
     <ClInclude Include="basetypes.h" />
     <ClInclude Include="ulexer.h" />
     <ClInclude Include="uparser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="uparser.y" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
