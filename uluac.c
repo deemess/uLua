@@ -124,6 +124,8 @@ int main(int argc, char **argv) {
 		Parse(parser, ls.t.token, ls.t, &code[0]);
 		next(&ls);
 	}
+	printToken(&ls.t);
+	Parse(parser, ls.t.token, ls.t, &code[0]);
 
 	ParseFree(parser, free);
 	return 0;
