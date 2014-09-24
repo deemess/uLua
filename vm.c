@@ -4,12 +4,13 @@
 //reset structs functions
 static void initStructState(vmstate* state)
 {
+	int i=0;
 	state->constp = 0;
 	state->funcp = 0;
 	state->closure = NULL;
 	state->retreg = 0;
 
-	for(int i=0; i<REGISTERSIZE; i++) {
+	for(i=0; i<REGISTERSIZE; i++) {
 		state->reg[i].type = VAR_NULL;
 		state->reg[i].numval = 0;
 	}
@@ -18,23 +19,26 @@ static void initStructState(vmstate* state)
 
 void initStructVM(vm* vm)
 {
+	int i=0;
+	int j=0;
+
 	vm->status = STOP;
 	vm->pc = 0;
 	vm->pcstackpt = 0;
 	vm->statept = 0;
 
-	for(int i=0; i<PCSTACKSIZE; i++)
+	for(i=0; i<PCSTACKSIZE; i++)
 		vm->pcstack[i] = 0;
 
-	for(int i=0; i<GLOBALSIZE; i++) {
+	for(i=0; i<GLOBALSIZE; i++) {
 		vm->global[i].val.type = VAR_NULL;
 		vm->global[i].val.numval = 0;
 
-		for(int j=0; j<GLOBALNAMESIZE; j++)
+		for(j=0; j<GLOBALNAMESIZE; j++)
 			vm->global[i].name[j] = 0;
 	}
 
-	for(int i=0; i<STATEMAXCOUNT; i++)
+	for(i=0; i<STATEMAXCOUNT; i++)
 		initStructState(&vm->state[i]);
 }
 
@@ -52,9 +56,10 @@ void vmInit(vm* vm)
 //Get pointer to sub functions
 u16 getFuncsPt(u16 pt)
 {
+	u08 i=0;
 	u32 csize = platformReadDWord(pt); pt += 4;
 
-	for(u08 i=0; i<csize; i++)
+	for(i=0; i<csize; i++)
 	{
 		u08 type = platformReadByte(pt++);
 		if(type == NUMBER_TYPE)
@@ -74,12 +79,16 @@ u16 getFuncsPt(u16 pt)
 //return pointer to the next byte after function
 u16 skeepFunction(u16 pt)
 {
+	u08 i=0;
+	u32 codesize;
+	u32 funcsize;
+
 	pt += 16; //function header;
-	u32 codesize = platformReadDWord(pt); pt += 4;
+	codesize = platformReadDWord(pt); pt += 4;
 	pt += codesize * 4;
 	pt = getFuncsPt(pt);//subfunctions
-	u32 funcsize = platformReadDWord(pt); pt += 4;
-	for(u08 i=0; i<funcsize; i++)
+	funcsize = platformReadDWord(pt); pt += 4;
+	for(i=0; i<funcsize; i++)
 	{
 		pt = skeepFunction(pt);
 	}
@@ -91,8 +100,9 @@ u16 skeepFunction(u16 pt)
 // pt - pointer to sub functions
 u16 getFuncPt(u16 pt, u16 N)
 {
+	u08 i=0;
 	u32 funcsize = platformReadDWord(pt); pt += 4;
-	for(u08 i=0; N>i; i++)
+	for(i=0; N>i; i++)
 	{
 		pt = skeepFunction(pt);
 	}
@@ -103,9 +113,11 @@ u16 getFuncPt(u16 pt, u16 N)
 //Get potinter to constant number
 u16 getConstPt(u16 constspt, u16 N)
 {
+	u08 i;
+	u32 strsize;
 	u32 csize = platformReadDWord(constspt); constspt += 4;
 
-	for(u08 i=0; i<csize &&  i<N; i++)
+	for(i=0; i<csize &&  i<N; i++)
 	{
 		u08 type = platformReadByte(constspt++);
 		if(type == NUMBER_TYPE)
@@ -114,7 +126,7 @@ u16 getConstPt(u16 constspt, u16 N)
 		}
 		else if(type == STRING_TYPE)
 		{
-			u32 strsize = platformReadDWord(constspt); constspt += 4;
+			strsize = platformReadDWord(constspt); constspt += 4;
 			constspt += strsize;
 		}
 	}
@@ -125,13 +137,16 @@ u16 getConstPt(u16 constspt, u16 N)
 u08 getGlobalByName(vm* vm, u08* name)
 {
 	u08 foundGlobal = 0;
+	u08 match;
+	int i;
+
 	for(foundGlobal=0; foundGlobal<GLOBALSIZE; foundGlobal++)
 	{
 		if(vm->global[foundGlobal].val.type == VAR_NULL) //global not found - return free one
 			break;
 
-		u08 match = 1;
-		for(int i=0; i<GLOBALNAMESIZE && name[i] != 0 && vm->global[foundGlobal].name[i] != 0; i++)
+		match = 1;
+		for(i=0; i<GLOBALNAMESIZE && name[i] != 0 && vm->global[foundGlobal].name[i] != 0; i++)
 		{
 			if(vm->global[foundGlobal].name[i] != name[i])
 			{
@@ -189,19 +204,6 @@ void clearRegister(vmregister* reg)
 
 u08 vmRun(vm* vm)
 {
-	//vmstate* state = &vm->state[0];
-	//set running state
-	vm->status = RUN;
-
-	//skip header
-	vm->pc = 0x1c;
-
-	//get code size for top function
-	u32 codesize = platformReadDWord(vm->pc); 
-	vm->pc += 4;
-	vm->state[vm->statept].constp = vm->pc + codesize * 4;
-	vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
-
 	u08 a = 0;
 	u16 b = 0;
 	u16 c = 0;
@@ -211,10 +213,28 @@ u08 vmRun(vm* vm)
 	u08 type;
 	u08 glindex;
 	u08* name;
+	u32 codesize;
+	u32 inst;
+	u08 opcode;
 	gcvarpt* gcpointer = NULL;
+	int i;
+
 	vmregister tmp;
 	tmp.type = VAR_NULL;
 	tmp.numval = 0;
+
+	//vmstate* state = &vm->state[0];
+	//set running state
+	vm->status = RUN;
+
+	//skip header
+	vm->pc = 0x1c;
+
+	//get code size for top function
+	codesize = platformReadDWord(vm->pc); 
+	vm->pc += 4;
+	vm->state[vm->statept].constp = vm->pc + codesize * 4;
+	vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
 
 	//for(u08 i=0; i<codesize; i++)
 	while(vm->status == RUN)
@@ -222,8 +242,8 @@ u08 vmRun(vm* vm)
 		vmstate* curstate = &vm->state[vm->statept];
 
 		//get first instruction
-		u32 inst = platformReadDWord(vm->pc);
-		u08 opcode = GET_OPCODE(inst);
+		inst = platformReadDWord(vm->pc);
+		opcode = GET_OPCODE(inst);
 
 		//go to next instruction
 		vm->pc += 4;
@@ -251,7 +271,7 @@ u08 vmRun(vm* vm)
 			GCVALUE(vmclosure, gcpointer).upvalcount = platformReadByte(GCVALUE(vmclosure, gcpointer).funcp + 3*4);
 
 			//init upvalues
-			for(int i=0; i < GCVALUE(vmclosure, gcpointer).upvalcount; i++)
+			for(i=0; i < GCVALUE(vmclosure, gcpointer).upvalcount; i++)
 			{
 				u32 nextint = platformReadDWord(vm->pc);
 				u08 nextopcode = GET_OPCODE(nextint);
@@ -299,7 +319,7 @@ u08 vmRun(vm* vm)
 			//search global
 			glindex = getGlobalByName(vm, name);
 			//copy name
-			for(int i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
+			for(i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
 			{
 				vm->global[glindex].name[i] = name[i];
 			}
@@ -374,7 +394,7 @@ u08 vmRun(vm* vm)
 
 		
 		case OP_LOADNIL: //R(A) := ... := R(B) := nil
-			for(u08 i=a; i<=b; i++)
+			for(i=a; i<=b; i++)
 			{
 				clearRegister(&curstate->reg[i]);
 				curstate->reg[i].type = VAR_NULL;
@@ -417,7 +437,7 @@ u08 vmRun(vm* vm)
 				vm->state[vm->statept].closure = gcpointer;
 				//copy args to the new state
 				//TODO: support copy all values on the top of the stack (b=0)
-				for(int i=0; i<b-1 && b!=0; i++)
+				for(i=0; i<b-1 && b!=0; i++)
 				{
 					vm->state[vm->statept].reg[i].type   = vm->state[vm->statept-1].reg[a+1+i].type;
 					vm->state[vm->statept].reg[i].pointer = vm->state[vm->statept-1].reg[a+1+i].pointer;
@@ -443,7 +463,7 @@ u08 vmRun(vm* vm)
 				vm->statept--;
 				//save result to the prev state
 				//TODO: support return top of the stack (b=0)
-				for(int i=0; i<b-1 && b!=0; i++)
+				for(i=0; i<b-1 && b!=0; i++)
 				{
 					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].type   = vm->state[vm->statept+1].reg[a+i].type;
 					vm->state[vm->statept].reg[vm->state[vm->statept+1].retreg+i].pointer = vm->state[vm->statept+1].reg[a+i].pointer;

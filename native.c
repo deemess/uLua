@@ -64,9 +64,9 @@ void printRegister(vmregister reg)
 //native print(..) function
 void nativePrint(vm* vm, u08 a, u16 b, u16 c)
 {
-
+	u08 i=0;
 	//print all variables
-	for(u08 i=0; i<b-1; i++)
+	for(i=0; i<b-1; i++)
 	{
 		vmregister reg = vm->state[vm->statept].reg[a+1+i];
 		printRegister(reg);
@@ -97,13 +97,14 @@ u08 getFreeGlobal(vm* vm)
 
 void putNative(vm* v, u08* name, nativeFunc func)
 {
+	int i=0;
 	u08 freeIndex = getFreeGlobal(v);
 	//set global
 	v->global[freeIndex].val.type = VAR_NATIVE_FUNC;
 	v->global[freeIndex].val.pointer = (void*)(func);
 
 	//copy name
-	for(int i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
+	for(i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
 	{
 		v->global[freeIndex].name[i] = name[i];
 	}

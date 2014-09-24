@@ -3,13 +3,13 @@
 //create new table instance
 gcvarpt* tableNew()
 {
-	return tableNew(DEFAULT_TABLE_SIZE);
+	return tableNewSize(DEFAULT_TABLE_SIZE);
 }
 
 //create new table instance
-gcvarpt* tableNew(u32 tsize)
+gcvarpt* tableNewSize(u32 tsize)
 {
-	gcvarpt* table = gcNew(VAR_TABLE, sizeof(u32)*tsize*2 + sizeof(u32) + sizeof(u32));
+	gcvarpt* table = gcNewVar(VAR_TABLE, sizeof(u32)*tsize*2 + sizeof(u32) + sizeof(u32));
 	GCVALUE(hashtable,table).count = 0;
 	GCVALUE(hashtable,table).size = tsize;
 	GCVALUE(hashtable,table).keys = (u32*) &((*table)->data[sizeof(u32) + sizeof(u32)]);
@@ -53,6 +53,7 @@ u32 getHash(vmregister* val)
 //put value into table for a key
 void tablePut(gcvarpt* table, vmregister* key, vmregister* val)
 {
+	u32 i;
 	//get table structure
 	hashtable* tb = (hashtable*)(*table)->data;
 
@@ -62,7 +63,7 @@ void tablePut(gcvarpt* table, vmregister* key, vmregister* val)
 
 	//find empty slot
 	//TODO: process running out from size
-	for(u32 i=keyindex; i < tb->size; i++)
+	for(i=keyindex; i < tb->size; i++)
 	{
 		if(tb->keys[i] == NULL)
 		{

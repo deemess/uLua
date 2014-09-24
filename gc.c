@@ -8,7 +8,8 @@ u08 freePt;//free pointer in vars[]
 //initialize garbage collector and memory management
 void gcInit()
 {
-	for(u16 i=0; i<GC_SIZE;i++)
+	u16 i=0;
+	for(i=0; i<GC_SIZE;i++)
 	{
 		memory[i] = 0;
 	}
@@ -49,12 +50,14 @@ gcvarpt* gcNew(vartype type)
 		break;
 	}
 
-	return gcNew(type,size);
+	return gcNewVar(type,size);
 }
 
 //create new variable with given size and return its number
-gcvarpt* gcNew(vartype type, u16 size)
+gcvarpt* gcNewVar(vartype type, u16 size)
 {
+	u16 i=0;
+	u16 foundFreePt = 0;
 	//allocate memory for a new variable
 	gcvar* newvar = (gcvar*)(&memory[freePt]);
 	newvar->type = type;
@@ -63,12 +66,11 @@ gcvarpt* gcNew(vartype type, u16 size)
 	freePt += newvar->size + 4; // + type + size + refcount
 
 	//reset variable
-	for(u16 i=0; i<newvar->size; i++)
+	for(i=0; i<newvar->size; i++)
 		newvar->data[i] = 0;
 
 	//save new variable in our varlist
-	u16 foundFreePt = 0;
-	for(u16 i=0; i<GC_VAR_PT_SIZE; i++)
+	for(i=0; i<GC_VAR_PT_SIZE; i++)
 	{
 		if(vars[i] == NULL)
 		{
@@ -86,6 +88,7 @@ gcvarpt* gcNew(vartype type, u16 size)
 //delete variable
 void gcDelete(gcvarpt* variable)
 {
+	u16 i;
 	//get variable number
 	u08 varNum = variable - &vars[0];
 	u08 varMemoryAddr = (u08*)(*variable) - &memory[0];
@@ -101,7 +104,7 @@ void gcDelete(gcvarpt* variable)
 	vars[varNum] = NULL;
 
 	//copy memory
-	for(u16 i=varMemoryAddr; i<GC_SIZE || i == freePt ; i++)
+	for(i=varMemoryAddr; i<GC_SIZE || i == freePt ; i++)
 	{
 		if(i+varSize >= GC_SIZE)
 		{
@@ -114,7 +117,7 @@ void gcDelete(gcvarpt* variable)
 	}
 
 	//shift all pointers for right vars in array
-	for(u16 i=0; i<GC_VAR_PT_SIZE; i++)
+	for(i=0; i<GC_VAR_PT_SIZE; i++)
 	{
 		if(vars[i] == NULL)
 			continue;
@@ -132,12 +135,13 @@ void gcDelete(gcvarpt* variable)
 //dump gc memory
 void gcDump()
 {
-	platformPrintf("Dumping memory: size=%d, address=%d\n", GC_SIZE, &memory);
 	u16 constpt;
 	u32 size;
 	u08* name;
+	u16 i=0;
 
-	for(int i=0; i<GC_VAR_PT_SIZE; i++)
+	platformPrintf("Dumping memory: size=%d, address=%d\n", GC_SIZE, &memory);
+	for(i=0; i<GC_VAR_PT_SIZE; i++)
 	{
 		if(vars[i] == NULL)
 			continue;

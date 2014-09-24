@@ -81,11 +81,12 @@ void printToken(Token* t) {
 int main(int argc, char **argv) {
 
 	//local variable
-	int i;
+	//int i;
 	FILE* file;
 	u16 codelen;
 	LexState ls;
 	void *parser;
+	int i;
 
 	//check args
 	if(argc < 2) 

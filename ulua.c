@@ -6,9 +6,14 @@
 
 void testGC()
 {
-	gcvarpt* num1 = gcNew(VAR_NUMBER);
-	gcvarpt* num2 = gcNew(VAR_BOOLEAN);
-	gcvarpt* num3 = gcNew(VAR_FLOAT);
+	gcvarpt* num1;
+	gcvarpt* num2; 
+	gcvarpt* num3; 
+	gcvarpt* num4;
+
+	num1 = gcNew(VAR_NUMBER);
+	num2 = gcNew(VAR_BOOLEAN);
+	num3 = gcNew(VAR_FLOAT);
 
 	GCVALUE(s32,num1) = 10;
 	GCVALUE(u08,num2) = TRUE;
@@ -17,7 +22,7 @@ void testGC()
 
 	gcDelete(num2);
 
-	gcvarpt* num4 = gcNew(VAR_FLOAT);
+	num4 = gcNew(VAR_FLOAT);
 	GCVALUE(float,num4) = 9.99f;
 
 	if(GCVALUE(s32,num1) != 10 || GCVALUE(float,num3) != 1.5f || GCVALUE(float,num4) != 9.99f)
@@ -29,6 +34,8 @@ void testGC()
 
 int main(int argc, char **argv)
 {
+	vm thread;
+
 	if(argc < 2) 
 	{
 		printf("Usage: \n");
@@ -36,7 +43,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	vm thread;
 
 	platformInit(argv[1]);
 	vmInit(&thread);

@@ -22,7 +22,7 @@ typedef u08 BOOL;
 
 //gc types
 //variable structure
-struct gcvar {
+typedef struct gcvar {
 	u08 refcount;
 	u08 type;
 	u16 size;
@@ -33,13 +33,13 @@ struct gcvar {
 		float fnumber;
 		u08 data[GC_MAX_VAR_SIZE];
 	} var;*/
-};
+} gcvar;
 
 typedef gcvar* gcvarpt;
 
 //vm types
 //variable types
-enum vartype {
+typedef enum vartype {
 	VAR_BOOLEAN,
 	VAR_NUMBER,
 	VAR_FLOAT,
@@ -49,38 +49,38 @@ enum vartype {
 	VAR_FILE_POINTER_STR,
 	VAR_TABLE,
 	VAR_NATIVE_FUNC,
-};
+} vartype;
 
-enum threadstate {
+typedef enum threadstate {
 	STOP,
 	RUN,
 	SUSPEND,
 	ABORT
-};
+} threadstate;
 
-struct vmregister {
+typedef struct vmregister {
 	vartype type;
 	union {
 		u32   numval;
 		float floatval;
 		void* pointer;
 	};
-};
+} vmregister;
 
-struct vmclosure {
+typedef struct vmclosure {
 	u16			funcp; //pointer to function
 	u08			upvalcount; //count of upvalues
 	//upvalues registers
 	vmregister	upval[UPVALUESIZE]; //upvals from GC
-};
+} vmclosure;
 
 
-struct vmglobal {
+typedef struct vmglobal {
 	char		name[GLOBALNAMESIZE];
 	vmregister	val;
-};
+} vmglobal;
 
-struct vmstate {
+typedef struct vmstate {
 	gcvarpt* closure;
 	u16	pc;
 	u16 constp; //pointer to constants for the current function
@@ -91,10 +91,10 @@ struct vmstate {
 	//registers
 	vmregister reg[REGISTERSIZE];
 	//vmregister* reg; //registers for current statre reg[regcount]
-};
+} vmstate;
 
 //virtual machine single thread main structure
-struct vm {
+typedef struct vm {
 	//vm thread state
 	threadstate	status;
 
@@ -111,6 +111,6 @@ struct vm {
 	//pc call stack
 	u16 pcstack[PCSTACKSIZE];
 	u08 pcstackpt;
-};
+} vm;
 
 #endif

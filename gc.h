@@ -16,7 +16,7 @@ void gcInit();
 //create new variable and return its number
 gcvarpt* gcNew(vartype type);
 //create new variable with given size and return its number
-gcvarpt* gcNew(vartype type, u16 size);
+gcvarpt* gcNewVar(vartype type, u16 size);
 //delete variable
 void gcDelete(gcvarpt* variable);
 //check if variable should be deleted
