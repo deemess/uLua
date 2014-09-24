@@ -1,3 +1,5 @@
+%fallback  OPEN LPAREN .
+
 %include {
 #include <stdio.h>
 #include "basetypes.h"
@@ -35,52 +37,29 @@
 
 %start_symbol  chunk
 
-chunk ::= block(B) . {
-	makeDump(B, code);
-}
+chunk ::= block . 
 
 semi ::= SEMICOL .
 semi ::= .
 
-block(A) ::= scope statlist(B) . {
-	A = makeExpr(EXP_CHUNK, B, NULL, NULL, code);
-}
-block(A) ::= scope statlist(B) laststat(C) semi . {
-	if(C != NULL)
-		A = makeExpr(EXP_CHUNK, addList(B,C, code), NULL, NULL, code);
-	else
-		A = makeExpr(EXP_CHUNK, B, NULL, NULL, code);
-}
+block ::= scope statlist . 
+block ::= scope statlist laststat semi . 
 ublock ::= block UNTIL exp .
 
 scope ::= .
 scope ::= scope statlist binding semi.
            
-statlist(A)   ::= . {
-	A = makeList(NULL, code);
-}
-statlist(A)   ::= statlist(B) stat(C) semi . {
-	if(C != NULL) {
-		A = addList(B, C, code);
-	} else {
-		A = B;
-	}
-}
+statlist   ::= . 
+statlist   ::= statlist stat semi . 
 
 stat ::= DO block END .
 stat ::= WHILE exp DO block END .
 stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
 stat ::= IF conds END .
-stat(A) ::= FUNCTION funcname(B) params(C) block(D) END . {
-	A = makeExpr(EXP_FUNCTION, B, C, D, code);
-}
-stat(A) ::= setlist(B) SET explist1(C) . {
-	A = makeExpr(EXP_SET, B, C, NULL, code);
-}
-stat(A) ::= functioncall(B) . {
-	A = B;
-}
+stat ::= FUNCTION funcname params block END . 
+stat ::= setlist SET explist1 . 
+stat ::= functioncall . 
 
 repetition ::= FOR NAME SET explist23 .
 repetition ::= FOR namelist IN explist1 .
@@ -91,45 +70,25 @@ condlist   ::= cond .
 condlist   ::= condlist ELSEIF cond .
 cond       ::= exp THEN block .
 
-laststat(A) ::= BREAK . {
-	A = makeExpr(EXP_BREAK, NULL, NULL, NULL, code);
-}
-laststat(A) ::= RETURN . {
-	A = makeExpr(EXP_RETURN, NULL, NULL, NULL, code);
-}
-laststat(A) ::= RETURN explist1(B) . {
-	A = makeExpr(EXP_RETURN, B, NULL, NULL, code);
-}
+laststat ::= BREAK . 
+laststat ::= RETURN . 
+laststat ::= RETURN explist1 . 
 
 binding    ::= LOCAL namelist .
 binding    ::= LOCAL namelist SET explist1 .
 binding    ::= LOCAL FUNCTION NAME params block END .
 
-funcname(A)   ::= dottedname(B) . {
-	A = B;
-}
+funcname   ::= dottedname . 
 funcname   ::= dottedname COLON NAME .
 
-dottedname(A) ::= NAME(B) . {
-	A = makeConst(EXP_STRING, 0, &B.semInfo, code);
-}
-dottedname(A) ::= dottedname(B) DOT NAME(C) . {
-	A = makeExpr(EXP_LIST, B, makeConst(EXP_STRING, 0, &C.semInfo, code), NULL, code);
-}
+dottedname ::= NAME . 
+dottedname ::= dottedname DOT NAME . 
 
-namelist(A)   ::= NAME(B) .{
-	A = makeList(makeVariable(EXP_VARIABLE, &B.semInfo, code), code);
-}
-namelist(A)   ::= namelist(B) COMMA NAME(C) . {
-	A = addList(B, makeVariable(EXP_VARIABLE, &C.semInfo, code), code);
-}
+namelist   ::= NAME .
+namelist   ::= namelist COMMA NAME . 
 
-explist1(A) ::= exp(B) . {
-	A = makeList(B, code);
-}
-explist1(A)   ::= explist1(B) COMMA exp(C) . {
-	A = addList(B, C, code);
-}
+explist1	::= exp . 
+explist1	::= explist1 COMMA exp . 
 explist23  ::= exp COMMA exp .
 explist23  ::= exp COMMA exp COMMA exp .
 
@@ -143,90 +102,40 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     POW .
 
 exp        ::= NIL|TRUE|FALSE|DOTS .
-exp(A)        ::= NUMBER(B) . {
-	A = makeConst(EXP_NUMBER, B.number.fvalue, NULL, code);
-}
-exp(A)        ::= STRING(B) . {
-	A = makeConst(EXP_STRING, 0, &B.semInfo, code);
-}
-exp(A)        ::= function(B) . {
-	A = B;
-}
-exp(A)        ::= prefixexp(B) . {
-	A = B;
-}
+exp        ::= NUMBER . 
+exp        ::= STRING . 
+exp        ::= function . 
+exp        ::= prefixexp . 
 exp        ::= tableconstructor .
 exp        ::= NOT|HASH|MINUS exp .
 exp        ::= exp OR exp .
 exp        ::= exp AND exp .
 exp        ::= exp L|LE|G|GE|EQ|NE exp .
 exp        ::= exp CONCAT exp .
-exp(A) ::= exp(B) PLUS exp(C) .{
-	A = makeExpr(EXP_ADD, B,C, NULL, code);
-}
-exp(A) ::= exp(B) MINUS exp(C) .{
-	A = makeExpr(EXP_SUB, B,C, NULL, code);
-}
-exp(A) ::= exp(B) TIMES exp(C) .{
-	A = makeExpr(EXP_MUL, B,C, NULL, code);
-}
-exp(A) ::= exp(B) DIVIDE exp(C) .{
-	A = makeExpr(EXP_DIV, B,C, NULL, code);
-}
-exp        ::= exp MOD exp .
-exp        ::= exp POW exp .
+exp			::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp .
 
-setlist(A) ::= var(B) . {
-	A = makeList(B, code);
-}
-setlist(A) ::= setlist(B) COMMA var(C) . {
-	A = addList(B, C, code);
-}
+setlist ::= var . 
+setlist ::= setlist COMMA var . 
 
-var(A) ::= NAME(B) . {
-	A = makeVariable(EXP_VARIABLE, &B.semInfo, code);
-}
-var        ::= prefixexp SLPAREN exp SRPAREN .
-var        ::= prefixexp DOT NAME .
+var ::= NAME . 
+var ::= prefixexp SLPAREN exp SRPAREN .
+var ::= prefixexp DOT NAME .
 
-prefixexp(A)  ::= var(B) . {
-	A = B;
-}
-prefixexp(A)  ::= functioncall(B) . {
-	A = B;
-}
-prefixexp  ::= LPAREN exp RPAREN .
+prefixexp  ::= var . 
+prefixexp  ::= functioncall . 
+prefixexp  ::= OPEN exp RPAREN .
 
-functioncall(A) ::= prefixexp(B) args(C) . {
-	A = makeExpr(EXP_FUNCTION_CALL, B, C, NULL, code);
-}
+functioncall ::= prefixexp args . 
 functioncall ::= prefixexp COLON NAME args .
 
-args(A)        ::= LPAREN RPAREN . {
-	A = NULL;
-}
-args(A)        ::= LPAREN explist1(B) RPAREN . {
-	A = B;
-}
+args        ::= LPAREN RPAREN . 
+args        ::= LPAREN explist1 RPAREN . 
 args        ::= tableconstructor .
-args(A)        ::= STRING(B) . {
-	A = makeConst(EXP_STRING, 0, &B.semInfo, code);
-}
-
-function(A)    ::= FUNCTION params(B) block(C) END . {
-	A = makeExpr(EXP_FUNCTION, B, C, NULL, code);
-}
-
-params(A)      ::= LPAREN parlist(B) LPAREN . {
-	A = B;
-}
-
-parlist(A)     ::= . {
-	A = makeList(NULL, code);
-}
-parlist(A)     ::= namelist(B) . {
-	A = B;
-}
+args        ::= STRING . 
+function    ::= FUNCTION params block END . 
+params      ::= LPAREN parlist LPAREN . 
+parlist     ::= . 
+parlist     ::= namelist . 
 parlist     ::= DOTS .
 parlist     ::= namelist COMMA DOTS .
 
