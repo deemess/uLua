@@ -15,6 +15,7 @@
 %token_prefix TK_
 
 %type var		{Register*}
+%type exp		{Register*}
 
 %syntax_error {
   printf ("Syntax error!\n");
@@ -122,13 +123,27 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     POW .
 
 exp        ::= NIL|TRUE|FALSE|DOTS .
-exp        ::= NUMBER(B) . {
+exp(A)        ::= NUMBER(B) . {
+	Constant* c;
+	Register* r;
+
 	printf("P_EXP_NUMBER\n");
-	pushConstNumber(f, B.number.fvalue);
+	c = pushConstNumber(f, B.number.fvalue);
+	r = getFreeRegister(f);
+	r->constnum = c->n;
+	r->isfree = FALSE;
+	A = r;
 }
-exp        ::= STRING(B) . {
+exp(A)        ::= STRING(B) . {
+	Constant* c;
+	Register* r;
+
 	printf("P_EXP_STRING\n");
-	pushConstString(f, &B.semInfo);
+	c = pushConstString(f, &B.semInfo);
+	r = getFreeRegister(f);
+	r->constnum = c->n;
+	r->isfree = FALSE;
+	A = r;
 }
 exp        ::= function . {
 	printf("P_EXP_FUNCTION\n");

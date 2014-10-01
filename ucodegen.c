@@ -89,3 +89,13 @@ Constant* pushConstNumber(Function* f, float number) {
 
 	return c;
 }
+
+Register* getFreeRegister(Function* f) {
+	u08 i;
+	for(i=0; i<CG_REG_COUNT; i++) {
+		if(f->r[i].isfree)
+			return &f->r[i];
+	}
+
+	return NULL;
+}

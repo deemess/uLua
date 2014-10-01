@@ -52,5 +52,6 @@ struct Instruction {
 void initFunction(Function* f, u08* code);
 Constant* pushConstString(Function* f, SString* str);
 Constant* pushConstNumber(Function* f, float number);
+Register* getFreeRegister(Function* f);
 
 #endif
