@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "ulexer.h"
 #include "uparser.c"
+#include "ucodegen.h"
 
 #define CODE_BUFFER_SIZE 64*1024
 
@@ -78,6 +79,33 @@ void printToken(Token* t) {
 	printf("\n");
 }
 
+void printSString(SString* s, u08* c) {
+	u08 i;
+
+	if(!s->bempty) {// print token
+		for(i=0; i<s->bplen; i++) {
+			printf("%c", code[s->bp+i]);
+		}
+	}
+}
+
+void dumpFunctionConstants(Function *f) {
+	Constant* c = f->c;
+	printf("Constants:\n");
+	while(c != NULL) {
+		if(c->type == CG_CONST_STRING) {
+			printf("%d: ", c->n);
+			printSString(&c->string, f->code);
+			printf("\n");
+		} else if (c->type == CG_CONST_NUMBER) {
+			printf("%d: %f\n", c->n, c->number);
+		} else {
+			printf("%d: unknown type\n", c->n);
+		}
+		c = c->next;
+	}
+}
+
 int main(int argc, char **argv) {
 
 	//local variable
@@ -85,6 +113,7 @@ int main(int argc, char **argv) {
 	FILE* file;
 	u16 codelen;
 	LexState ls;
+	Function top;
 	void *parser;
 	int i;
 
@@ -110,6 +139,9 @@ int main(int argc, char **argv) {
 	//init Lexer
 	setInput(&ls, (u08*)code);
 
+	//init top level function
+	initFunction(&top, (u08*)code);
+
 	//parse source code
 	next(&ls);
 	while(ls.t.token != TK_EOS) {
@@ -121,12 +153,13 @@ int main(int argc, char **argv) {
 			break;
 		}
 		printToken(&ls.t);
-		Parse(parser, ls.t.token, ls.t, &code[0]);
+		Parse(parser, ls.t.token, ls.t, &top);
 		next(&ls);
 	}
 	printToken(&ls.t);
-	Parse(parser, ls.t.token, ls.t, &code[0]);
+	Parse(parser, ls.t.token, ls.t, &top);
 
+	dumpFunctionConstants(&top);
 	ParseFree(parser, free);
 	return 0;
 }

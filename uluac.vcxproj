@@ -82,10 +82,12 @@
     <ClCompile Include="ulexer.c" />
     <ClCompile Include="uluac.c" />
     <ClCompile Include="uparser.c" />
-    <ClCompile Include="uparserast.c" />
+    <ClCompile Include="ucodegen.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basetypes.h" />
+    <ClInclude Include="opcodes.h" />
+    <ClInclude Include="ucodegen.h" />
     <ClInclude Include="ulexer.h" />
     <ClInclude Include="uparser.h" />
   </ItemGroup>

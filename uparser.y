@@ -3,33 +3,18 @@
 %include {
 #include <stdio.h>
 #include "basetypes.h"
-#include "ulexer.h"
+#include "ucodegen.h"
 #include "uparser.h"
+#include "ulexer.h"
 }
 
-%extra_argument { u08* code }
+%stack_size 100
+%extra_argument { Function* f }
 
 %token_type {Token}
 %token_prefix TK_
 
-%type exp		{uExpression*}
-%type var		{uExpression*}
-%type setlist	{uExpression*}
-%type explist1	{uExpression*}
-%type stat		{uExpression*}
-%type function	{uExpression*}
-%type params	{uExpression*}
-%type parlist	{uExpression*}
-%type namelist	{uExpression*}
-%type statlist	{uExpression*}
-%type block		{uExpression*}
-%type chunk		{uExpression*}
-%type dottedname {uExpression*}
-%type funcname {uExpression*}
-%type laststat	{uExpression*}
-%type prefixexp {uExpression*}
-%type functioncall {uExpression*}
-%type args		{uExpression*}
+%type var		{Register*}
 
 %syntax_error {
   printf ("Syntax error!\n");
@@ -37,7 +22,9 @@
 
 %start_symbol  chunk
 
-chunk ::= block . 
+chunk ::= block . {
+	printf("P_CHUNK\n");
+}
 
 semi ::= SEMICOL . {
 	printf("P_SEMI\n");
@@ -47,18 +34,20 @@ semi ::= . {
 }
 
 block ::= scope statlist . {
-	printf("P_BLOCK\n");
+	printf("P_BLOCK_STATLIST\n");
 }
 block ::= scope statlist laststat semi . {
-	printf("P_BLOCK\n");
+	printf("P_BLOCK_STATLIST_LASTSTAT\n");
 }
-ublock ::= block UNTIL exp .
+ublock ::= block UNTIL exp . {
+	printf("P_UBLOCK\n");
+}
 
 scope ::= . {
-	printf("P_SCOPE\n");
+	printf("P_SCOPE_EMPTY\n");
 }
 scope ::= scope statlist binding semi. {
-	printf("P_SCOPE\n");
+	printf("P_SCOPE_STATLIST\n");
 }
            
 statlist   ::= . {
@@ -94,9 +83,16 @@ laststat ::= BREAK .
 laststat ::= RETURN . 
 laststat ::= RETURN explist1 . 
 
-binding    ::= LOCAL namelist .
-binding    ::= LOCAL namelist SET explist1 .
-binding    ::= LOCAL FUNCTION NAME params block END .
+binding    ::= LOCAL namelist . {
+	printf("P_LOCAL\n");
+}
+binding    ::= LOCAL namelist SET explist1 .{
+	printf("P_LOCAL_SET\n");
+}
+binding    ::= LOCAL FUNCTION NAME(B) params block END .{
+	printf("P_LOCAL_FUNCTION\n");
+	pushConstString(f, &B.semInfo);
+}
 
 funcname   ::= dottedname . 
 funcname   ::= dottedname COLON NAME .
@@ -126,11 +122,13 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     POW .
 
 exp        ::= NIL|TRUE|FALSE|DOTS .
-exp        ::= NUMBER . {
+exp        ::= NUMBER(B) . {
 	printf("P_EXP_NUMBER\n");
+	pushConstNumber(f, B.number.fvalue);
 }
-exp        ::= STRING . {
+exp        ::= STRING(B) . {
 	printf("P_EXP_STRING\n");
+	pushConstString(f, &B.semInfo);
 }
 exp        ::= function . {
 	printf("P_EXP_FUNCTION\n");
@@ -144,7 +142,7 @@ exp        ::= exp OR exp .
 exp        ::= exp AND exp .
 exp        ::= exp L|LE|G|GE|EQ|NE exp .
 exp        ::= exp CONCAT exp .
-exp			::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp . {
+exp		   ::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp . {
 	printf("P_EXP_MATH\n");
 }
 
@@ -155,11 +153,16 @@ setlist ::= setlist COMMA var . {
 	printf("P_SETLIST_ADD_VAR\n");
 }
 
-var ::= NAME . {
+var ::= NAME(B) . {
 	printf("P_VAR_NAME\n");
+	pushConstString(f, &B.semInfo);
 }
-var ::= prefixexp SLPAREN exp SRPAREN .
-var ::= prefixexp DOT NAME .
+var ::= prefixexp SLPAREN exp SRPAREN . {
+	printf("P_PREFEXP_SPAREN_EXP\n");
+}
+var ::= prefixexp DOT NAME . {
+	printf("P_PREFEXP_DOT_NAME\n");
+}
 
 prefixexp  ::= var . {
 	printf("P_PREFEXP_VAR\n");
@@ -174,8 +177,9 @@ prefixexp  ::= OPEN exp RPAREN . {
 functioncall ::= prefixexp args . {
 	printf("P_FCALL_ARGS\n");
 }
-functioncall ::= prefixexp COLON NAME args . {
+functioncall ::= prefixexp COLON NAME(B) args . {
 	printf("P_FCALL_NAME_ARGS\n");
+	pushConstString(f, &B.semInfo);
 }
 
 args        ::= LPAREN RPAREN . {
@@ -185,7 +189,10 @@ args        ::= LPAREN explist1 RPAREN . {
 	printf("P_ARGS_EXPLIST\n");
 }
 args        ::= tableconstructor .
-args        ::= STRING .
+args        ::= STRING(B) . {
+	printf("P_ARGS_STRING\n");
+	pushConstString(f, &B.semInfo);
+}
 function    ::= FUNCTION params block END . 
 params      ::= LPAREN parlist LPAREN . 
 parlist     ::= . 

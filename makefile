@@ -14,7 +14,7 @@ LEMON_EXE=lemon
 LEMON_OBJ=$(LEMON_SRC:.cpp=.o)
 
 # ulua compiler
-ULUAC_SRC=ulexer.c uparserast.c uparser.c uluac.c
+ULUAC_SRC=ulexer.c ucodegen.c uparser.c uluac.c
 ULUAC_EXE=uluac
 ULUAC_OBJ=$(ULUAC_SRC:.cpp=.o)
 
