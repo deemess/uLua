@@ -5,7 +5,7 @@
 #include "opcodes.h"
 #include "ulexer.h"
 
-#define CG_REG_COUNT 32
+#define CG_REG_COUNT 30
 
 #define CG_CONST_STRING 1
 #define CG_CONST_NUMBER 2
@@ -15,8 +15,9 @@ typedef struct Instruction Instruction;
 typedef struct Constant Constant;
 
 typedef struct Register {
-	u08		number;
+	u08		num;
 	u08		constnum;
+	u08		varnum;
 	BOOL	consthold;
 	BOOL	constpreloaded;
 	BOOL	isfree;
@@ -24,17 +25,18 @@ typedef struct Register {
 
 struct Function {
 	u08*			code;
-	Register		r[CG_REG_COUNT];
-	Instruction*	i;
-	Constant*		c;
-	Function*		f;
+	Register		reg[CG_REG_COUNT];
+	Instruction*	instr;
+	Constant*		vars;
+	Constant*		consts;
+	Function*		subfuncs;
 };
 
 struct Constant {
-	u08			n;
+	u08			num;
 	u08			type;
-	SString		string;
-	float		number;
+	SString		val_string;
+	float		val_number;
 	Constant*	next;
 };
 
@@ -42,16 +44,19 @@ struct Constant {
 struct Instruction {
 	OpCode	opc;
 	u08		a;
-	union s16 {
-		u08 b;
-		u08 c;
-	} bx;
+	u08		b;
+	u08		c;
+	s16		bx;
 	Instruction* next;
 };
 
 void initFunction(Function* f, u08* code);
-Constant* pushConstString(Function* f, SString* str);
-Constant* pushConstNumber(Function* f, float number);
-Register* getFreeRegister(Function* f);
+Constant* pushConstString(Function* f, SString* str); //save string in constant pool
+Constant* pushConstNumber(Function* f, float number); //save number in constant pool
+Constant* pushVarName(Function* f, SString* str); //save var name in var name pool
+Register* getFreeRegister(Function* f); //get non used register
+Register* getVarRegister(Function* f, Constant* var); //get register for var name
+void freeRegister(Register* r); //free register for future usage
+Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 
 #endif

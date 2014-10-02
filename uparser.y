@@ -16,6 +16,7 @@
 
 %type var		{Register*}
 %type exp		{Register*}
+%type prefixexp {Register*}
 
 %syntax_error {
   printf ("Syntax error!\n");
@@ -130,8 +131,9 @@ exp(A)        ::= NUMBER(B) . {
 	printf("P_EXP_NUMBER\n");
 	c = pushConstNumber(f, B.number.fvalue);
 	r = getFreeRegister(f);
-	r->constnum = c->n;
-	r->isfree = FALSE;
+	r->consthold = TRUE;
+	r->constpreloaded = FALSE;
+	r->constnum = c->num;
 	A = r;
 }
 exp(A)        ::= STRING(B) . {
@@ -141,15 +143,17 @@ exp(A)        ::= STRING(B) . {
 	printf("P_EXP_STRING\n");
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
-	r->constnum = c->n;
-	r->isfree = FALSE;
+	r->consthold = TRUE;
+	r->constpreloaded = FALSE;
+	r->constnum = c->num;
 	A = r;
 }
 exp        ::= function . {
 	printf("P_EXP_FUNCTION\n");
 }
-exp        ::= prefixexp . {
+exp(A)        ::= prefixexp(B) . {
 	printf("P_EXP_PREFIXEXP\n");
+	A = B;
 }
 exp        ::= tableconstructor .
 exp        ::= NOT|HASH|MINUS exp .
@@ -157,8 +161,9 @@ exp        ::= exp OR exp .
 exp        ::= exp AND exp .
 exp        ::= exp L|LE|G|GE|EQ|NE exp .
 exp        ::= exp CONCAT exp .
-exp		   ::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp . {
+exp(A)	   ::= exp(B) PLUS(E)|MINUS|TIMES|DIVIDE|MOD|POW exp(C) . {
 	printf("P_EXP_MATH\n");
+	A = doMath(f,B,C,&E);
 }
 
 setlist ::= var . {
@@ -168,9 +173,12 @@ setlist ::= setlist COMMA var . {
 	printf("P_SETLIST_ADD_VAR\n");
 }
 
-var ::= NAME(B) . {
+var(A) ::= NAME(B) . {
+	Constant* c;
+
 	printf("P_VAR_NAME\n");
-	pushConstString(f, &B.semInfo);
+	c = pushVarName(f, &B.semInfo);
+	A = getVarRegister(f,c);
 }
 var ::= prefixexp SLPAREN exp SRPAREN . {
 	printf("P_PREFEXP_SPAREN_EXP\n");
@@ -179,8 +187,9 @@ var ::= prefixexp DOT NAME . {
 	printf("P_PREFEXP_DOT_NAME\n");
 }
 
-prefixexp  ::= var . {
+prefixexp(A)  ::= var(B) . {
 	printf("P_PREFEXP_VAR\n");
+	A = B;
 }
 prefixexp  ::= functioncall .  {
 	printf("P_PREFEXP_FCALL\n");
