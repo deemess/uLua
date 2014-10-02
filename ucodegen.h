@@ -16,11 +16,12 @@ typedef struct Constant Constant;
 
 typedef struct Register {
 	u08		num;
+	BOOL	isfree;
+	BOOL	isload;
 	u08		constnum;
 	u08		varnum;
 	BOOL	consthold;
 	BOOL	constpreloaded;
-	BOOL	isfree;
 } Register;
 
 struct Function {
@@ -35,6 +36,7 @@ struct Function {
 struct Constant {
 	u08			num;
 	u08			type;
+	BOOL		isglobal;
 	SString		val_string;
 	float		val_number;
 	Constant*	next;
@@ -58,5 +60,8 @@ Register* getFreeRegister(Function* f); //get non used register
 Register* getVarRegister(Function* f, Constant* var); //get register for var name
 void freeRegister(Register* r); //free register for future usage
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
+Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
+Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement. return last instruction
+Register* functionCALL(Function* f, Register* a, Register* b); //call function
 
 #endif

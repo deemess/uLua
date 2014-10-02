@@ -17,6 +17,13 @@
 %type var		{Register*}
 %type exp		{Register*}
 %type prefixexp {Register*}
+%type setlist	{Register*}
+%type explist1	{Register*}
+%type namelist	{Register*}
+%type args		{Register*}
+%type functioncall {Register*}
+%type stat		{Instruction*}
+%type binding	{Instruction*}
 
 %syntax_error {
   printf ("Syntax error!\n");
@@ -29,10 +36,10 @@ chunk ::= block . {
 }
 
 semi ::= SEMICOL . {
-	printf("P_SEMI\n");
+	printf("P_SEMI ------------------\n");
 }
 semi ::= . {
-	printf("P_SEMI\n");
+	printf("P_SEMI ------------------\n");
 }
 
 block ::= scope statlist . {
@@ -65,10 +72,12 @@ stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
 stat ::= IF conds END .
 stat ::= FUNCTION funcname params block END . 
-stat ::= setlist SET explist1 . {
+stat(A) ::= setlist(B) SET explist1(C) . {
+	A = statSET(f, B, C, FALSE);
 	printf("P_STAT_SET\n");
 }
-stat ::= functioncall .  {
+stat ::= functioncall(B) .  {
+	freeRegister(B);
 	printf("P_STAT_FCALL\n");
 }
 
@@ -88,7 +97,8 @@ laststat ::= RETURN explist1 .
 binding    ::= LOCAL namelist . {
 	printf("P_LOCAL\n");
 }
-binding    ::= LOCAL namelist SET explist1 .{
+binding(A)    ::= LOCAL namelist(B) SET explist1(C) .{
+	A = statSET(f, B, C, TRUE);
 	printf("P_LOCAL_SET\n");
 }
 binding    ::= LOCAL FUNCTION NAME(B) params block END .{
@@ -102,13 +112,23 @@ funcname   ::= dottedname COLON NAME .
 dottedname ::= NAME . 
 dottedname ::= dottedname DOT NAME . 
 
-namelist   ::= NAME .
-namelist   ::= namelist COMMA NAME . 
+namelist(A)   ::= NAME(B) . {
+	Constant* c = pushVarName(f, &B.semInfo);
+	A = getVarRegister(f,c);
+	printf("P_NAMELIST_NAME\n");
+}
+namelist(A)   ::= namelist COMMA NAME(B) . {
+	Constant* c = pushVarName(f, &B.semInfo);
+	A = getVarRegister(f,c);
+	printf("P_NAMELIST_COMMA_NAME\n");
+}
 
-explist1	::= exp . {
+explist1(A)	::= exp(B) . {
+	A = B;
 	printf("P_EXPLIST_EXP\n");
 }
-explist1	::= explist1 COMMA exp . {
+explist1(A)	::= explist1 COMMA exp(B) . {
+	A = B;
 	printf("P_EXPLIST_ADD_EXP\n");
 }
 explist23  ::= exp COMMA exp .
@@ -157,20 +177,24 @@ exp(A)        ::= prefixexp(B) . {
 }
 exp        ::= tableconstructor .
 exp        ::= NOT|HASH|MINUS exp .
-exp        ::= exp OR exp .
-exp        ::= exp AND exp .
-exp        ::= exp L|LE|G|GE|EQ|NE exp .
+exp        ::= exp OR|AND exp .
+exp(A)     ::= exp(B) L(D)|LE|G|GE|EQ|NE exp(C) . {
+	A = doLogic(f,B,C,D);
+	printf("P_EXP_LOGIC\n");
+}
 exp        ::= exp CONCAT exp .
 exp(A)	   ::= exp(B) PLUS(E)|MINUS|TIMES|DIVIDE|MOD|POW exp(C) . {
-	printf("P_EXP_MATH\n");
 	A = doMath(f,B,C,&E);
+	printf("P_EXP_MATH\n");
 }
 
-setlist ::= var . {
+setlist(A) ::= var(B) . {
 	printf("P_SETLIST_VAR\n");
+	A = B;
 }
-setlist ::= setlist COMMA var . {
+setlist(A) ::= setlist COMMA var(B) . {
 	printf("P_SETLIST_ADD_VAR\n");
+	A = B;
 }
 
 var(A) ::= NAME(B) . {
@@ -198,24 +222,34 @@ prefixexp  ::= OPEN exp RPAREN . {
 	printf("P_PREFEXP_EXP\n");
 }
 
-functioncall ::= prefixexp args . {
+functioncall(A) ::= prefixexp(B) args(C) . {
+	A = functionCALL(f, B, C);
 	printf("P_FCALL_ARGS\n");
 }
-functioncall ::= prefixexp COLON NAME(B) args . {
+functioncall ::= prefixexp COLON NAME args . {
 	printf("P_FCALL_NAME_ARGS\n");
-	pushConstString(f, &B.semInfo);
 }
 
-args        ::= LPAREN RPAREN . {
+args(A)        ::= LPAREN RPAREN . {
+	A = NULL;
 	printf("P_ARGS_EMPTY\n");
 }
-args        ::= LPAREN explist1 RPAREN . {
+args(A)        ::= LPAREN explist1(B) RPAREN . {
+	A = B;
 	printf("P_ARGS_EXPLIST\n");
 }
 args        ::= tableconstructor .
-args        ::= STRING(B) . {
+args(A)        ::= STRING(B) . {
+	Constant* c;
+	Register* r;
+
+	c = pushConstString(f, &B.semInfo);
+	r = getFreeRegister(f);
+	r->consthold = TRUE;
+	r->constpreloaded = FALSE;
+	r->constnum = c->num;
+	A = r;
 	printf("P_ARGS_STRING\n");
-	pushConstString(f, &B.semInfo);
 }
 function    ::= FUNCTION params block END . 
 params      ::= LPAREN parlist LPAREN . 

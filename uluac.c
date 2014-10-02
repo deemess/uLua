@@ -89,22 +89,26 @@ void printSString(SString* s, u08* c) {
 	}
 }
 
-void dumpRK(Function *f, u08 reg) {
-	Constant* c;
-	if(reg<CG_REG_COUNT) {
-		printf("%d\t", reg);
-	} else {
-		c = f->consts;
-		while(c->next != NULL && c->num != reg - CG_REG_COUNT) {
+void dumpConst(Function *f, u08 num) {
+		Constant* c = f->consts;
+		while(c->next != NULL && c->num != num) {
 			c = c->next;
 		}
 		if(c->type == CG_CONST_NUMBER) {
-			printf("%d(%.0f)\t", reg, c->val_number);
+			printf("(%.0f)\t", c->val_number);
 		} else	if(c->type == CG_CONST_STRING) {
-			printf("%d(", reg);
+			printf("(");
 			printSString(&c->val_string, f->code);
 			printf(")\t");
 		}
+}
+
+void dumpRK(Function *f, u08 reg) {
+	if(reg<CG_REG_COUNT) {
+		printf("%d\t", reg);
+	} else {
+		printf("%d", reg);
+		dumpConst(f, reg - CG_REG_COUNT);
 	}
 }
 
@@ -179,25 +183,25 @@ void dumpFunction(Function *f) {
 				printf("OP_SELF ");
 				break;
 			case OP_ADD:/*	A B C	R(A) := RK(B) + RK(C)				*/
-				printf("OP_ADD ");
+				printf("OP_ADD\t");
 				break;
 			case OP_SUB:/*	A B C	R(A) := RK(B) - RK(C)				*/
-				printf("OP_SUB ");
+				printf("OP_SUB\t");
 				break;
 			case OP_MUL:/*	A B C	R(A) := RK(B) * RK(C)				*/
-				printf("OP_MUL ");
+				printf("OP_MUL\t");
 				break;
 			case OP_DIV:/*	A B C	R(A) := RK(B) / RK(C)				*/
-				printf("OP_DIV ");
+				printf("OP_DIV\t");
 				break;
 			case OP_MOD:/*	A B C	R(A) := RK(B) % RK(C)				*/
-				printf("OP_MOD ");
+				printf("OP_MOD\t");
 				break;
 			case OP_POW:/*	A B C	R(A) := RK(B) ^ RK(C)				*/
-				printf("OP_POW ");
+				printf("OP_POW\t");
 				break;
 			case OP_UNM:/*	A B	R(A) := -R(B)					*/
-				printf("OP_UNM ");
+				printf("OP_UNM\t");
 				break;
 			case OP_NOT:/*	A B	R(A) := not R(B)				*/
 				printf("OP_NOT ");
@@ -257,6 +261,7 @@ void dumpFunction(Function *f) {
 				printf("OP_VARARG ");
 				break;
 		}
+		printf("\t");
 		switch(i->opc) {
 			case OP_MOVE:/*	A B	R(A) := R(B)					*/
 			case OP_UNM:/*	A B	R(A) := -R(B)					*/
@@ -266,16 +271,17 @@ void dumpFunction(Function *f) {
 			case OP_SETUPVAL:/*	A B	UpValue[B] := R(A)				*/
 			case OP_LEN:/*	A B	R(A) := length of R(B)				*/
 			case OP_RETURN:/*	A B	return R(A), ... ,R(A+B-2)	(see note)	*/
-				printf("%d %d ", i->a, i->b);
+				printf("%d\t%d\t", i->a, i->b);
 				break;
 			case OP_LOADK:/*	A Bx	R(A) := Kst(Bx)					*/
 			case OP_GETGLOBAL:/*	A Bx	R(A) := Gbl[Kst(Bx)]				*/
+			case OP_SETGLOBAL:/*	A Bx	Gbl[Kst(Bx)] := R(A)				*/
+				printf("%d\t%d", i->a, i->b);
+				dumpConst(f, i->b);
 				break;
 			case OP_LOADBOOL:/*	A B C	R(A) := (Bool)B; if (C) pc++			*/
 				break;
 			case OP_GETTABLE:/*	A B C	R(A) := R(B)[RK(C)]				*/
-				break;
-			case OP_SETGLOBAL:/*	A Bx	Gbl[Kst(Bx)] := R(A)				*/
 				break;
 			case OP_SETTABLE:/*	A B C	R(A)[RK(B)] := RK(C)				*/
 				break;
