@@ -167,6 +167,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				i->a = ta->num;
 				i->b = c->num;
 				pushInstruction(f, i);
+				ta->varnum = a->varnum;
 				ta->isload = TRUE;
 			} else {//uninitialized local variable - error
 				f->error_code = CG_ERR_NOTINIT_LOCAL;
@@ -428,7 +429,12 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		i->opc = OP_SETGLOBAL;
 		i->a = c->num;//global const name number
 		i->b = b->num;//register number
-		a->isload = TRUE;
+		b->isload = TRUE;
+		b->varnum = a->varnum;
+		b->consthold = FALSE;
+		b->constpreloaded = FALSE;
+		b->constnum = 0;
+		tryFreeRegister(a);
 		pushInstruction(f,i);
 	}
 	return i;
