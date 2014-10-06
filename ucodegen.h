@@ -17,14 +17,14 @@ typedef struct Instruction Instruction;
 typedef struct Constant Constant;
 
 typedef struct Register {
-	u08		num;
-	BOOL	isfree;
-	BOOL	isload;
-	BOOL	islocal;
-	u08		constnum;
-	u08		varnum;
-	BOOL	consthold;
-	BOOL	constpreloaded;
+	u08		num;//register number (0 - CG_REG_COUNT)
+	BOOL	isfree;//is register used or not
+	BOOL	isload;//is register holds any value
+	BOOL	islocal;//is register local variable
+	u08		constnum;//constant number (0 for defauld - no constant)
+	u08		varnum;//if register refer to variable - holds var number in constant pool
+	BOOL	consthold;//is register refer to constant
+	BOOL	constpreloaded;//is register refer to constant and load
 } Register;
 
 struct Function {
@@ -62,7 +62,6 @@ Constant* pushConstNumber(Function* f, float number); //save number in constant 
 Constant* pushVarName(Function* f, SString* str); //save var name in var name pool
 Register* getFreeRegister(Function* f); //get non used register
 Register* getVarRegister(Function* f, Constant* var); //get register for var name
-void freeRegister(Register* r); //free register for future usage
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
 Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result

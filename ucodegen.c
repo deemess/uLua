@@ -186,7 +186,25 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 	return i;
 }
 
-//public functions
+
+void freeRegister(Register* r) {
+	r->consthold = FALSE;
+	r->constnum = 0;
+	r->varnum = 0;
+	r->isfree = TRUE;
+	r->isload = FALSE;
+	r->islocal = FALSE;
+	r->constpreloaded = FALSE;
+}
+
+void tryFreeRegister(Register* r) {
+	if(r->isload) { //if register holds some value
+		if(r->varnum > 0) //and refer to variable
+			return; //then keep it
+	}
+	freeRegister(r);//else free register
+}
+//public functions ---------------------------------------------------------------------
 
 Constant* pushConstString(Function* f, SString* str) {
 	Constant* c = (Constant*)malloc(sizeof(Constant));
@@ -253,16 +271,6 @@ Register* getFreeRegisters(Function* f, u08 count) {
 	return NULL;
 }
 
-void freeRegister(Register* r) {
-	r->consthold = FALSE;
-	r->constnum = 0;
-	r->varnum = 0;
-	r->isfree = TRUE;
-	r->isload = FALSE;
-	r->islocal = FALSE;
-	r->constpreloaded = FALSE;
-}
-
 Register* getVarRegister(Function* f, Constant* var) {
 	u08 i;
 	Register* r;
@@ -280,59 +288,59 @@ Register* getVarRegister(Function* f, Constant* var) {
 }
 
 Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
+	Register* res;
 
-	return a;
+	checkLoad(f, a, a, TRUE);
+	checkLoad(f, b, b, TRUE);
+	res = getFreeRegister(f);
+
+	switch(t->token)
+	{
+		case TK_OR:
+			break;
+		case TK_AND:
+			break;
+	}
+
+	tryFreeRegister(a);
+	tryFreeRegister(b);
+
+	res->isload = TRUE;
+	return res;
 }
 
 Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
-	u08 ak;
-	u08 bk;
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	res = getFreeRegister(f);
 	
-	checkLoad(f, a, a, FALSE);
-	checkLoad(f, b, b, FALSE);
-
-	//calc numbers
-	if(a->consthold)
-		ak = a->constnum + CG_REG_COUNT;
-	else
-		ak = a->num;
-
-	if(b->consthold)
-		bk = b->constnum + CG_REG_COUNT;
-	else
-		bk = b->num;
+	checkLoad(f, a, a, TRUE);
+	checkLoad(f, b, b, TRUE);
 
 	//generate skip next instruction if true
 	i->a = 0; //do not skip next instruction if comparison valid
+	i->b = a->num;
+	i->c = b->num;
 	switch(t->token)
 	{
 		case TK_L:
 			i->opc = OP_LT;
-			i->b = a->num;
-			i->c = b->num;
+			break;
+		case TK_LE:
+			i->opc = OP_LE;
+			break;
+		case TK_EQ:
+			i->opc = OP_EQ;
 			break;
 		case TK_G:
 			i->opc = OP_LT;
 			i->b = b->num;
 			i->c = a->num;
 			break;
-		case TK_LE:
-			i->opc = OP_LE;
-			i->b = a->num;
-			i->c = b->num;
-			break;
 		case TK_GE:
 			i->opc = OP_LE;
 			i->b = b->num;
 			i->c = a->num;
-			break;
-		case TK_EQ:
-			i->opc = OP_EQ;
-			i->b = a->num;
-			i->c = b->num;
 			break;
 		case TK_NE:
 			i->opc = OP_EQ;
@@ -355,6 +363,10 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	i->b = 0; //true
 	i->c = 0; //do not skip next instruction
 	pushInstruction(f, i);
+	res->isload = TRUE;
+
+	tryFreeRegister(a);
+	tryFreeRegister(b);
 
 	return res;
 }
@@ -366,15 +378,8 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	checkLoad(f, b, b, FALSE);
 
 	i->a = a->num;
-	if(a->consthold)
-		i->b = a->constnum + CG_REG_COUNT;
-	else
-		i->b = a->num;
-
-	if(b->consthold)
-		i->c = b->constnum + CG_REG_COUNT;
-	else
-		i->c = b->num;
+	i->b = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
+	i->c = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
 
 	switch(t->token) {
 		case TK_PLUS:
@@ -398,7 +403,7 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	}
 	pushInstruction(f,i);
 
-	freeRegister(b);
+	tryFreeRegister(b);
 	a->consthold = FALSE;
 	a->constpreloaded = FALSE;
 	a->constnum = 0;
@@ -414,7 +419,7 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 	if(islocal) { //local variable - just load
 		i = checkLoad(f, b, a, TRUE);
 		a->islocal = TRUE;
-		freeRegister(b);
+		tryFreeRegister(b);
 	} else {//global variable
 		i = (Instruction*)malloc(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
@@ -423,6 +428,7 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		i->opc = OP_SETGLOBAL;
 		i->a = c->num;//global const name number
 		i->b = b->num;//register number
+		a->isload = TRUE;
 		pushInstruction(f,i);
 	}
 	return i;

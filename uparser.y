@@ -78,8 +78,7 @@ stat(A) ::= setlist(B) SET explist1(C) . {
 	A = statSET(f, B, C, FALSE);
 	printf("P_STAT_SET\n");
 }
-stat ::= functioncall(B) .  {
-	freeRegister(B);
+stat ::= functioncall .  {
 	printf("P_STAT_FCALL\n");
 }
 
