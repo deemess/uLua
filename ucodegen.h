@@ -53,6 +53,7 @@ struct Instruction {
 	u08		c;
 	s16		bx;
 	Instruction* next;
+	Instruction* prev;
 };
 
 void initFunction(Function* f, u08* code);
@@ -66,6 +67,7 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
 Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result
 Instruction*  doReturn(Function* f); //generate return instruction
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement (a = b). return last instruction
-Register* functionCALL(Function* f, Register* a, Register* b); //call function
+Instruction* statTHEN(Function* f, Register* a, Instruction* block); // make then block if register a is true else skip it
+Instruction* functionCALL(Function* f, Register* a, Register* b); //call function
 
 #endif

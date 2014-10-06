@@ -21,9 +21,13 @@
 %type explist1	{Register*}
 %type namelist	{Register*}
 %type args		{Register*}
-%type functioncall {Register*}
+%type functioncall {Instruction*}
 %type stat		{Instruction*}
 %type binding	{Instruction*}
+%type block		{Instruction*}
+%type cond		{Instruction*}
+%type statlist	{Instruction*}
+%type laststat	{Instruction*}
 
 %syntax_error {
   f->error_code = 1;
@@ -42,11 +46,13 @@ semi ::= . {
 	printf("P_SEMI ------------------\n");
 }
 
-block ::= scope statlist . {
+block(A) ::= scope statlist(B) . {
+	A = B;
 	doReturn(f);
 	printf("P_BLOCK_STATLIST\n");
 }
-block ::= scope statlist laststat semi . {
+block(A) ::= scope statlist laststat(B) semi . {
+	A = B;
 	doReturn(f);
 	printf("P_BLOCK_STATLIST_LASTSTAT\n");
 }
@@ -62,10 +68,12 @@ scope ::= scope statlist binding semi. {
 	printf("P_SCOPE_STATLIST\n");
 }
 
-statlist   ::= . {
+statlist(A) ::= . {
+	A = NULL;
 	printf("P_STATLIST_EMPTY\n");
 }
-statlist   ::= statlist stat semi . {
+statlist(A) ::= statlist(B) stat(C) semi . {
+	A = B == NULL ? C : B;
 	printf("P_STATLIST_ADD_STAT\n");
 }
 
@@ -81,7 +89,8 @@ stat(A) ::= setlist(B) SET explist1(C) . {
 	A = statSET(f, B, C, FALSE);
 	printf("P_STAT_SET\n");
 }
-stat ::= functioncall .  {
+stat(A) ::= functioncall(B) .  {
+	A = B;
 	printf("P_STAT_FCALL\n");
 }
 
@@ -100,7 +109,8 @@ condlist   ::= cond . {
 condlist   ::= condlist ELSEIF cond . {
 	printf("P_CONDLIST_CONDLIST_ELSEIF_COND\n");
 }
-cond       ::= exp THEN block . {
+cond(A)    ::= exp(B) THEN block(C) . {
+	A = statTHEN(f, B, C);
 	printf("P_COND_EXP_THEN_BLOCK\n");
 }
 
@@ -235,7 +245,8 @@ prefixexp(A)  ::= var(B) . {
 prefixexp  ::= functioncall .  {
 	printf("P_PREFEXP_FCALL\n");
 }
-prefixexp  ::= OPEN exp RPAREN . {
+prefixexp(A) ::= OPEN exp(B) RPAREN . {
+	A = B;
 	printf("P_PREFEXP_EXP\n");
 }
 

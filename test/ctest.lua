@@ -4,4 +4,5 @@ print(a)
 
 if (a < 40 and b == 4) then
 	print('Fail')
+	print(a+b)
 end

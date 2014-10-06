@@ -119,12 +119,35 @@ Constant* getVarByNum(Function* f, u08 num) {
 	return v;
 }
 
+Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before) {
+	Instruction* tmp;
+
+	if(i == NULL) {
+		f->error_code = E_NULL_INSTRUCTION;
+		return NULL;
+	}
+
+	if(before == NULL) {
+		f->error_code = E_NULL_INSTRUCTION;
+		return NULL;
+	}
+
+	tmp = before->prev;
+	tmp->next = i;
+	i->prev = tmp;
+	i->next = before;
+	before->prev = i;
+
+	return before;
+}
+
 Instruction* pushInstruction(Function* f, Instruction* i) {
 	Instruction* last;
 
 	if(f->instr == NULL) {
 		f->instr = i;
 		i->next = NULL;
+		i->prev = NULL;
 		return i;
 	}
 	last = f->instr;
@@ -133,6 +156,7 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 	}
 	last->next = i;
 	i->next = NULL;
+	i->prev = last;
 
 	return i;
 }
@@ -435,6 +459,36 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	return a;
 }
 
+Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
+	Instruction* i;
+	Instruction* tmp;
+	u16 count = 0;
+
+	//make register test and skip THEN block if false
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_TEST;//load false in result register
+	i->a = a->num;
+	i->b = 0;
+	i->c = 0; // if false for OR instruction and true for AND instruction
+	tmp = insertInstruction(f, i, block);
+
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_JMP;//skip THEN block
+	i->bx = 1;
+	insertInstruction(f, i, tmp);
+
+	//count instructions to skip
+	tmp = block->next;
+	while(tmp != NULL) {
+		count++;
+		tmp = tmp->next;
+	}
+	i->bx = count+1;
+
+	tryFreeRegister(a);
+	return i;
+}
+
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 	Instruction* i;
 	Constant* c;
@@ -463,7 +517,7 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 	return i;
 }
 
-Register* functionCALL(Function* f, Register* a, Register* b) {
+Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	//TODO: support more than 1 arg function call
 	Register* ta;
 	Register* tb;
@@ -489,7 +543,7 @@ Register* functionCALL(Function* f, Register* a, Register* b) {
 	freeRegister(ta);
 	freeRegister(tb);
 
-	return a;
+	return i;
 }
 
 Instruction*  doReturn(Function* f)  {

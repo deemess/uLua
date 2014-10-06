@@ -9,6 +9,7 @@ typedef enum {
 	E_NUMBERFORMAT, //malformed number
 	E_NOTINIT_LOCAL, //local variable not initialized
 	E_NO_FREE_REGITER, //all registers are being used
+	E_NULL_INSTRUCTION, //tryied to insert NULL instruction
 } ERROR_CODE;
 
 #endif
