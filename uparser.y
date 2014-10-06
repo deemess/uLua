@@ -43,12 +43,15 @@ semi ::= . {
 }
 
 block ::= scope statlist . {
+	doReturn(f);
 	printf("P_BLOCK_STATLIST\n");
 }
 block ::= scope statlist laststat semi . {
+	doReturn(f);
 	printf("P_BLOCK_STATLIST_LASTSTAT\n");
 }
 ublock ::= block UNTIL exp . {
+	doReturn(f);
 	printf("P_UBLOCK\n");
 }
 

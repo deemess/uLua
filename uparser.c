@@ -992,168 +992,171 @@ static void yy_reduce(
       case 3: /* block ::= scope statlist */
 #line 45 "uparser.y"
 {
+	doReturn(f);
 	printf("P_BLOCK_STATLIST\n");
 }
-#line 998 "uparser.c"
+#line 999 "uparser.c"
         break;
       case 4: /* block ::= scope statlist laststat semi */
-#line 48 "uparser.y"
+#line 49 "uparser.y"
 {
+	doReturn(f);
 	printf("P_BLOCK_STATLIST_LASTSTAT\n");
 }
-#line 1005 "uparser.c"
+#line 1007 "uparser.c"
         break;
       case 5: /* ublock ::= block UNTIL exp */
-#line 51 "uparser.y"
+#line 53 "uparser.y"
 {
+	doReturn(f);
 	printf("P_UBLOCK\n");
 }
-#line 1012 "uparser.c"
+#line 1015 "uparser.c"
         break;
       case 6: /* scope ::= */
-#line 55 "uparser.y"
+#line 58 "uparser.y"
 {
 	printf("P_SCOPE_EMPTY\n");
 }
-#line 1019 "uparser.c"
+#line 1022 "uparser.c"
         break;
       case 7: /* scope ::= scope statlist binding semi */
-#line 58 "uparser.y"
+#line 61 "uparser.y"
 {
 	printf("P_SCOPE_STATLIST\n");
 }
-#line 1026 "uparser.c"
+#line 1029 "uparser.c"
         break;
       case 8: /* statlist ::= */
-#line 62 "uparser.y"
+#line 65 "uparser.y"
 {
 	printf("P_STATLIST_EMPTY\n");
 }
-#line 1033 "uparser.c"
+#line 1036 "uparser.c"
         break;
       case 9: /* statlist ::= statlist stat semi */
-#line 65 "uparser.y"
+#line 68 "uparser.y"
 {
 	printf("P_STATLIST_ADD_STAT\n");
 }
-#line 1040 "uparser.c"
+#line 1043 "uparser.c"
         break;
       case 14: /* stat ::= IF conds END */
-#line 73 "uparser.y"
+#line 76 "uparser.y"
 {
 	printf("P_STAT_IF\n");
 }
-#line 1047 "uparser.c"
+#line 1050 "uparser.c"
         break;
       case 16: /* stat ::= setlist SET explist1 */
-#line 77 "uparser.y"
+#line 80 "uparser.y"
 {
 	yygotominor.yy15 = statSET(f, yymsp[-2].minor.yy88, yymsp[0].minor.yy88, FALSE);
 	printf("P_STAT_SET\n");
 }
-#line 1055 "uparser.c"
+#line 1058 "uparser.c"
         break;
       case 17: /* stat ::= functioncall */
-#line 81 "uparser.y"
+#line 84 "uparser.y"
 {
 	printf("P_STAT_FCALL\n");
 }
-#line 1062 "uparser.c"
+#line 1065 "uparser.c"
         break;
       case 20: /* conds ::= condlist */
-#line 88 "uparser.y"
+#line 91 "uparser.y"
 {
 	printf("P_CONDS_CONDLIST\n");
 }
-#line 1069 "uparser.c"
+#line 1072 "uparser.c"
         break;
       case 21: /* conds ::= condlist ELSE block */
-#line 91 "uparser.y"
+#line 94 "uparser.y"
 {
 	printf("P_CONDS_CONDLIST_ELSE_BLOCK\n");
 }
-#line 1076 "uparser.c"
+#line 1079 "uparser.c"
         break;
       case 22: /* condlist ::= cond */
-#line 94 "uparser.y"
+#line 97 "uparser.y"
 {
 	printf("P_CONDLIST_COND\n");
 }
-#line 1083 "uparser.c"
+#line 1086 "uparser.c"
         break;
       case 23: /* condlist ::= condlist ELSEIF cond */
-#line 97 "uparser.y"
+#line 100 "uparser.y"
 {
 	printf("P_CONDLIST_CONDLIST_ELSEIF_COND\n");
 }
-#line 1090 "uparser.c"
+#line 1093 "uparser.c"
         break;
       case 24: /* cond ::= exp THEN block */
-#line 100 "uparser.y"
+#line 103 "uparser.y"
 {
 	printf("P_COND_EXP_THEN_BLOCK\n");
 }
-#line 1097 "uparser.c"
+#line 1100 "uparser.c"
         break;
       case 28: /* binding ::= LOCAL namelist */
-#line 108 "uparser.y"
+#line 111 "uparser.y"
 {
 	printf("P_LOCAL\n");
 }
-#line 1104 "uparser.c"
+#line 1107 "uparser.c"
         break;
       case 29: /* binding ::= LOCAL namelist SET explist1 */
-#line 111 "uparser.y"
+#line 114 "uparser.y"
 {
 	yygotominor.yy15 = statSET(f, yymsp[-2].minor.yy88, yymsp[0].minor.yy88, TRUE);
 	printf("P_LOCAL_SET\n");
 }
-#line 1112 "uparser.c"
+#line 1115 "uparser.c"
         break;
       case 30: /* binding ::= LOCAL FUNCTION NAME params block END */
-#line 115 "uparser.y"
+#line 118 "uparser.y"
 {
 	printf("P_LOCAL_FUNCTION\n");
 	pushConstString(f, &yymsp[-3].minor.yy0.semInfo);
 }
-#line 1120 "uparser.c"
+#line 1123 "uparser.c"
         break;
       case 35: /* namelist ::= NAME */
-#line 126 "uparser.y"
+#line 129 "uparser.y"
 {
 	Constant* c = pushVarName(f, &yymsp[0].minor.yy0.semInfo);
 	yygotominor.yy88 = getVarRegister(f,c);
 	printf("P_NAMELIST_NAME\n");
 }
-#line 1129 "uparser.c"
+#line 1132 "uparser.c"
         break;
       case 36: /* namelist ::= namelist COMMA NAME */
-#line 131 "uparser.y"
+#line 134 "uparser.y"
 {
 	Constant* c = pushVarName(f, &yymsp[0].minor.yy0.semInfo);
 	yygotominor.yy88 = getVarRegister(f,c);
 	printf("P_NAMELIST_COMMA_NAME\n");
 }
-#line 1138 "uparser.c"
+#line 1141 "uparser.c"
         break;
       case 37: /* explist1 ::= exp */
-#line 137 "uparser.y"
+#line 140 "uparser.y"
 {
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 	printf("P_EXPLIST_EXP\n");
 }
-#line 1146 "uparser.c"
+#line 1149 "uparser.c"
         break;
       case 38: /* explist1 ::= explist1 COMMA exp */
-#line 141 "uparser.y"
+#line 144 "uparser.y"
 {
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 	printf("P_EXPLIST_ADD_EXP\n");
 }
-#line 1154 "uparser.c"
+#line 1157 "uparser.c"
         break;
       case 42: /* exp ::= NUMBER */
-#line 158 "uparser.y"
+#line 161 "uparser.y"
 {
 	Constant* c;
 	Register* r;
@@ -1166,10 +1169,10 @@ static void yy_reduce(
 	r->constnum = c->num;
 	yygotominor.yy88 = r;
 }
-#line 1170 "uparser.c"
+#line 1173 "uparser.c"
         break;
       case 43: /* exp ::= STRING */
-#line 170 "uparser.y"
+#line 173 "uparser.y"
 {
 	Constant* c;
 	Register* r;
@@ -1182,65 +1185,65 @@ static void yy_reduce(
 	r->constnum = c->num;
 	yygotominor.yy88 = r;
 }
-#line 1186 "uparser.c"
+#line 1189 "uparser.c"
         break;
       case 44: /* exp ::= function */
-#line 182 "uparser.y"
+#line 185 "uparser.y"
 {
 	printf("P_EXP_FUNCTION\n");
 }
-#line 1193 "uparser.c"
+#line 1196 "uparser.c"
         break;
       case 45: /* exp ::= prefixexp */
-#line 185 "uparser.y"
+#line 188 "uparser.y"
 {
 	printf("P_EXP_PREFIXEXP\n");
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 }
-#line 1201 "uparser.c"
+#line 1204 "uparser.c"
         break;
       case 48: /* exp ::= exp OR|AND exp */
-#line 191 "uparser.y"
+#line 194 "uparser.y"
 {
 	yygotominor.yy88 = doLogic(f,yymsp[-2].minor.yy88,yymsp[0].minor.yy88,&yymsp[-1].minor.yy0);
 	printf("P_EXP_LOGIC\n");
 }
-#line 1209 "uparser.c"
+#line 1212 "uparser.c"
         break;
       case 49: /* exp ::= exp L|LE|G|GE|EQ|NE exp */
-#line 195 "uparser.y"
+#line 198 "uparser.y"
 {
 	yygotominor.yy88 = doCompare(f,yymsp[-2].minor.yy88,yymsp[0].minor.yy88,&yymsp[-1].minor.yy0);
 	printf("P_EXP_COMPARE\n");
 }
-#line 1217 "uparser.c"
+#line 1220 "uparser.c"
         break;
       case 51: /* exp ::= exp PLUS|MINUS|TIMES|DIVIDE|MOD|POW exp */
-#line 200 "uparser.y"
+#line 203 "uparser.y"
 {
 	yygotominor.yy88 = doMath(f,yymsp[-2].minor.yy88,yymsp[0].minor.yy88,&yymsp[-1].minor.yy0);
 	printf("P_EXP_MATH\n");
 }
-#line 1225 "uparser.c"
+#line 1228 "uparser.c"
         break;
       case 52: /* setlist ::= var */
-#line 205 "uparser.y"
+#line 208 "uparser.y"
 {
 	printf("P_SETLIST_VAR\n");
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 }
-#line 1233 "uparser.c"
+#line 1236 "uparser.c"
         break;
       case 53: /* setlist ::= setlist COMMA var */
-#line 209 "uparser.y"
+#line 212 "uparser.y"
 {
 	printf("P_SETLIST_ADD_VAR\n");
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 }
-#line 1241 "uparser.c"
+#line 1244 "uparser.c"
         break;
       case 54: /* var ::= NAME */
-#line 214 "uparser.y"
+#line 217 "uparser.y"
 {
 	Constant* c;
 
@@ -1248,77 +1251,77 @@ static void yy_reduce(
 	c = pushVarName(f, &yymsp[0].minor.yy0.semInfo);
 	yygotominor.yy88 = getVarRegister(f,c);
 }
-#line 1252 "uparser.c"
+#line 1255 "uparser.c"
         break;
       case 55: /* var ::= prefixexp SLPAREN exp SRPAREN */
-#line 221 "uparser.y"
+#line 224 "uparser.y"
 {
 	printf("P_PREFEXP_SPAREN_EXP\n");
 }
-#line 1259 "uparser.c"
+#line 1262 "uparser.c"
         break;
       case 56: /* var ::= prefixexp DOT NAME */
-#line 224 "uparser.y"
+#line 227 "uparser.y"
 {
 	printf("P_PREFEXP_DOT_NAME\n");
 }
-#line 1266 "uparser.c"
+#line 1269 "uparser.c"
         break;
       case 57: /* prefixexp ::= var */
-#line 228 "uparser.y"
+#line 231 "uparser.y"
 {
 	printf("P_PREFEXP_VAR\n");
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 }
-#line 1274 "uparser.c"
+#line 1277 "uparser.c"
         break;
       case 58: /* prefixexp ::= functioncall */
-#line 232 "uparser.y"
+#line 235 "uparser.y"
 {
 	printf("P_PREFEXP_FCALL\n");
 }
-#line 1281 "uparser.c"
+#line 1284 "uparser.c"
         break;
       case 59: /* prefixexp ::= OPEN exp RPAREN */
-#line 235 "uparser.y"
+#line 238 "uparser.y"
 {
 	printf("P_PREFEXP_EXP\n");
 }
-#line 1288 "uparser.c"
+#line 1291 "uparser.c"
         break;
       case 60: /* functioncall ::= prefixexp args */
-#line 239 "uparser.y"
+#line 242 "uparser.y"
 {
 	yygotominor.yy88 = functionCALL(f, yymsp[-1].minor.yy88, yymsp[0].minor.yy88);
 	printf("P_FCALL_ARGS\n");
 }
-#line 1296 "uparser.c"
+#line 1299 "uparser.c"
         break;
       case 61: /* functioncall ::= prefixexp COLON NAME args */
-#line 243 "uparser.y"
+#line 246 "uparser.y"
 {
 	printf("P_FCALL_NAME_ARGS\n");
 }
-#line 1303 "uparser.c"
+#line 1306 "uparser.c"
         break;
       case 62: /* args ::= LPAREN RPAREN */
-#line 247 "uparser.y"
+#line 250 "uparser.y"
 {
 	yygotominor.yy88 = NULL;
 	printf("P_ARGS_EMPTY\n");
 }
-#line 1311 "uparser.c"
+#line 1314 "uparser.c"
         break;
       case 63: /* args ::= LPAREN explist1 RPAREN */
-#line 251 "uparser.y"
+#line 254 "uparser.y"
 {
 	yygotominor.yy88 = yymsp[-1].minor.yy88;
 	printf("P_ARGS_EXPLIST\n");
 }
-#line 1319 "uparser.c"
+#line 1322 "uparser.c"
         break;
       case 65: /* args ::= STRING */
-#line 256 "uparser.y"
+#line 259 "uparser.y"
 {
 	Constant* c;
 	Register* r;
@@ -1331,7 +1334,7 @@ static void yy_reduce(
 	yygotominor.yy88 = r;
 	printf("P_ARGS_STRING\n");
 }
-#line 1335 "uparser.c"
+#line 1338 "uparser.c"
         break;
       default:
       /* (10) stat ::= DO block END */ yytestcase(yyruleno==10);
@@ -1431,7 +1434,7 @@ static void yy_syntax_error(
 #line 28 "uparser.y"
 
   f->error_code = 1;
-#line 1435 "uparser.c"
+#line 1438 "uparser.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

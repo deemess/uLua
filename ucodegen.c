@@ -170,7 +170,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				ta->varnum = a->varnum;
 				ta->isload = TRUE;
 			} else {//uninitialized local variable - error
-				f->error_code = CG_ERR_NOTINIT_LOCAL;
+				f->error_code = E_NOTINIT_LOCAL;
 			}
 		}
 	} else {
@@ -244,6 +244,7 @@ Register* getFreeRegister(Function* f) {
 			return &f->reg[i];
 		}
 	}
+	f->error_code = E_NO_FREE_REGITER;
 	return NULL;
 }
 
@@ -269,6 +270,7 @@ Register* getFreeRegisters(Function* f, u08 count) {
 			}
 		}
 	}
+	f->error_code = E_NO_FREE_REGITER;
 	return NULL;
 }
 
@@ -290,18 +292,36 @@ Register* getVarRegister(Function* f, Constant* var) {
 
 Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
+	Instruction* i;
 
 	checkLoad(f, a, a, TRUE);
 	checkLoad(f, b, b, TRUE);
 	res = getFreeRegister(f);
+	
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_LOADBOOL;
+	i->a = res->num;
+	i->b = t->token == TK_OR ? 0 : 1;//load false in result register for OR else true for AND
+	i->c = 0;
+	pushInstruction(f,i);
 
-	switch(t->token)
-	{
-		case TK_OR:
-			break;
-		case TK_AND:
-			break;
-	}
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_TESTSET;//load false in result register
+	i->a = res->num;
+	i->b = a->num;
+	i->c = t->token == TK_OR ? 0 : 1; // false for OR instruction and true for AND instruction
+	pushInstruction(f,i);
+
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_JMP;//skip next check
+	i->bx = 1;
+	pushInstruction(f,i);
+
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_MOVE;//load false in result register
+	i->a = res->num;
+	i->b = b->num;
+	pushInstruction(f,i);
 
 	tryFreeRegister(a);
 	tryFreeRegister(b);
@@ -472,3 +492,12 @@ Register* functionCALL(Function* f, Register* a, Register* b) {
 	return a;
 }
 
+Instruction*  doReturn(Function* f)  {
+	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_RETURN;
+	i->a = 0;
+	i->b = 1;//TODO: support multiple return result
+	pushInstruction(f, i);
+
+	return i;
+}

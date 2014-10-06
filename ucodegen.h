@@ -4,13 +4,12 @@
 #include "basetypes.h"
 #include "opcodes.h"
 #include "ulexer.h"
+#include "llerror.h"
 
 #define CG_REG_COUNT 30
 
 #define CG_CONST_STRING 1
 #define CG_CONST_NUMBER 2
-
-#define CG_ERR_NOTINIT_LOCAL 2
 
 typedef struct Function Function;
 typedef struct Instruction Instruction;
@@ -34,7 +33,7 @@ struct Function {
 	Constant*		vars;
 	Constant*		consts;
 	Function*		subfuncs;
-	u08				error_code;
+	ERROR_CODE		error_code;
 };
 
 struct Constant {
@@ -65,6 +64,7 @@ Register* getVarRegister(Function* f, Constant* var); //get register for var nam
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
 Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result
+Instruction*  doReturn(Function* f); //generate return instruction
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement (a = b). return last instruction
 Register* functionCALL(Function* f, Register* a, Register* b); //call function
 

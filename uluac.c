@@ -299,6 +299,9 @@ void dumpFunction(Function *f) {
 			case OP_LT:/*	A B C	if ((RK(B) <  RK(C)) ~= A) then pc++  		*/
 			case OP_LE:/*	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++  		*/
 			case OP_CALL:/*	A B C	R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1)) */
+			case OP_TEST:/*	A C	if not (R(A) <=> C) then pc++			*/ 
+			case OP_TESTSET:/*	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++	*/ 
+			case OP_TAILCALL:/*	A B C	return R(A)(R(A+1), ... ,R(A+B-1))		*/
 				dumpRK(f, i->a);
 				dumpRK(f, i->b);
 				dumpRK(f, i->c);
@@ -306,13 +309,8 @@ void dumpFunction(Function *f) {
 			case OP_CONCAT:/*	A B C	R(A) := R(B).. ... ..R(C)			*/
 				break;
 			case OP_JMP:/*	sBx	pc+=sBx					*/
+				printf("%d", i->bx);
 				break;
-			case OP_TEST:/*	A C	if not (R(A) <=> C) then pc++			*/ 
-				break;
-			case OP_TESTSET:/*	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++	*/ 
-				break;
-				break;
-			case OP_TAILCALL:/*	A B C	return R(A)(R(A+1), ... ,R(A+B-1))		*/
 				break;
 			case OP_FORLOOP:/*	A sBx	R(A)+=R(A+2);			if R(A) <?= R(A+1) then { pc+=sBx; R(A+3)=R(A) }*/
 				break;
