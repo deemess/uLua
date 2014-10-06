@@ -164,8 +164,8 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				c = pushConstString(f, &c->val_string);
 				i = (Instruction*)malloc(sizeof(Instruction));
 				i->opc = OP_GETGLOBAL;
-				i->a = ta->num;
 				i->b = c->num;
+				i->a = ta->num;
 				pushInstruction(f, i);
 				ta->varnum = a->varnum;
 				ta->isload = TRUE;
@@ -408,6 +408,8 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	a->consthold = FALSE;
 	a->constpreloaded = FALSE;
 	a->constnum = 0;
+	a->varnum = 0;
+	a->islocal = FALSE;
 	a->isload = TRUE;
 	
 	return a;
@@ -422,13 +424,14 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		a->islocal = TRUE;
 		tryFreeRegister(b);
 	} else {//global variable
+		checkLoad(f, b, b, TRUE);
 		i = (Instruction*)malloc(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
 		//register or preloaded constant
 		i->opc = OP_SETGLOBAL;
-		i->a = c->num;//global const name number
-		i->b = b->num;//register number
+		i->a = b->num;//register number
+		i->b = c->num;//global const name number
 		b->isload = TRUE;
 		b->varnum = a->varnum;
 		b->consthold = FALSE;

@@ -65,7 +65,7 @@ Register* getVarRegister(Function* f, Constant* var); //get register for var nam
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
 Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result
-Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement. return last instruction
+Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement (a = b). return last instruction
 Register* functionCALL(Function* f, Register* a, Register* b); //call function
 
 #endif
