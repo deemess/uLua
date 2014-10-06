@@ -204,25 +204,25 @@ void dumpFunction(Function *f) {
 				printf("OP_UNM\t");
 				break;
 			case OP_NOT:/*	A B	R(A) := not R(B)				*/
-				printf("OP_NOT ");
+				printf("OP_NOT\t");
 				break;
 			case OP_LEN:/*	A B	R(A) := length of R(B)				*/
-				printf("OP_LEN ");
+				printf("OP_LEN\t");
 				break;
 			case OP_CONCAT:/*	A B C	R(A) := R(B).. ... ..R(C)			*/
 				printf("OP_CONCAT ");
 				break;
 			case OP_JMP:/*	sBx	pc+=sBx					*/
-				printf("OP_JMP ");
+				printf("OP_JMP\t");
 				break;
 			case OP_EQ:/*	A B C	if ((RK(B) == RK(C)) ~= A) then pc++		*/
-				printf("OP_EQ ");
+				printf("OP_EQ\t");
 				break;
 			case OP_LT:/*	A B C	if ((RK(B) <  RK(C)) ~= A) then pc++  		*/
-				printf("OP_LT ");
+				printf("OP_LT\t");
 				break;
 			case OP_LE:/*	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++  		*/
-				printf("OP_LE ");
+				printf("OP_LE\t");
 				break;
 			case OP_TEST:/*	A C	if not (R(A) <=> C) then pc++			*/ 
 				printf("OP_TEST ");
@@ -280,12 +280,12 @@ void dumpFunction(Function *f) {
 				dumpConst(f, i->b);
 				break;
 			case OP_LOADBOOL:/*	A B C	R(A) := (Bool)B; if (C) pc++			*/
+			case OP_NEWTABLE:/*	A B C	R(A) := {} (size = B,C)				*/
+				printf("%d\t%d\t%d", i->a, i->b, i->c);
 				break;
 			case OP_GETTABLE:/*	A B C	R(A) := R(B)[RK(C)]				*/
 				break;
 			case OP_SETTABLE:/*	A B C	R(A)[RK(B)] := RK(C)				*/
-				break;
-			case OP_NEWTABLE:/*	A B C	R(A) := {} (size = B,C)				*/
 				break;
 			case OP_SELF:/*	A B C	R(A+1) := R(B); R(A) := R(B)[RK(C)]		*/
 				break;
@@ -381,11 +381,17 @@ int main(int argc, char **argv) {
 			return 1;
 			break;
 		}
-		//printToken(&ls.t);
+		printToken(&ls.t);
 		Parse(parser, ls.t.token, ls.t, &top);
+		if(top.error_code != 0) {
+			printf("Syntax error:%d on line: %d token ", top.error_code, ls.linenumber);
+			printToken(&ls.t);
+			printf("\n");
+			return 1;
+		}
 		next(&ls);
 	}
-	//printToken(&ls.t);
+	printToken(&ls.t);
 	Parse(parser, ls.t.token, ls.t, &top);
 
 	dumpFunction(&top);

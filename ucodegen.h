@@ -10,6 +10,8 @@
 #define CG_CONST_STRING 1
 #define CG_CONST_NUMBER 2
 
+#define CG_ERR_NOTINIT_LOCAL 2
+
 typedef struct Function Function;
 typedef struct Instruction Instruction;
 typedef struct Constant Constant;
@@ -18,6 +20,7 @@ typedef struct Register {
 	u08		num;
 	BOOL	isfree;
 	BOOL	isload;
+	BOOL	islocal;
 	u08		constnum;
 	u08		varnum;
 	BOOL	consthold;
@@ -31,6 +34,7 @@ struct Function {
 	Constant*		vars;
 	Constant*		consts;
 	Function*		subfuncs;
+	u08				error_code;
 };
 
 struct Constant {
@@ -61,6 +65,7 @@ Register* getVarRegister(Function* f, Constant* var); //get register for var nam
 void freeRegister(Register* r); //free register for future usage
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
+Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement. return last instruction
 Register* functionCALL(Function* f, Register* a, Register* b); //call function
 

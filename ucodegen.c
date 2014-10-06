@@ -9,6 +9,7 @@ void initFunction(Function* f, u08* code) {
 	f->vars = NULL;
 	f->subfuncs = NULL;
 	f->instr = NULL;
+	f->error_code = 0;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		f->reg[i].num = i;
 		f->reg[i].consthold = FALSE;
@@ -16,6 +17,7 @@ void initFunction(Function* f, u08* code) {
 		f->reg[i].varnum = 0;
 		f->reg[i].isfree = TRUE;
 		f->reg[i].isload = FALSE;
+		f->reg[i].islocal = FALSE;
 		f->reg[i].constpreloaded = FALSE;
 	}
 }
@@ -135,6 +137,55 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 	return i;
 }
 
+Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
+	Instruction* i = NULL;
+	Constant* c;
+
+	if(!a->isload) { //make pre loading function
+		if(a->consthold) {//constant
+			if(isloadK) {//make preload
+				i = (Instruction*)malloc(sizeof(Instruction));
+				i->opc = OP_LOADK;
+				i->a = ta->num;
+				i->b = a->constnum;
+				pushInstruction(f,i);
+				ta->isload = TRUE;
+			} else {//just copy constant
+				if(ta->num != a->num) {
+					ta->consthold = TRUE;
+					ta->constnum = a->constnum;
+					ta->constpreloaded = FALSE;
+				}
+			}
+		} else {
+			if(!a->islocal) {//global variable
+				//put global name to constant pool
+				c = getVarByNum(f, a->varnum);
+				c = pushConstString(f, &c->val_string);
+				i = (Instruction*)malloc(sizeof(Instruction));
+				i->opc = OP_GETGLOBAL;
+				i->a = ta->num;
+				i->b = c->num;
+				pushInstruction(f, i);
+				ta->isload = TRUE;
+			} else {//uninitialized local variable - error
+				f->error_code = CG_ERR_NOTINIT_LOCAL;
+			}
+		}
+	} else {
+		if(a->num != ta->num) {//move function to target register
+			i = (Instruction*)malloc(sizeof(Instruction));
+			i->opc = OP_MOVE;
+			i->a = ta->num;
+			i->b = a->num;
+			pushInstruction(f, i);
+			ta->isload = TRUE;
+		}
+	}
+	ta->islocal = a->islocal;
+	return i;
+}
+
 //public functions
 
 Constant* pushConstString(Function* f, SString* str) {
@@ -208,6 +259,7 @@ void freeRegister(Register* r) {
 	r->varnum = 0;
 	r->isfree = TRUE;
 	r->isload = FALSE;
+	r->islocal = FALSE;
 	r->constpreloaded = FALSE;
 }
 
@@ -232,8 +284,87 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	return a;
 }
 
+Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
+	Register* res;
+	u08 ak;
+	u08 bk;
+	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	res = getFreeRegister(f);
+	
+	checkLoad(f, a, a, FALSE);
+	checkLoad(f, b, b, FALSE);
+
+	//calc numbers
+	if(a->consthold)
+		ak = a->constnum + CG_REG_COUNT;
+	else
+		ak = a->num;
+
+	if(b->consthold)
+		bk = b->constnum + CG_REG_COUNT;
+	else
+		bk = b->num;
+
+	//generate skip next instruction if true
+	i->a = 0; //do not skip next instruction if comparison valid
+	switch(t->token)
+	{
+		case TK_L:
+			i->opc = OP_LT;
+			i->b = a->num;
+			i->c = b->num;
+			break;
+		case TK_G:
+			i->opc = OP_LT;
+			i->b = b->num;
+			i->c = a->num;
+			break;
+		case TK_LE:
+			i->opc = OP_LE;
+			i->b = a->num;
+			i->c = b->num;
+			break;
+		case TK_GE:
+			i->opc = OP_LE;
+			i->b = b->num;
+			i->c = a->num;
+			break;
+		case TK_EQ:
+			i->opc = OP_EQ;
+			i->b = a->num;
+			i->c = b->num;
+			break;
+		case TK_NE:
+			i->opc = OP_EQ;
+			i->b = b->num;
+			i->c = a->num;
+			break;
+	}
+	pushInstruction(f, i);
+
+	//generate instructions to load true and false
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_LOADBOOL;
+	i->a = res->num;
+	i->b = 1; //true
+	i->c = 1; //skip next instruction
+	pushInstruction(f, i);
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->opc = OP_LOADBOOL;
+	i->a = res->num;
+	i->b = 0; //true
+	i->c = 0; //do not skip next instruction
+	pushInstruction(f, i);
+
+	return res;
+}
+
 Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	
+	checkLoad(f, a, a, FALSE);
+	checkLoad(f, b, b, FALSE);
+
 	i->a = a->num;
 	if(a->consthold)
 		i->b = a->constnum + CG_REG_COUNT;
@@ -277,52 +408,28 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 }
 
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
+	Instruction* i;
 	Constant* c;
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 
-	if(islocal) { //local var
-		if(b->consthold && !b->constpreloaded) {
-			//constant
-			i->opc = OP_LOADK;
-			i->a = a->num;
-			i->b = b->constnum;
-			pushInstruction(f,i);
-			b->constpreloaded = TRUE;
-		} else {
-			//register
-			i->opc = OP_MOVE;
-			i->a = a->num;
-			i->b = b->num;
-			pushInstruction(f,i);
-		}
-		
-	} else {//global var
-		//put global name to constant pool
+	if(islocal) { //local variable - just load
+		i = checkLoad(f, b, a, TRUE);
+		a->islocal = TRUE;
+		freeRegister(b);
+	} else {//global variable
+		i = (Instruction*)malloc(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
-		if(b->consthold && !b->constpreloaded) {
-			//constant
-			i->opc = OP_LOADK;
-			i->a = b->num;
-			i->b = b->constnum;
-			pushInstruction(f,i);
-			i = (Instruction*)malloc(sizeof(Instruction));
-		} 
 		//register or preloaded constant
 		i->opc = OP_SETGLOBAL;
 		i->a = c->num;//global const name number
 		i->b = b->num;//register number
 		pushInstruction(f,i);
 	}
-
-	a->isload = TRUE;
-	freeRegister(b);
 	return i;
 }
 
 Register* functionCALL(Function* f, Register* a, Register* b) {
 	//TODO: support more than 1 arg function call
-	Constant* c;
 	Register* ta;
 	Register* tb;
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
@@ -332,62 +439,17 @@ Register* functionCALL(Function* f, Register* a, Register* b) {
 	tb = &f->reg[ta->num + 1];
 
 	//FUNCTION A reg
-	if(!a->isload) { //make pre loading function
-		//put global name to constant pool
-		c = getVarByNum(f, a->varnum);
-		c = pushConstString(f, &c->val_string);
-		i->opc = OP_GETGLOBAL;
-		i->a = ta->num;
-		i->b = c->num;
-		pushInstruction(f, i);
-		a->isload = TRUE;
-		i = (Instruction*)malloc(sizeof(Instruction));
-	} else {
-		//move function to target register
-		i->opc = OP_MOVE;
-		i->a = ta->num;
-		i->b = a->num;
-		pushInstruction(f, i);
-		i = (Instruction*)malloc(sizeof(Instruction));
-	}
+	checkLoad(f,a,ta,TRUE);
 
 	//ARGUMENTS B reg
-	if(!b->isload) {//make arg pre loading
-		if(b->consthold) {//constant
-			//constant
-			i->opc = OP_LOADK;
-			i->a = tb->num;
-			i->b = b->constnum;
-			pushInstruction(f,i);
-			b->isload = TRUE;
-			i = (Instruction*)malloc(sizeof(Instruction));
-		} else {//global variable
-			c = getVarByNum(f, b->varnum);
-			c = pushConstString(f, &c->val_string);
-			i->opc = OP_GETGLOBAL;
-			i->a = tb->num;
-			i->b = c->num;
-			b->isload = TRUE;
-			pushInstruction(f, i);
-			i = (Instruction*)malloc(sizeof(Instruction));
-		}
-	} else {
-		//move argument to target register
-		i->opc = OP_MOVE;
-		i->a = tb->num;
-		i->b = b->num;
-		pushInstruction(f, i);
-		i = (Instruction*)malloc(sizeof(Instruction));
-	}
-
-	ta->isload = TRUE;
-	tb->isload = TRUE;
+	checkLoad(f,b,tb,TRUE);
 
 	i->opc = OP_CALL;
 	i->a = ta->num;
 	i->b = 1;
 	i->c = 1; //TODO: support function return result
 	pushInstruction(f, i);
+
 	//free all registers
 	freeRegister(ta);
 	freeRegister(tb);

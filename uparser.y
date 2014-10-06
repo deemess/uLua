@@ -26,7 +26,7 @@
 %type binding	{Instruction*}
 
 %syntax_error {
-  printf ("Syntax error!\n");
+  f->error_code = 1;
 }
 
 %start_symbol  chunk
@@ -58,7 +58,7 @@ scope ::= . {
 scope ::= scope statlist binding semi. {
 	printf("P_SCOPE_STATLIST\n");
 }
-           
+
 statlist   ::= . {
 	printf("P_STATLIST_EMPTY\n");
 }
@@ -70,7 +70,9 @@ stat ::= DO block END .
 stat ::= WHILE exp DO block END .
 stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
-stat ::= IF conds END .
+stat ::= IF conds END . {
+	printf("P_STAT_IF\n");
+}
 stat ::= FUNCTION funcname params block END . 
 stat(A) ::= setlist(B) SET explist1(C) . {
 	A = statSET(f, B, C, FALSE);
@@ -84,11 +86,21 @@ stat ::= functioncall(B) .  {
 repetition ::= FOR NAME SET explist23 .
 repetition ::= FOR namelist IN explist1 .
 
-conds      ::= condlist .
-conds      ::= condlist ELSE block .
-condlist   ::= cond .
-condlist   ::= condlist ELSEIF cond .
-cond       ::= exp THEN block .
+conds      ::= condlist . {
+	printf("P_CONDS_CONDLIST\n");
+}
+conds      ::= condlist ELSE block . {
+	printf("P_CONDS_CONDLIST_ELSE_BLOCK\n");
+}
+condlist   ::= cond . {
+	printf("P_CONDLIST_COND\n");
+}
+condlist   ::= condlist ELSEIF cond . {
+	printf("P_CONDLIST_CONDLIST_ELSEIF_COND\n");
+}
+cond       ::= exp THEN block . {
+	printf("P_COND_EXP_THEN_BLOCK\n");
+}
 
 laststat ::= BREAK . 
 laststat ::= RETURN . 
@@ -177,10 +189,13 @@ exp(A)        ::= prefixexp(B) . {
 }
 exp        ::= tableconstructor .
 exp        ::= NOT|HASH|MINUS exp .
-exp        ::= exp OR|AND exp .
-exp(A)     ::= exp(B) L(D)|LE|G|GE|EQ|NE exp(C) . {
-	A = doLogic(f,B,C,D);
+exp(A)        ::= exp(B) OR(D)|AND exp(C) . {
+	A = doLogic(f,B,C,&D);
 	printf("P_EXP_LOGIC\n");
+}
+exp(A)     ::= exp(B) L(D)|LE|G|GE|EQ|NE exp(C) . {
+	A = doCompare(f,B,C,&D);
+	printf("P_EXP_COMPARE\n");
 }
 exp        ::= exp CONCAT exp .
 exp(A)	   ::= exp(B) PLUS(E)|MINUS|TIMES|DIVIDE|MOD|POW exp(C) . {
