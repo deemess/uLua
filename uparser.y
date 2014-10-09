@@ -36,6 +36,7 @@
 %start_symbol  chunk
 
 chunk ::= block . {
+	doReturn(f);
 	printf("P_CHUNK\n");
 }
 
@@ -48,16 +49,16 @@ semi ::= . {
 
 block(A) ::= scope statlist(B) . {
 	A = B;
-	doReturn(f);
+	//doReturn(f);
 	printf("P_BLOCK_STATLIST\n");
 }
 block(A) ::= scope statlist laststat(B) semi . {
 	A = B;
-	doReturn(f);
+	//doReturn(f);
 	printf("P_BLOCK_STATLIST_LASTSTAT\n");
 }
 ublock ::= block UNTIL exp . {
-	doReturn(f);
+	//doReturn(f);
 	printf("P_UBLOCK\n");
 }
 
