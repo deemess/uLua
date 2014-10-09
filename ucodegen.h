@@ -8,8 +8,10 @@
 
 #define CG_REG_COUNT 30
 
-#define CG_CONST_STRING 1
-#define CG_CONST_NUMBER 2
+#define NULL_TYPE	0x00
+#define BOOL_TYPE	0x01
+#define NUMBER_TYPE 0x03
+#define STRING_TYPE 0x04
 
 typedef struct Function Function;
 typedef struct Instruction Instruction;
@@ -29,10 +31,13 @@ typedef struct Register {
 struct Function {
 	u08*			code;
 	Register		reg[CG_REG_COUNT];
+	u16				instrSize;
 	Instruction*	instr;
 	Constant*		vars;
 	Constant*		consts;
+	u16				constsSize;
 	Function*		subfuncs;
+	u16				subfuncsSize;
 	ERROR_CODE		error_code;
 };
 
@@ -50,7 +55,7 @@ struct Instruction {
 	union i {
 		u32		packed;
 		struct unpacked {
-			OpCode	opc;
+			u08		opc;
 			u08		a;
 			union bx {
 				s16		bx;
@@ -65,7 +70,10 @@ struct Instruction {
 	Instruction* prev;
 };
 
+typedef void (*writeBytes)(u08* buff, u16 size);
+
 void initFunction(Function* f, u08* code);
+void dump(Function* f, writeBytes callback); // make binary dump using given callback function
 Constant* pushConstString(Function* f, SString* str); //save string in constant pool
 Constant* pushConstNumber(Function* f, float number); //save number in constant pool
 Constant* pushVarName(Function* f, SString* str); //save var name in var name pool

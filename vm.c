@@ -57,18 +57,18 @@ void vmInit(vm* vm)
 u16 getFuncsPt(u16 pt)
 {
 	u08 i=0;
-	u32 csize = platformReadDWord(pt); pt += 4;
+	u16 csize = platformReadWord(pt); pt += 2;
 
 	for(i=0; i<csize; i++)
 	{
 		u08 type = platformReadByte(pt++);
 		if(type == NUMBER_TYPE)
 		{
-			pt += 8;
+			pt += sizeof(float);
 		}
 		else if(type == STRING_TYPE)
 		{
-			u32 strsize = platformReadDWord(pt); pt += 4;
+			u16 strsize = platformReadWord(pt); pt += 2;
 			pt += strsize;
 		}
 	}
@@ -80,19 +80,19 @@ u16 getFuncsPt(u16 pt)
 u16 skeepFunction(u16 pt)
 {
 	u08 i=0;
-	u32 codesize;
-	u32 funcsize;
+	u16 codesize;
+	u16 funcsize;
 
-	pt += 16; //function header;
-	codesize = platformReadDWord(pt); pt += 4;
+	//pt += 16; //function header;
+	codesize = platformReadWord(pt); pt += 2;
 	pt += codesize * 4;
 	pt = getFuncsPt(pt);//subfunctions
-	funcsize = platformReadDWord(pt); pt += 4;
+	funcsize = platformReadWord(pt); pt += 2;
 	for(i=0; i<funcsize; i++)
 	{
 		pt = skeepFunction(pt);
 	}
-	pt += 3 * 4; //TODO: for now ignore lines, locals and upvalues. we think that thay are all zero size.
+	//pt += 3 * 4; //TODO: for now ignore lines, locals and upvalues. we think that thay are all zero size.
 	return pt;
 }
 
@@ -101,7 +101,7 @@ u16 skeepFunction(u16 pt)
 u16 getFuncPt(u16 pt, u16 N)
 {
 	u08 i=0;
-	u32 funcsize = platformReadDWord(pt); pt += 4;
+	u32 funcsize = platformReadWord(pt); pt += 2;
 	for(i=0; N>i; i++)
 	{
 		pt = skeepFunction(pt);
@@ -114,19 +114,19 @@ u16 getFuncPt(u16 pt, u16 N)
 u16 getConstPt(u16 constspt, u16 N)
 {
 	u08 i;
-	u32 strsize;
-	u32 csize = platformReadDWord(constspt); constspt += 4;
+	u16 strsize;
+	u16 csize = platformReadWord(constspt); constspt += 2;
 
-	for(i=0; i<csize &&  i<N; i++)
+	for(i=1; i<csize &&  i<N; i++)
 	{
 		u08 type = platformReadByte(constspt++);
 		if(type == NUMBER_TYPE)
 		{
-			constspt += 8;
+			constspt += sizeof(float);
 		}
 		else if(type == STRING_TYPE)
 		{
-			strsize = platformReadDWord(constspt); constspt += 4;
+			strsize = platformReadWord(constspt); constspt += 2;
 			constspt += strsize;
 		}
 	}
@@ -205,16 +205,14 @@ void clearRegister(vmregister* reg)
 u08 vmRun(vm* vm)
 {
 	u08 a = 0;
-	u16 b = 0;
-	u16 c = 0;
-	u16 bx = 0;
+	u08 b = 0;
+	u08 c = 0;
 	s16 sbx = 0;
 	u16 constpt = 0;
 	u08 type;
 	u08 glindex;
 	u08* name;
-	u32 codesize;
-	u32 inst;
+	u16 codesize;
 	u08 opcode;
 	gcvarpt* gcpointer = NULL;
 	int i;
@@ -228,11 +226,11 @@ u08 vmRun(vm* vm)
 	vm->status = RUN;
 
 	//skip header
-	vm->pc = 0x1c;
+	vm->pc = 0x06;
 
 	//get code size for top function
-	codesize = platformReadDWord(vm->pc); 
-	vm->pc += 4;
+	codesize = platformReadWord(vm->pc); 
+	vm->pc += 2;
 	vm->state[vm->statept].constp = vm->pc + codesize * 4;
 	vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
 
@@ -242,18 +240,16 @@ u08 vmRun(vm* vm)
 		vmstate* curstate = &vm->state[vm->statept];
 
 		//get first instruction
-		inst = platformReadDWord(vm->pc);
-		opcode = GET_OPCODE(inst);
+		opcode = platformReadByte(vm->pc);
+		a =		platformReadByte(vm->pc+1);
+		b =		platformReadByte(vm->pc+2);
+		c =		platformReadByte(vm->pc+3);
+		sbx = (s16)((((u16)c)<<8 & 0xFF00) + b);
+		//inst = platformReadDWord(vm->pc);
+		//opcode = GET_OPCODE(inst);
 
 		//go to next instruction
 		vm->pc += 4;
-
-		//get operands
-		a = GETARG_A(inst);
-		b = GETARG_B(inst);
-		c = GETARG_C(inst);
-		bx = GETARG_Bx(inst);
-		sbx = GETARG_sBx(inst);
 
 		switch(opcode)
 		{ 
@@ -267,7 +263,7 @@ u08 vmRun(vm* vm)
 		case OP_CLOSURE: //Create closure and put it into R(A)
 			//create closure in GC
 			gcpointer = gcNew(VAR_CLOSURE);
-			GCVALUE(vmclosure, gcpointer).funcp = getFuncPt(curstate->funcp, bx);
+			GCVALUE(vmclosure, gcpointer).funcp = getFuncPt(curstate->funcp, sbx);
 			GCVALUE(vmclosure, gcpointer).upvalcount = platformReadByte(GCVALUE(vmclosure, gcpointer).funcp + 3*4);
 
 			//init upvalues
@@ -310,10 +306,10 @@ u08 vmRun(vm* vm)
 
 		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
 			//read global name
-			constpt = getConstPt(curstate->constp, bx);
+			constpt = getConstPt(curstate->constp, sbx);
 			type = platformReadByte(constpt++);
-			codesize = platformReadDWord(constpt);
-			constpt += 4;
+			codesize = platformReadWord(constpt);
+			constpt += 2;
 			name = platformReadBuffer(constpt, codesize);
 
 			//search global
@@ -336,10 +332,10 @@ u08 vmRun(vm* vm)
 
 		case OP_GETGLOBAL: // A Bx	R(A) := Gbl[Kst(Bx)]
 			//read global name
-			constpt = getConstPt(curstate->constp, bx);
+			constpt = getConstPt(curstate->constp, sbx);
 			type = platformReadByte(constpt++);
-			codesize = platformReadDWord(constpt);
-			constpt += 4;
+			codesize = platformReadWord(constpt);
+			constpt += 2;
 			name = platformReadBuffer(constpt, codesize);
 
 			//search global
@@ -364,7 +360,7 @@ u08 vmRun(vm* vm)
 			break;
 		
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
-			constpt = getConstPt(curstate->constp, bx);
+			constpt = getConstPt(curstate->constp, sbx);
 			type = platformReadByte(constpt++);
 
 			clearRegister(&curstate->reg[a]);
@@ -480,9 +476,9 @@ u08 vmRun(vm* vm)
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 
-			if(b > 255)
+			if(b > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, b - 256);
+				constpt = getConstPt(curstate->constp, b - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				tmp.floatval = platformReadNumber(constpt);
 			}
@@ -491,9 +487,9 @@ u08 vmRun(vm* vm)
 				tmp.floatval = curstate->reg[b].floatval;
 			}
 
-			if(c > 255)
+			if(c > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, c - 256);
+				constpt = getConstPt(curstate->constp, c - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				curstate->reg[a].floatval = tmp.floatval + platformReadNumber(constpt);
 			}
@@ -509,9 +505,9 @@ u08 vmRun(vm* vm)
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 
-			if(b > 255)
+			if(b > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, b - 256);
+				constpt = getConstPt(curstate->constp, b - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				tmp.floatval = platformReadNumber(constpt);
 			}
@@ -520,9 +516,9 @@ u08 vmRun(vm* vm)
 				tmp.floatval = curstate->reg[b].floatval;
 			}
 
-			if(c > 255)
+			if(c > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, c - 256);
+				constpt = getConstPt(curstate->constp, c - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				curstate->reg[a].floatval = tmp.floatval - platformReadNumber(constpt);
 			}
@@ -537,9 +533,9 @@ u08 vmRun(vm* vm)
 			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
-			if(b > 255)
+			if(b > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, b - 256);
+				constpt = getConstPt(curstate->constp, b - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				tmp.floatval = platformReadNumber(constpt);
 			}
@@ -548,9 +544,9 @@ u08 vmRun(vm* vm)
 				tmp.floatval = curstate->reg[b].floatval;
 			}
 
-			if(c > 255)
+			if(c > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, c - 256);
+				constpt = getConstPt(curstate->constp, c - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				curstate->reg[a].floatval = tmp.floatval * platformReadNumber(constpt);
 			}
@@ -565,9 +561,9 @@ u08 vmRun(vm* vm)
 			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
-			if(b > 255)
+			if(b > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, b - 256);
+				constpt = getConstPt(curstate->constp, b - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				tmp.floatval = platformReadNumber(constpt);
 			}
@@ -576,9 +572,9 @@ u08 vmRun(vm* vm)
 				tmp.floatval = curstate->reg[b].floatval;
 			}
 
-			if(c > 255)
+			if(c > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, c - 256);
+				constpt = getConstPt(curstate->constp, c - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				curstate->reg[a].floatval = tmp.floatval / platformReadNumber(constpt);
 			}
@@ -593,9 +589,9 @@ u08 vmRun(vm* vm)
 			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
-			if(b > 255)
+			if(b > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, b - 256);
+				constpt = getConstPt(curstate->constp, b - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				tmp.floatval = platformReadNumber(constpt);
 			}
@@ -604,9 +600,9 @@ u08 vmRun(vm* vm)
 				tmp.floatval = curstate->reg[b].floatval;
 			}
 
-			if(c > 255)
+			if(c > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, c - 256);
+				constpt = getConstPt(curstate->constp, c - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				curstate->reg[a].floatval = fmod(tmp.floatval, platformReadNumber(constpt));
 			}
@@ -621,9 +617,9 @@ u08 vmRun(vm* vm)
 			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
-			if(b > 255)
+			if(b > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, b - 256);
+				constpt = getConstPt(curstate->constp, b - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				tmp.floatval = platformReadNumber(constpt);
 			}
@@ -632,9 +628,9 @@ u08 vmRun(vm* vm)
 				tmp.floatval = curstate->reg[b].floatval;
 			}
 
-			if(c > 255)
+			if(c > CG_REG_COUNT)
 			{
-				constpt = getConstPt(curstate->constp, c - 256);
+				constpt = getConstPt(curstate->constp, c - CG_REG_COUNT);
 				type = platformReadByte(constpt++);
 				curstate->reg[a].floatval = pow(tmp.floatval, platformReadNumber(constpt));
 			}
@@ -651,7 +647,7 @@ u08 vmRun(vm* vm)
 			//TODO: add checking numeric types in for loops variables
 			curstate->reg[a+3].type = VAR_FLOAT;
 			curstate->reg[a].floatval -= curstate->reg[a+2].floatval;
-			vm->pc += (bx+1)*4; //TODO: why +1???
+			vm->pc += (sbx+1)*4; //TODO: why +1???
 			break;
 		case OP_FORLOOP:
 			curstate->reg[a].floatval += curstate->reg[a+2].floatval; //add step
@@ -663,7 +659,7 @@ u08 vmRun(vm* vm)
 			) 
 			{
 				curstate->reg[a+3].floatval = curstate->reg[a].floatval;
-				vm->pc += (bx+1)*4; //TODO: why +1???
+				vm->pc += (sbx+1)*4; //TODO: why +1???
 			}
 			break;
 		//jumps and condition jumps

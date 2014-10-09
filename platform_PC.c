@@ -60,7 +60,7 @@ float platformReadNumber(u16 offset)
 	/*checkPosition(offset);
 	fread(buffer, 8, 1, file);
 	curpos += 8;*/
-	return (float)( *(double*)(&buffer[offset]) );
+	return  *(float*)(&buffer[offset]) ;
 }
 
 u08* platformReadBuffer(u16 offset, u08 size)

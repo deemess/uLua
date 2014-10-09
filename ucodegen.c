@@ -6,9 +6,12 @@ void initFunction(Function* f, u08* code) {
 
 	f->code = code;
 	f->consts = NULL;
+	f->constsSize = 0;
 	f->vars = NULL;
 	f->subfuncs = NULL;
+	f->subfuncsSize = 0;
 	f->instr = NULL;
+	f->instrSize = 0;
 	f->error_code = E_NONE;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		f->reg[i].num = i;
@@ -25,10 +28,10 @@ void initFunction(Function* f, u08* code) {
 BOOL constEqueals(Function* f, Constant* a, Constant* b) {
 	u08 i;
 	if(a->type == b->type) {
-		if(a->type == CG_CONST_NUMBER) {
+		if(a->type == NUMBER_TYPE) {
 			if(a->val_number == b->val_number)
 				return TRUE;
-		} else if(a->type == CG_CONST_STRING) {
+		} else if(a->type == STRING_TYPE) {
 			if(a->val_string.bplen == b->val_string.bplen){
 				for(i=0; i<a->val_string.bplen; i++) {
 					if(f->code[a->val_string.bp + i] != f->code[b->val_string.bp + i]) 
@@ -48,6 +51,7 @@ Constant* pushConst(Function* f, Constant* c) {
 	if(f->consts == NULL) {
 		c->num = 1;
 		f->consts = c;
+		f->constsSize++;
 		return c;
 	}
 
@@ -66,6 +70,8 @@ Constant* pushConst(Function* f, Constant* c) {
 
 	last->next = c;
 	c->num = last->num + 1;
+	f->constsSize++;
+
 	return c;
 }
 
@@ -102,10 +108,10 @@ Constant* pushVarName(Function* f, SString* str) {
 	c->num = 0;
 	c->isglobal = TRUE;
 	c->next = NULL;
-	c->type = CG_CONST_STRING;
-	c->val_string.bempty = str->bempty;
+	c->type = STRING_TYPE;
 	c->val_string.bp = str->bp;
 	c->val_string.bplen = str->bplen;
+	c->val_string.bempty = str->bempty;
 	
 	c = pushVar(f, c);
 	return c;
@@ -137,6 +143,7 @@ Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before)
 	i->prev = tmp;
 	i->next = before;
 	before->prev = i;
+	f->instrSize++;
 
 	return before;
 }
@@ -148,6 +155,7 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 		f->instr = i;
 		i->next = NULL;
 		i->prev = NULL;
+		f->instrSize++;
 		return i;
 	}
 	last = f->instr;
@@ -157,6 +165,7 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 	last->next = i;
 	i->next = NULL;
 	i->prev = last;
+	f->instrSize++;
 
 	return i;
 }
@@ -171,7 +180,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				i = (Instruction*)malloc(sizeof(Instruction));
 				i->i.unpacked.opc = OP_LOADK;
 				i->i.unpacked.a = ta->num;
-				i->i.unpacked.bx.l.b = a->constnum;
+				i->i.unpacked.bx.bx = a->constnum;
 				pushInstruction(f,i);
 				ta->isload = TRUE;
 			} else {//just copy constant
@@ -188,7 +197,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				c = pushConstString(f, &c->val_string);
 				i = (Instruction*)malloc(sizeof(Instruction));
 				i->i.unpacked.opc = OP_GETGLOBAL;
-				i->i.unpacked.bx.l.b = c->num;
+				i->i.unpacked.bx.bx = c->num;
 				i->i.unpacked.a = ta->num;
 				pushInstruction(f, i);
 				ta->varnum = a->varnum;
@@ -229,6 +238,7 @@ void tryFreeRegister(Register* r) {
 	}
 	freeRegister(r);//else free register
 }
+
 //public functions ---------------------------------------------------------------------
 
 Constant* pushConstString(Function* f, SString* str) {
@@ -237,7 +247,7 @@ Constant* pushConstString(Function* f, SString* str) {
 	c->num = 0;
 	c->isglobal = TRUE;
 	c->next = NULL;
-	c->type = CG_CONST_STRING;
+	c->type = STRING_TYPE;
 	c->val_string.bempty = str->bempty;
 	c->val_string.bp = str->bp;
 	c->val_string.bplen = str->bplen;
@@ -252,7 +262,7 @@ Constant* pushConstNumber(Function* f, float number) {
 	c->num = 0;
 	c->isglobal = TRUE;
 	c->next = NULL;
-	c->type = CG_CONST_NUMBER;
+	c->type = NUMBER_TYPE;
 	c->val_number = number;
 	
 	c = pushConst(f, c);
@@ -505,7 +515,7 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		//register or preloaded constant
 		i->i.unpacked.opc = OP_SETGLOBAL;
 		i->i.unpacked.a = b->num;//register number
-		i->i.unpacked.bx.l.b = c->num;//global const name number
+		i->i.unpacked.bx.bx = c->num;//global const name number
 		b->isload = TRUE;
 		b->varnum = a->varnum;
 		b->consthold = FALSE;
@@ -535,7 +545,7 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 
 	i->i.unpacked.opc = OP_CALL;
 	i->i.unpacked.a = ta->num;
-	i->i.unpacked.bx.l.b = 1;
+	i->i.unpacked.bx.l.b = 2;
 	i->i.unpacked.bx.l.c = 1; //TODO: support function return result
 	pushInstruction(f, i);
 
@@ -554,4 +564,65 @@ Instruction*  doReturn(Function* f)  {
 	pushInstruction(f, i);
 
 	return i;
+}
+
+
+void dumpFunction(Function* f, writeBytes write) {
+	u08 buff[6];
+	Instruction *i;
+	Constant* c;
+	Function* fp;
+	u08 j;
+
+	//dump instructions
+	((u16*)buff)[0] = f->instrSize; write(buff, 2);
+	i = f->instr;
+	while(i != NULL) {
+		((u32*)buff)[0] = i->i.packed; write(buff, 4);
+		i = i->next;
+	}
+
+	//dump constants
+	((u16*)buff)[0] = f->constsSize; write(buff, 2);
+	c = f->consts;
+	while(c != NULL) {
+		buff[0] = c->type; write(buff, 1); //const type
+		switch(c->type) {
+			case NUMBER_TYPE: //number
+				((float*)buff)[0] = c->val_number ; write(buff, sizeof(float));
+				break;
+			case STRING_TYPE: //string
+				((u16*)buff)[0] = c->val_string.bplen + 1; write(buff, 2); //string len
+				for(j=0; j < c->val_string.bplen; j++) {
+					buff[0] = f->code[c->val_string.bp+j]; write(buff, 1); //string char
+				}
+				buff[0] = 0; write(buff, 1); //end of ANSI string
+				break;
+		}
+		c = c->next;
+	}
+
+	//dump functions
+	((u16*)buff)[0] = f->subfuncsSize; write(buff, 2);
+	fp = f->subfuncs;
+	while(fp != NULL) {
+		dumpFunction(fp, write);
+	}
+	
+}
+
+void dump(Function* f, writeBytes callback) {
+	u08 buff[6];
+
+	//write header
+	buff[0] = 0x1B; //"Lua"
+	buff[1] = 0x4C; 
+	buff[2] = 0x75; 
+	buff[3] = 0x61; 
+	buff[4] = 0x51; //version Lua 5.1
+	buff[5] = 0x10; //format 0x10 means ulua v.1.0
+	callback(buff, 6); //write header
+
+	//dump top level function
+	dumpFunction(f, callback);
 }

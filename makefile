@@ -1,5 +1,5 @@
 # c compiler and linker options
-CC=g++
+CC=gcc
 CFLAGS=-c -Wall
 LDFLAGS=
 

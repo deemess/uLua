@@ -89,39 +89,39 @@ void printSString(SString* s, u08* c) {
 	}
 }
 
-void dumpConst(Function *f, u08 num) {
+void printConst(Function *f, u08 num) {
 		Constant* c = f->consts;
 		while(c->next != NULL && c->num != num) {
 			c = c->next;
 		}
-		if(c->type == CG_CONST_NUMBER) {
+		if(c->type == NUMBER_TYPE) {
 			printf("(%.0f)\t", c->val_number);
-		} else	if(c->type == CG_CONST_STRING) {
+		} else	if(c->type == STRING_TYPE) {
 			printf("(");
 			printSString(&c->val_string, f->code);
 			printf(")\t");
 		}
 }
 
-void dumpRK(Function *f, u08 reg) {
+void printRK(Function *f, u08 reg) {
 	if(reg<CG_REG_COUNT) {
 		printf("%d\t", reg);
 	} else {
 		printf("%d", reg);
-		dumpConst(f, reg - CG_REG_COUNT);
+		printConst(f, reg - CG_REG_COUNT);
 	}
 }
 
-void dumpFunction(Function *f) {
+void printFunction(Function *f) {
 	Instruction* i;
 	Constant* c = f->consts;
 	printf("\nConstants:\n");
 	while(c != NULL) {
-		if(c->type == CG_CONST_STRING) {
+		if(c->type == STRING_TYPE) {
 			printf("%d: ", c->num);
 			printSString(&c->val_string, f->code);
 			printf("\n");
-		} else if (c->type == CG_CONST_NUMBER) {
+		} else if (c->type == NUMBER_TYPE) {
 			printf("%d: %.0f\n", c->num, c->val_number);
 		} else {
 			printf("%d: unknown type\n", c->num);
@@ -131,11 +131,11 @@ void dumpFunction(Function *f) {
 	c = f->vars;
 	printf("\nVars:\n");
 	while(c != NULL) {
-		if(c->type == CG_CONST_STRING) {
+		if(c->type == STRING_TYPE) {
 			printf("%d: ", c->num);
 			printSString(&c->val_string, f->code);
 			printf("\n");
-		} else if (c->type == CG_CONST_NUMBER) {
+		} else if (c->type == NUMBER_TYPE) {
 			printf("%d: %f\n", c->num, c->val_number);
 		} else {
 			printf("%d: unknown type\n", c->num);
@@ -276,8 +276,8 @@ void dumpFunction(Function *f) {
 			case OP_LOADK:/*	A Bx	R(A) := Kst(Bx)					*/
 			case OP_GETGLOBAL:/*	A Bx	R(A) := Gbl[Kst(Bx)]				*/
 			case OP_SETGLOBAL:/*	A Bx	Gbl[Kst(Bx)] := R(A)				*/
-				printf("%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.l.b);
-				dumpConst(f, i->i.unpacked.bx.l.b);
+				printf("%d\t%d\t", i->i.unpacked.a, i->i.unpacked.bx.bx);
+				printConst(f, i->i.unpacked.bx.bx);
 				break;
 			case OP_LOADBOOL:/*	A B C	R(A) := (Bool)B; if (C) pc++			*/
 			case OP_NEWTABLE:/*	A B C	R(A) := {} (size = B,C)				*/
@@ -302,9 +302,9 @@ void dumpFunction(Function *f) {
 			case OP_TEST:/*	A C	if not (R(A) <=> C) then pc++			*/ 
 			case OP_TESTSET:/*	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++	*/ 
 			case OP_TAILCALL:/*	A B C	return R(A)(R(A+1), ... ,R(A+B-1))		*/
-				dumpRK(f, i->i.unpacked.a);
-				dumpRK(f, i->i.unpacked.bx.l.b);
-				dumpRK(f, i->i.unpacked.bx.l.c);
+				printRK(f, i->i.unpacked.a);
+				printRK(f, i->i.unpacked.bx.l.b);
+				printRK(f, i->i.unpacked.bx.l.c);
 				break;
 			case OP_CONCAT:/*	A B C	R(A) := R(B).. ... ..R(C)			*/
 				break;
@@ -333,6 +333,12 @@ void dumpFunction(Function *f) {
 
 }
 
+FILE* ofile;
+
+void writeToFile(u08* buff, u16 size) {
+	fwrite(buff, 1, size, ofile);
+}
+
 int main(int argc, char **argv) {
 
 	//local variable
@@ -345,10 +351,10 @@ int main(int argc, char **argv) {
 	int i;
 
 	//check args
-	if(argc < 2) 
+	if(argc < 3) 
 	{
 		printf("Usage: \n");
-		printf("uluac file.lua");
+		printf("uluac file.lua file.clu");
 		return 1;
 	}
 
@@ -359,6 +365,7 @@ int main(int argc, char **argv) {
 	file = fopen(argv[1], "r");
 	codelen = (u32)fread(code, 1, CODE_BUFFER_SIZE, file);
 	code[codelen] = 0;
+	fclose(file);
 
 	//init Parser
 	parser = ParseAlloc (malloc); 
@@ -392,7 +399,13 @@ int main(int argc, char **argv) {
 	printToken(&ls.t);
 	Parse(parser, ls.t.token, ls.t, &top);
 
-	dumpFunction(&top);
+	printFunction(&top);
+	
+	//save dump to file
+	ofile = fopen(argv[2], "w");
+	dump(&top, &writeToFile);
+	fclose(ofile);
+
 	ParseFree(parser, free);
 	return 0;
 }
