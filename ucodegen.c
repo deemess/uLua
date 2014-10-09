@@ -9,7 +9,7 @@ void initFunction(Function* f, u08* code) {
 	f->vars = NULL;
 	f->subfuncs = NULL;
 	f->instr = NULL;
-	f->error_code = 0;
+	f->error_code = E_NONE;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		f->reg[i].num = i;
 		f->reg[i].consthold = FALSE;
@@ -169,9 +169,9 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 		if(a->consthold) {//constant
 			if(isloadK) {//make preload
 				i = (Instruction*)malloc(sizeof(Instruction));
-				i->opc = OP_LOADK;
-				i->a = ta->num;
-				i->b = a->constnum;
+				i->i.unpacked.opc = OP_LOADK;
+				i->i.unpacked.a = ta->num;
+				i->i.unpacked.bx.l.b = a->constnum;
 				pushInstruction(f,i);
 				ta->isload = TRUE;
 			} else {//just copy constant
@@ -187,9 +187,9 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				c = getVarByNum(f, a->varnum);
 				c = pushConstString(f, &c->val_string);
 				i = (Instruction*)malloc(sizeof(Instruction));
-				i->opc = OP_GETGLOBAL;
-				i->b = c->num;
-				i->a = ta->num;
+				i->i.unpacked.opc = OP_GETGLOBAL;
+				i->i.unpacked.bx.l.b = c->num;
+				i->i.unpacked.a = ta->num;
 				pushInstruction(f, i);
 				ta->varnum = a->varnum;
 				ta->isload = TRUE;
@@ -200,9 +200,9 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 	} else {
 		if(a->num != ta->num) {//move function to target register
 			i = (Instruction*)malloc(sizeof(Instruction));
-			i->opc = OP_MOVE;
-			i->a = ta->num;
-			i->b = a->num;
+			i->i.unpacked.opc = OP_MOVE;
+			i->i.unpacked.a = ta->num;
+			i->i.unpacked.bx.l.b = a->num;
 			pushInstruction(f, i);
 			ta->isload = TRUE;
 		}
@@ -323,28 +323,28 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	res = getFreeRegister(f);
 	
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_LOADBOOL;
-	i->a = res->num;
-	i->b = t->token == TK_OR ? 0 : 1;//load false in result register for OR else true for AND
-	i->c = 0;
+	i->i.unpacked.opc = OP_LOADBOOL;
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = t->token == TK_OR ? 0 : 1;//load false in result register for OR else true for AND
+	i->i.unpacked.bx.l.c = 0;
 	pushInstruction(f,i);
 
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_TESTSET;//load false in result register
-	i->a = res->num;
-	i->b = a->num;
-	i->c = t->token == TK_OR ? 0 : 1; // false for OR instruction and true for AND instruction
+	i->i.unpacked.opc = OP_TESTSET;//load false in result register
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = a->num;
+	i->i.unpacked.bx.l.c = t->token == TK_OR ? 0 : 1; // false for OR instruction and true for AND instruction
 	pushInstruction(f,i);
 
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_JMP;//skip next check
-	i->bx = 1;
+	i->i.unpacked.opc = OP_JMP;//skip next check
+	i->i.unpacked.bx.bx = 1;
 	pushInstruction(f,i);
 
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_MOVE;//load false in result register
-	i->a = res->num;
-	i->b = b->num;
+	i->i.unpacked.opc = OP_MOVE;//load false in result register
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = b->num;
 	pushInstruction(f,i);
 
 	tryFreeRegister(a);
@@ -363,50 +363,50 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	checkLoad(f, b, b, TRUE);
 
 	//generate skip next instruction if true
-	i->a = 0; //do not skip next instruction if comparison valid
-	i->b = a->num;
-	i->c = b->num;
+	i->i.unpacked.a = 0; //do not skip next instruction if comparison valid
+	i->i.unpacked.bx.l.b = a->num;
+	i->i.unpacked.bx.l.c = b->num;
 	switch(t->token)
 	{
 		case TK_L:
-			i->opc = OP_LT;
+			i->i.unpacked.opc = OP_LT;
 			break;
 		case TK_LE:
-			i->opc = OP_LE;
+			i->i.unpacked.opc = OP_LE;
 			break;
 		case TK_EQ:
-			i->opc = OP_EQ;
+			i->i.unpacked.opc = OP_EQ;
 			break;
 		case TK_G:
-			i->opc = OP_LT;
-			i->b = b->num;
-			i->c = a->num;
+			i->i.unpacked.opc = OP_LT;
+			i->i.unpacked.bx.l.b = b->num;
+			i->i.unpacked.bx.l.c = a->num;
 			break;
 		case TK_GE:
-			i->opc = OP_LE;
-			i->b = b->num;
-			i->c = a->num;
+			i->i.unpacked.opc = OP_LE;
+			i->i.unpacked.bx.l.b = b->num;
+			i->i.unpacked.bx.l.c = a->num;
 			break;
 		case TK_NE:
-			i->opc = OP_EQ;
-			i->b = b->num;
-			i->c = a->num;
+			i->i.unpacked.opc = OP_EQ;
+			i->i.unpacked.bx.l.b = b->num;
+			i->i.unpacked.bx.l.c = a->num;
 			break;
 	}
 	pushInstruction(f, i);
 
 	//generate instructions to load true and false
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_LOADBOOL;
-	i->a = res->num;
-	i->b = 1; //true
-	i->c = 1; //skip next instruction
+	i->i.unpacked.opc = OP_LOADBOOL;
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = 1; //true
+	i->i.unpacked.bx.l.c = 1; //skip next instruction
 	pushInstruction(f, i);
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_LOADBOOL;
-	i->a = res->num;
-	i->b = 0; //true
-	i->c = 0; //do not skip next instruction
+	i->i.unpacked.opc = OP_LOADBOOL;
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = 0; //true
+	i->i.unpacked.bx.l.c = 0; //do not skip next instruction
 	pushInstruction(f, i);
 	res->isload = TRUE;
 
@@ -422,28 +422,28 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	checkLoad(f, a, a, FALSE);
 	checkLoad(f, b, b, FALSE);
 
-	i->a = a->num;
-	i->b = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
-	i->c = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
+	i->i.unpacked.a = a->num;
+	i->i.unpacked.bx.l.b = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
+	i->i.unpacked.bx.l.c = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
 
 	switch(t->token) {
 		case TK_PLUS:
-			i->opc = OP_ADD;
+			i->i.unpacked.opc = OP_ADD;
 			break;
 		case TK_MINUS:
-			i->opc = OP_SUB;
+			i->i.unpacked.opc = OP_SUB;
 			break;
 		case TK_TIMES:
-			i->opc = OP_MUL;
+			i->i.unpacked.opc = OP_MUL;
 			break;
 		case TK_DIVIDE:
-			i->opc = OP_DIV;
+			i->i.unpacked.opc = OP_DIV;
 			break;
 		case TK_MOD:
-			i->opc = OP_MOD;
+			i->i.unpacked.opc = OP_MOD;
 			break;
 		case TK_POW:
-			i->opc = OP_POW;
+			i->i.unpacked.opc = OP_POW;
 			break;
 	}
 	pushInstruction(f,i);
@@ -466,15 +466,15 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 
 	//make register test and skip THEN block if false
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_TEST;//load false in result register
-	i->a = a->num;
-	i->b = 0;
-	i->c = 0; // if false for OR instruction and true for AND instruction
+	i->i.unpacked.opc = OP_TEST;//load false in result register
+	i->i.unpacked.a = a->num;
+	i->i.unpacked.bx.l.b = 0;
+	i->i.unpacked.bx.l.c = 0; // if false for OR instruction and true for AND instruction
 	tmp = insertInstruction(f, i, block);
 
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_JMP;//skip THEN block
-	i->bx = 1;
+	i->i.unpacked.opc = OP_JMP;//skip THEN block
+	i->i.unpacked.bx.bx = 1;
 	insertInstruction(f, i, tmp);
 
 	//count instructions to skip
@@ -483,7 +483,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 		count++;
 		tmp = tmp->next;
 	}
-	i->bx = count+1;
+	i->i.unpacked.bx.bx = count+1;
 
 	tryFreeRegister(a);
 	return i;
@@ -503,9 +503,9 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
 		//register or preloaded constant
-		i->opc = OP_SETGLOBAL;
-		i->a = b->num;//register number
-		i->b = c->num;//global const name number
+		i->i.unpacked.opc = OP_SETGLOBAL;
+		i->i.unpacked.a = b->num;//register number
+		i->i.unpacked.bx.l.b = c->num;//global const name number
 		b->isload = TRUE;
 		b->varnum = a->varnum;
 		b->consthold = FALSE;
@@ -533,10 +533,10 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	//ARGUMENTS B reg
 	checkLoad(f,b,tb,TRUE);
 
-	i->opc = OP_CALL;
-	i->a = ta->num;
-	i->b = 1;
-	i->c = 1; //TODO: support function return result
+	i->i.unpacked.opc = OP_CALL;
+	i->i.unpacked.a = ta->num;
+	i->i.unpacked.bx.l.b = 1;
+	i->i.unpacked.bx.l.c = 1; //TODO: support function return result
 	pushInstruction(f, i);
 
 	//free all registers
@@ -548,9 +548,9 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 
 Instruction*  doReturn(Function* f)  {
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
-	i->opc = OP_RETURN;
-	i->a = 0;
-	i->b = 1;//TODO: support multiple return result
+	i->i.unpacked.opc = OP_RETURN;
+	i->i.unpacked.a = 0;
+	i->i.unpacked.bx.l.b = 1;//TODO: support multiple return result
 	pushInstruction(f, i);
 
 	return i;

@@ -47,11 +47,20 @@ struct Constant {
 
 
 struct Instruction {
-	OpCode	opc;
-	u08		a;
-	u08		b;
-	u08		c;
-	s16		bx;
+	union i {
+		u32		packed;
+		struct unpacked {
+			OpCode	opc;
+			u08		a;
+			union bx {
+				s16		bx;
+				struct	l {
+					u08		b;
+					u08		c;
+				} l;
+			} bx;
+		} unpacked;
+	} i;
 	Instruction* next;
 	Instruction* prev;
 };

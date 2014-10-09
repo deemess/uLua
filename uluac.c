@@ -145,7 +145,7 @@ void dumpFunction(Function *f) {
 	i = f->instr;
 	printf("\nInstructions:\n");
 	while(i != NULL) {
-		switch(i->opc) {
+		switch(i->i.unpacked.opc) {
 			case OP_MOVE:/*	A B	R(A) := R(B)					*/
 				printf("OP_MOVE ");
 				break;
@@ -262,7 +262,7 @@ void dumpFunction(Function *f) {
 				break;
 		}
 		printf("\t");
-		switch(i->opc) {
+		switch(i->i.unpacked.opc) {
 			case OP_MOVE:/*	A B	R(A) := R(B)					*/
 			case OP_UNM:/*	A B	R(A) := -R(B)					*/
 			case OP_NOT:/*	A B	R(A) := not R(B)				*/
@@ -271,17 +271,17 @@ void dumpFunction(Function *f) {
 			case OP_SETUPVAL:/*	A B	UpValue[B] := R(A)				*/
 			case OP_LEN:/*	A B	R(A) := length of R(B)				*/
 			case OP_RETURN:/*	A B	return R(A), ... ,R(A+B-2)	(see note)	*/
-				printf("%d\t%d\t", i->a, i->b);
+				printf("%d\t%d\t", i->i.unpacked.a, i->i.unpacked.bx.l.b);
 				break;
 			case OP_LOADK:/*	A Bx	R(A) := Kst(Bx)					*/
 			case OP_GETGLOBAL:/*	A Bx	R(A) := Gbl[Kst(Bx)]				*/
 			case OP_SETGLOBAL:/*	A Bx	Gbl[Kst(Bx)] := R(A)				*/
-				printf("%d\t%d", i->a, i->b);
-				dumpConst(f, i->b);
+				printf("%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.l.b);
+				dumpConst(f, i->i.unpacked.bx.l.b);
 				break;
 			case OP_LOADBOOL:/*	A B C	R(A) := (Bool)B; if (C) pc++			*/
 			case OP_NEWTABLE:/*	A B C	R(A) := {} (size = B,C)				*/
-				printf("%d\t%d\t%d", i->a, i->b, i->c);
+				printf("%d\t%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.l.b, i->i.unpacked.bx.l.c);
 				break;
 			case OP_GETTABLE:/*	A B C	R(A) := R(B)[RK(C)]				*/
 				break;
@@ -302,14 +302,14 @@ void dumpFunction(Function *f) {
 			case OP_TEST:/*	A C	if not (R(A) <=> C) then pc++			*/ 
 			case OP_TESTSET:/*	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++	*/ 
 			case OP_TAILCALL:/*	A B C	return R(A)(R(A+1), ... ,R(A+B-1))		*/
-				dumpRK(f, i->a);
-				dumpRK(f, i->b);
-				dumpRK(f, i->c);
+				dumpRK(f, i->i.unpacked.a);
+				dumpRK(f, i->i.unpacked.bx.l.b);
+				dumpRK(f, i->i.unpacked.bx.l.c);
 				break;
 			case OP_CONCAT:/*	A B C	R(A) := R(B).. ... ..R(C)			*/
 				break;
 			case OP_JMP:/*	sBx	pc+=sBx					*/
-				printf("%d", i->bx);
+				printf("%d", i->i.unpacked.bx.bx);
 				break;
 				break;
 			case OP_FORLOOP:/*	A sBx	R(A)+=R(A+2);			if R(A) <?= R(A+1) then { pc+=sBx; R(A+3)=R(A) }*/
