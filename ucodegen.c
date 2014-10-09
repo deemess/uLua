@@ -427,12 +427,15 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 }
 
 Register* doMath(Function* f, Register* a, Register* b, Token* t) {
+	Register* r;
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	
 	checkLoad(f, a, a, FALSE);
 	checkLoad(f, b, b, FALSE);
 
-	i->i.unpacked.a = a->num;
+	r = a->islocal ? getFreeRegister(f) : a;
+
+	i->i.unpacked.a = r->num;
 	i->i.unpacked.bx.l.b = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
 	i->i.unpacked.bx.l.c = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
 
@@ -459,14 +462,14 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	pushInstruction(f,i);
 
 	tryFreeRegister(b);
-	a->consthold = FALSE;
-	a->constpreloaded = FALSE;
-	a->constnum = 0;
-	a->varnum = 0;
-	a->islocal = FALSE;
-	a->isload = TRUE;
+	r->consthold = FALSE;
+	r->constpreloaded = FALSE;
+	r->constnum = 0;
+	r->varnum = 0;
+	r->islocal = FALSE;
+	r->isload = TRUE;
 	
-	return a;
+	return r;
 }
 
 Instruction* statTHEN(Function* f, Register* a, Instruction* block) {

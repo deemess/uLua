@@ -276,7 +276,7 @@ void printFunction(Function *f) {
 			case OP_LOADK:/*	A Bx	R(A) := Kst(Bx)					*/
 			case OP_GETGLOBAL:/*	A Bx	R(A) := Gbl[Kst(Bx)]				*/
 			case OP_SETGLOBAL:/*	A Bx	Gbl[Kst(Bx)] := R(A)				*/
-				printf("%d\t%d\t", i->i.unpacked.a, i->i.unpacked.bx.bx);
+				printf("%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.bx);
 				printConst(f, i->i.unpacked.bx.bx);
 				break;
 			case OP_LOADBOOL:/*	A B C	R(A) := (Bool)B; if (C) pc++			*/
