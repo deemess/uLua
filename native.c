@@ -20,7 +20,7 @@
 void printRegister(vmregister reg)
 {
 	u16 constpt;
-	u32 size;
+	u16 size;
 	u08* name;
 	switch(reg.type)
 	{
@@ -33,7 +33,7 @@ void printRegister(vmregister reg)
 			break;
 
 		case VAR_FLOAT:
-			platformPrintf("%f\t", reg.floatval);
+			platformPrintf("%.0f\t", reg.floatval);
 			break;
 
 		case VAR_STRING:
@@ -50,7 +50,7 @@ void printRegister(vmregister reg)
 
 		case VAR_FILE_POINTER_STR:
 			constpt = reg.numval;
-			size = platformReadDWord(constpt); constpt += 4;
+			size = platformReadWord(constpt); constpt += 2;
 			name = platformReadBuffer(constpt, size);
 			platformPrintf("%s\t", name);
 			break;

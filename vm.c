@@ -425,8 +425,8 @@ u08 vmRun(vm* vm)
 				//prepare state
 				vm->statept++;
 				//get code size function
-				codesize = platformReadDWord(vm->pc); 
-				vm->pc += 4;
+				codesize = platformReadWord(vm->pc); 
+				vm->pc += 2;
 				vm->state[vm->statept].constp = vm->pc + codesize * 4;
 				vm->state[vm->statept].funcp = getFuncsPt(vm->state[vm->statept].constp);
 				vm->state[vm->statept].retreg = a;
@@ -684,8 +684,21 @@ u08 vmRun(vm* vm)
 				vm->pc += 4;
 			}
 			break;
-
-
+		//boolean checks
+		case OP_TESTSET://	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++ 
+			if(curstate->reg[b].floatval != (float)c) {
+				curstate->reg[a].floatval = curstate->reg[b].floatval;
+				curstate->reg[a].type = curstate->reg[b].type;
+			} else {
+				vm->pc += 4;
+			}
+			break;
+		case OP_TEST://	A C	if not (R(A) <=> C) then pc++
+			if(curstate->reg[a].floatval != (float)c) {
+			} else {
+				vm->pc += 4;
+			}
+			break;
 
 		default:
 #ifdef DEBUGVM

@@ -136,7 +136,7 @@ void gcDelete(gcvarpt* variable)
 void gcDump()
 {
 	u16 constpt;
-	u32 size;
+	u16 size;
 	u08* name;
 	u16 i=0;
 
@@ -161,7 +161,7 @@ void gcDump()
 			break;
 		case VAR_FILE_POINTER_STR:
 			constpt = GCVALUE(u16, &vars[i]);
-			size = platformReadDWord(constpt); constpt += 4;
+			size = platformReadWord(constpt); constpt += 2;
 			name = platformReadBuffer(constpt, size);
 			platformPrintf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, name);
 			break;
