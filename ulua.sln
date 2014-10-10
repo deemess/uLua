@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uluac", "uluac.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lemon", "lemon.vcxproj", "{0555063E-9627-42A7-98EA-870155C5BC30}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "luar", "luar.vcxproj", "{014C1AC3-030B-47D0-AA3F-606112C01350}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uluar", "uluar.vcxproj", "{014C1AC3-030B-47D0-AA3F-606112C01350}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
