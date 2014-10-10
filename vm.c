@@ -401,7 +401,7 @@ u08 vmRun(vm* vm)
 		case OP_LOADBOOL:
 			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_BOOLEAN;
-			curstate->reg[a].numval = b;
+			curstate->reg[a].floatval = (float)b;
 			if(c > 0) //skip instruction
 				vm->pc += 4;
 			break;
@@ -679,7 +679,7 @@ u08 vmRun(vm* vm)
 			}
 			break;
 		case OP_LE: //	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++
-			if((compare(&curstate->reg[b], &curstate->reg[c]) == -2 || compare(&curstate->reg[b], &curstate->reg[c]) == 0) != a)
+			if((compare(&curstate->reg[b], &curstate->reg[c]) == -2 || compare(&curstate->reg[b], &curstate->reg[c]) == 1) != a)
 			{
 				vm->pc += 4;
 			}
@@ -694,8 +694,7 @@ u08 vmRun(vm* vm)
 			}
 			break;
 		case OP_TEST://	A C	if not (R(A) <=> C) then pc++
-			if(curstate->reg[a].floatval != (float)c) {
-			} else {
+			if(curstate->reg[a].floatval == (float)c) {
 				vm->pc += 4;
 			}
 			break;

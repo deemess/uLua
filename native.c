@@ -25,7 +25,7 @@ void printRegister(vmregister reg)
 	switch(reg.type)
 	{
 		case VAR_BOOLEAN:
-			if(reg.numval == TRUE) platformPrintf("true\t"); else platformPrintf("false\t");
+			if(reg.floatval == 1) platformPrintf("true\t"); else platformPrintf("false\t");
 			break;
 
 		case VAR_NUMBER:

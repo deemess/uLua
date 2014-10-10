@@ -366,7 +366,6 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 
 Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
-	u08		t1,t2;
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	res = getFreeRegister(f);
 	
@@ -374,10 +373,9 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	checkLoad(f, b, b, TRUE);
 
 	//generate skip next instruction if true
-	i->i.unpacked.a = 0; //do not skip next instruction if comparison valid
+	i->i.unpacked.a = 1; //do not skip next instruction if comparison valid
 	i->i.unpacked.bx.l.b = a->num;
 	i->i.unpacked.bx.l.c = b->num;
-	t1 = 1; t2 = 0;
 	switch(t->token)
 	{
 		case TK_L:
@@ -393,19 +391,17 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 			i->i.unpacked.opc = OP_LT;
 			i->i.unpacked.bx.l.b = b->num;
 			i->i.unpacked.bx.l.c = a->num;
-			t1 = 0; t2 = 1;
 			break;
 		case TK_GE:
 			i->i.unpacked.opc = OP_LE;
 			i->i.unpacked.bx.l.b = b->num;
 			i->i.unpacked.bx.l.c = a->num;
-			t1 = 0; t2 = 1;
 			break;
 		case TK_NE:
 			i->i.unpacked.opc = OP_EQ;
 			i->i.unpacked.bx.l.b = b->num;
 			i->i.unpacked.bx.l.c = a->num;
-			t1 = 0; t2 = 1;
+			i->i.unpacked.a = 0;
 			break;
 	}
 	pushInstruction(f, i);
@@ -414,13 +410,13 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	i = (Instruction*)malloc(sizeof(Instruction));
 	i->i.unpacked.opc = OP_LOADBOOL;
 	i->i.unpacked.a = res->num;
-	i->i.unpacked.bx.l.b = t1; //true
+	i->i.unpacked.bx.l.b = 1; //true
 	i->i.unpacked.bx.l.c = 1; //skip next instruction
 	pushInstruction(f, i);
 	i = (Instruction*)malloc(sizeof(Instruction));
 	i->i.unpacked.opc = OP_LOADBOOL;
 	i->i.unpacked.a = res->num;
-	i->i.unpacked.bx.l.b = t2; //false
+	i->i.unpacked.bx.l.b = 0; //false
 	i->i.unpacked.bx.l.c = 0; //do not skip next instruction
 	pushInstruction(f, i);
 	res->isload = TRUE;
@@ -487,7 +483,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	i->i.unpacked.opc = OP_TEST;//load false in result register
 	i->i.unpacked.a = a->num;
 	i->i.unpacked.bx.l.b = 0;
-	i->i.unpacked.bx.l.c = 0; // if false for OR instruction and true for AND instruction
+	i->i.unpacked.bx.l.c = 1; // if false for OR instruction and true for AND instruction
 	tmp = insertInstruction(f, i, block);
 
 	i = (Instruction*)malloc(sizeof(Instruction));

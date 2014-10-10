@@ -1,8 +1,9 @@
-b = 4
-a = 1 + 2 * 10 -b * 4+2
-print(a)
-
-if (a < 40 and b == 4) then
-	print('Fail')
-	print(a+b)
+a = 5+6
+b = a*5
+print(b)
+print(b >= 55)
+if b >= 55 then
+	print(a)
 end
+c = a < 5
+print(c)
