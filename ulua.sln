@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ulua", "ulua.vcxproj", "{627F71B6-8F9E-4034-981B-F9012AA8ED40}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ulua", "vsproj\ulua.vcxproj", "{627F71B6-8F9E-4034-981B-F9012AA8ED40}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uluac", "uluac.vcxproj", "{E4181813-E265-4A71-AFE9-301F791E4B19}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uluac", "vsproj\uluac.vcxproj", "{E4181813-E265-4A71-AFE9-301F791E4B19}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lemon", "lemon.vcxproj", "{0555063E-9627-42A7-98EA-870155C5BC30}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lemon", "vsproj\lemon.vcxproj", "{0555063E-9627-42A7-98EA-870155C5BC30}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uluar", "uluar.vcxproj", "{014C1AC3-030B-47D0-AA3F-606112C01350}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uluar", "vsproj\uluar.vcxproj", "{014C1AC3-030B-47D0-AA3F-606112C01350}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

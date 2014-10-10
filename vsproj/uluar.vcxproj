@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E4181813-E265-4A71-AFE9-301F791E4B19}</ProjectGuid>
+    <ProjectGuid>{014C1AC3-030B-47D0-AA3F-606112C01350}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>uluac</RootNamespace>
+    <RootNamespace>uluar</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -39,7 +39,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -56,10 +55,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -79,20 +74,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ulexer.c" />
-    <ClCompile Include="uluac.c" />
-    <ClCompile Include="uparser.c" />
-    <ClCompile Include="ucodegen.c" />
+    <ClInclude Include="..\basetypes.h" />
+    <ClInclude Include="..\gc.h" />
+    <ClInclude Include="..\llerror.h" />
+    <ClInclude Include="..\native.h" />
+    <ClInclude Include="..\opcodes.h" />
+    <ClInclude Include="..\platform.h" />
+    <ClInclude Include="..\table.h" />
+    <ClInclude Include="..\ucodegen.h" />
+    <ClInclude Include="..\ulexer.h" />
+    <ClInclude Include="..\uparser.h" />
+    <ClInclude Include="..\vm.h" />
+    <ClInclude Include="..\vmconfig.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="basetypes.h" />
-    <ClInclude Include="opcodes.h" />
-    <ClInclude Include="ucodegen.h" />
-    <ClInclude Include="ulexer.h" />
-    <ClInclude Include="uparser.h" />
+    <ClCompile Include="..\gc.c" />
+    <ClCompile Include="..\uluar.c" />
+    <ClCompile Include="..\native.c" />
+    <ClCompile Include="..\platform_PC.c" />
+    <ClCompile Include="..\table.c" />
+    <ClCompile Include="..\ucodegen.c" />
+    <ClCompile Include="..\ulexer.c" />
+    <ClCompile Include="..\uparser.c" />
+    <ClCompile Include="..\vm.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="uparser.y" />
+    <None Include="..\uparser.y" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

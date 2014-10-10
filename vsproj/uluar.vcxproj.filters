@@ -15,69 +15,69 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="basetypes.h">
+    <ClInclude Include="..\basetypes.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="gc.h">
+    <ClInclude Include="..\gc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="llerror.h">
+    <ClInclude Include="..\llerror.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="native.h">
+    <ClInclude Include="..\native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opcodes.h">
+    <ClInclude Include="..\opcodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="platform.h">
+    <ClInclude Include="..\platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="table.h">
+    <ClInclude Include="..\table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ucodegen.h">
+    <ClInclude Include="..\ucodegen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ulexer.h">
+    <ClInclude Include="..\ulexer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="uparser.h">
+    <ClInclude Include="..\uparser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vm.h">
+    <ClInclude Include="..\vm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vmconfig.h">
+    <ClInclude Include="..\vmconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gc.c">
+    <ClCompile Include="..\gc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="native.c">
+    <ClCompile Include="..\native.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="platform_PC.c">
+    <ClCompile Include="..\platform_PC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="table.c">
+    <ClCompile Include="..\table.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ucodegen.c">
+    <ClCompile Include="..\ucodegen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ulexer.c">
+    <ClCompile Include="..\ulexer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="uparser.c">
+    <ClCompile Include="..\uparser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vm.c">
+    <ClCompile Include="..\vm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="uluar.c">
+    <ClCompile Include="..\uluar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
