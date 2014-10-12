@@ -3,11 +3,12 @@
 #include "ulexer.h"
 #include "uparser.c"
 #include "ucodegen.h"
+#include "vm.h"
 
 #define CODE_BUFFER_SIZE 64*1024
 
 static u08 code[CODE_BUFFER_SIZE];
-
+static u08 bdump[CODE_BUFFER_SIZE];
 
 void printToken(Token* t) {
 	int i;
@@ -81,6 +82,15 @@ void printToken(Token* t) {
 	printf("\n");
 }
 
+u16 dp = 0;
+void writeToFile(u08* buff, u16 size) {
+	u16 i;
+	for(i=0; i<size; i++) {
+		bdump[dp + i] = buff[i];
+	}
+	dp += size;
+}
+
 int main(int argc, char **argv) {
 	LexState ls;
 	Function top;
@@ -88,8 +98,10 @@ int main(int argc, char **argv) {
 	void *parser;
 	u32 i;
 
-	for(i=0; i<CODE_BUFFER_SIZE; i++)
+	for(i=0; i<CODE_BUFFER_SIZE; i++) {
 		code[i] = 0;
+		bdump[i] = 0;
+	}
 
 	vmInit(&thread);
 
@@ -105,9 +117,9 @@ int main(int argc, char **argv) {
 
 	while(strcmp("exit()", (char*)code) != 0) {
 		//read code from command line
-		printf(">>");
+		printf(">> ");
 		scanf("%s", code);
-
+		printf("%s", code);
 		//parse code
 		next(&ls);
 		while(ls.t.token != TK_EOS) {
@@ -130,6 +142,7 @@ int main(int argc, char **argv) {
 		Parse(parser, ls.t.token, ls.t, &top);
 
 		//get binary dump
+		dp = 0;
 		dump(&top, &writeToFile);
 
 		//run dump on vm
