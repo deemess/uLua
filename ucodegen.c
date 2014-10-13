@@ -10,6 +10,7 @@ void initFunction(Function* f, u08* code) {
 	f->vars = NULL;
 	f->subfuncs = NULL;
 	f->subfuncsSize = 0;
+    f->next = NULL;
 	f->instr = NULL;
 	f->instrSize = 0;
 	f->error_code = E_NONE;
@@ -23,6 +24,38 @@ void initFunction(Function* f, u08* code) {
 		f->reg[i].islocal = FALSE;
 		f->reg[i].constpreloaded = FALSE;
 	}
+}
+
+void freeFunction(Function* f) {
+    Instruction* i;
+    Instruction* li;
+    Constant* c;
+    Constant* lc;
+    Function* sf;
+    Function* lsf;
+    
+    //free all instructions
+    i = f->instr;
+    while(i != NULL) {
+        li = i;
+        i = i->next;
+        free(li);
+    }
+    //free all constants
+    c = f->consts;
+    while(c != NULL) {
+        lc = c;
+        c = c->next;
+        free(lc);
+    }
+    //free all subfunctions
+    sf = f->subfuncs;
+    while (sf != NULL) {
+        freeFunction(sf);
+        lsf = sf;
+        sf = sf->next;
+        free(lsf);
+    }
 }
 
 BOOL constEqueals(Function* f, Constant* a, Constant* b) {

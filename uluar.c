@@ -110,32 +110,32 @@ int main(int argc, char **argv) {
 
 	//init Parser
 	parser = ParseAlloc (malloc); 
-	//init Lexer
-	setInput(&ls, (u08*)code);
 	//init top level function
 	initFunction(&top, (u08*)code);
 
 	while(strcmp("exit()", (char*)code) != 0) {
 		//read code from command line
 		printf(">> ");
-		scanf("%s", code);
-		printf("%s", code);
-		//parse code
+		scanf("%[^\n]", code);
+        //init Lexer
+        setInput(&ls, (u08*)code);
+        //parse code
 		next(&ls);
 		while(ls.t.token != TK_EOS) {
 			if(getLastULexError() != E_NONE) {
 				printf("Error: %d\n", getLastULexError());
 				printf("Token:");
 				printToken(&ls.t);
-				return 1;
-				break;
+                freeFunction(&top);
+				continue;
 			}
 			Parse(parser, ls.t.token, ls.t, &top);
 			if(top.error_code != 0) {
 				printf("Syntax error:%d on line: %d token ", top.error_code, ls.linenumber);
 				printToken(&ls.t);
 				printf("\n");
-				return 1;
+                freeFunction(&top);
+				continue;
 			}
 			next(&ls);
 		}
@@ -144,6 +144,7 @@ int main(int argc, char **argv) {
 		//get binary dump
 		dp = 0;
 		dump(&top, &writeToFile);
+        freeFunction(&top);
 
 		//run dump on vm
 		vmRun(&thread);

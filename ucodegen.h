@@ -38,6 +38,7 @@ struct Function {
 	u16				constsSize;
 	Function*		subfuncs;
 	u16				subfuncsSize;
+    Function*       next;
 	ERROR_CODE		error_code;
 };
 
@@ -73,6 +74,7 @@ struct Instruction {
 typedef void (*writeBytes)(u08* buff, u16 size);
 
 void initFunction(Function* f, u08* code);
+void freeFunction(Function* f); //free all resources used by function and its subfunctions
 void dump(Function* f, writeBytes callback); // make binary dump using given callback function
 Constant* pushConstString(Function* f, SString* str); //save string in constant pool
 Constant* pushConstNumber(Function* f, float number); //save number in constant pool
