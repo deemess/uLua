@@ -4,8 +4,9 @@
 #include "basetypes.h"
 #include "vmconfig.h"
 #include "platform.h"
+#include <stdio.h>
 
-typedef void (*nativeFunc)(vm* vm, u08 a, u16 b, u16 c);
+typedef void (*nativeFunc)(vm* vm, readBytes read, u08 a, u16 b, u16 c);
 
 //exported functions
 
@@ -13,6 +14,6 @@ typedef void (*nativeFunc)(vm* vm, u08 a, u16 b, u16 c);
 void nativeInit(vm* vm);
 
 //call native function stored in reg
-void nativeCall(vm* vm, u08 a, u16 b, u16 c);
+void nativeCall(vm* vm, readBytes read, u08 a, u16 b, u16 c);
 
 #endif

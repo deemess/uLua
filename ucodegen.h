@@ -40,6 +40,7 @@ struct Function {
 	u16				subfuncsSize;
     Function*       next;
 	ERROR_CODE		error_code;
+	BOOL			parsed;
 };
 
 struct Constant {

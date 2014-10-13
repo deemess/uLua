@@ -5,6 +5,10 @@
 #include "ucodegen.h"
 #include "vm.h"
 
+#define OK       0
+#define NO_INPUT 1
+#define TOO_LONG 2
+
 #define CODE_BUFFER_SIZE 64*1024
 
 static u08 code[CODE_BUFFER_SIZE];
@@ -82,6 +86,31 @@ void printToken(Token* t) {
 	printf("\n");
 }
 
+static int getLine (char *prmpt, u08 *buff, size_t sz) {
+    int ch, extra;
+
+    // Get line with buffer overrun protection.
+    if (prmpt != NULL) {
+        printf ("%s", prmpt);
+        fflush (stdout);
+    }
+    if (fgets ((char*)buff, sz, stdin) == NULL)
+        return NO_INPUT;
+
+    // If it was too long, there'll be no newline. In that case, we flush
+    // to end of line so that excess doesn't affect the next call.
+    if (buff[strlen((char*)buff)-1] != '\n') {
+        extra = 0;
+        while (((ch = getchar()) != '\n') && (ch != EOF))
+            extra = 1;
+        return (extra == 1) ? TOO_LONG : OK;
+    }
+
+    // Otherwise remove newline and give string back to caller.
+    buff[strlen((char*)buff)-1] = '\0';
+    return OK;
+}
+
 u16 dp = 0;
 void writeToFile(u08* buff, u16 size) {
 	u16 i;
@@ -91,6 +120,13 @@ void writeToFile(u08* buff, u16 size) {
 	dp += size;
 }
 
+void readBytecode(u08* buff, u16 offset, u16 size) {
+	u16 i;
+	for(i=0; i<size; i++) {
+		buff[i] = bdump[offset+i];
+	}
+}
+
 int main(int argc, char **argv) {
 	LexState ls;
 	Function top;
@@ -98,25 +134,23 @@ int main(int argc, char **argv) {
 	void *parser;
 	u32 i;
 
+	//clear buffers
 	for(i=0; i<CODE_BUFFER_SIZE; i++) {
 		code[i] = 0;
 		bdump[i] = 0;
 	}
 
+	//init vm stucture
 	vmInit(&thread);
 
-	//tests
-	//testGC();
-
-	//init Parser
-	parser = ParseAlloc (malloc); 
-	//init top level function
-	initFunction(&top, (u08*)code);
-
+	//main cycle
 	while(strcmp("exit()", (char*)code) != 0) {
 		//read code from command line
-		printf(">> ");
-		scanf("%[^\n]", code);
+		getLine(">> ", code, CODE_BUFFER_SIZE);
+		//init Parser
+		parser = ParseAlloc (malloc); 
+		//init top level function
+		initFunction(&top, (u08*)code);
         //init Lexer
         setInput(&ls, (u08*)code);
         //parse code
@@ -127,7 +161,7 @@ int main(int argc, char **argv) {
 				printf("Token:");
 				printToken(&ls.t);
                 freeFunction(&top);
-				continue;
+				break;
 			}
 			Parse(parser, ls.t.token, ls.t, &top);
 			if(top.error_code != 0) {
@@ -135,20 +169,30 @@ int main(int argc, char **argv) {
 				printToken(&ls.t);
 				printf("\n");
                 freeFunction(&top);
-				continue;
+				break;
 			}
 			next(&ls);
 		}
-		Parse(parser, ls.t.token, ls.t, &top);
+		if(top.error_code == 0 && getLastULexError() == E_NONE) {
+			//parse last token (should be EOS)
+			Parse(parser, ls.t.token, ls.t, &top);
+		}
 
-		//get binary dump
-		dp = 0;
-		dump(&top, &writeToFile);
-        freeFunction(&top);
+		//check if parsing complete
+		if(!top.parsed) {
+			printf("Unfinished code!\n");
+		}
 
-		//run dump on vm
-		vmRun(&thread);
-
+		//execude code only if there were no errors
+		if(top.parsed == TRUE && top.error_code == 0 && getLastULexError() == E_NONE) {
+			//get binary dump
+			dp = 0;
+			dump(&top, &writeToFile);
+			//run dump on vm
+			vmRun(&thread, &readBytecode);
+		}
+		//free resources
+		freeFunction(&top);
+		ParseFree(parser, free);
 	}
-	ParseFree(parser, free);
 }

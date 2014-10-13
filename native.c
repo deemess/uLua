@@ -17,65 +17,66 @@
 //(C-1) return values are saved. If C is 0, th
 
 
-void printRegister(vmregister reg)
+void printRegister(readBytes read, vmregister reg)
 {
 	u16 constpt;
 	u16 size;
-	u08* name;
+	u08 name[32];
 	switch(reg.type)
 	{
 		case VAR_BOOLEAN:
-			if(reg.floatval == 1) platformPrintf("true\t"); else platformPrintf("false\t");
+			if(reg.floatval == 1) printf("true\t"); else printf("false\t");
 			break;
 
 		case VAR_NUMBER:
-			platformPrintf("%d\t", reg.numval);
+			printf("%d\t", reg.numval);
 			break;
 
 		case VAR_FLOAT:
-			platformPrintf("%.0f\t", reg.floatval);
+			printf("%.0f\t", reg.floatval);
 			break;
 
 		case VAR_STRING:
-			platformPrintf("%s\t", (char*)reg.pointer);
+			printf("%s\t", (char*)reg.pointer);
 			break;
 
 		case VAR_NULL:
-			platformPrintf("nil\t");
+			printf("nil\t");
 			break;
 
 		case VAR_CLOSURE:
-			platformPrintf("luc function at %d\t", reg.numval);
+			printf("luc function at %d\t", reg.numval);
 			break;
 
 		case VAR_FILE_POINTER_STR:
 			constpt = reg.numval;
-			size = platformReadWord(constpt); constpt += 2;
-			name = platformReadBuffer(constpt, size);
-			platformPrintf("%s\t", name);
+			read(name, constpt, 2);
+			size = *(u16*)(&name[0]);
+			read(name, constpt, size);
+			printf("%s\t", name);
 			break;
 
 		case VAR_TABLE:
-			platformPrintf("Table{}\t");
+			printf("Table{}\t");
 			break;
 	}
 }
 
 //native print(..) function
-void nativePrint(vm* vm, u08 a, u16 b, u16 c)
+void nativePrint(vm* vm, readBytes read, u08 a, u16 b, u16 c)
 {
 	u08 i=0;
 	//print all variables
 	for(i=0; i<b-1; i++)
 	{
 		vmregister reg = vm->state[vm->statept].reg[a+1+i];
-		printRegister(reg);
+		printRegister(read, reg);
 	}
 
 	if(b==0)
-		printRegister(vm->state[vm->statept].reg[a+1]);
+		printRegister(read, vm->state[vm->statept].reg[a+1]);
 
-	platformPrintf("\n");
+	printf("\n");
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -119,8 +120,8 @@ void nativeInit(vm* vm)
 }
 
 //call native function stored in reg
-void nativeCall(vm* vm, u08 a, u16 b, u16 c)
+void nativeCall(vm* vm, readBytes read, u08 a, u16 b, u16 c)
 {
 	nativeFunc func = (nativeFunc)vm->state[vm->statept].reg[a].pointer;
-	func(vm, a, b, c);
+	func(vm, read, a, b, c);
 }

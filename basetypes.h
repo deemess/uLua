@@ -20,6 +20,10 @@ typedef u08 BOOL;
 #define TRUE  1
 #define FALSE 0
 
+//callback functions type
+typedef void (*readBytes)(u08* buff, u16 offset, u16 size);
+
+
 //gc types
 //variable structure
 typedef struct gcvar {

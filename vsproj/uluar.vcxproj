@@ -79,7 +79,6 @@
     <ClInclude Include="..\llerror.h" />
     <ClInclude Include="..\native.h" />
     <ClInclude Include="..\opcodes.h" />
-    <ClInclude Include="..\platform.h" />
     <ClInclude Include="..\table.h" />
     <ClInclude Include="..\ucodegen.h" />
     <ClInclude Include="..\ulexer.h" />
@@ -91,7 +90,6 @@
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\uluar.c" />
     <ClCompile Include="..\native.c" />
-    <ClCompile Include="..\platform_PC.c" />
     <ClCompile Include="..\table.c" />
     <ClCompile Include="..\ucodegen.c" />
     <ClCompile Include="..\ulexer.c" />

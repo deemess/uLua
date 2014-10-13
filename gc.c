@@ -133,14 +133,14 @@ void gcDelete(gcvarpt* variable)
 
 #ifdef DEBUGVM
 //dump gc memory
-void gcDump()
+void gcDump(readBytes read)
 {
 	u16 constpt;
 	u16 size;
-	u08* name;
+	u08 name[32];
 	u16 i=0;
 
-	platformPrintf("Dumping memory: size=%d, address=%d\n", GC_SIZE, &memory);
+	printf("Dumping memory: size=%d, address=%d\n", GC_SIZE, &memory);
 	for(i=0; i<GC_VAR_PT_SIZE; i++)
 	{
 		if(vars[i] == NULL)
@@ -148,31 +148,32 @@ void gcDump()
 		switch(vars[i]->type)
 		{
 		case VAR_BOOLEAN:
-			platformPrintf("VAR_BOOLEAN: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u08, &vars[i]));
+			printf("VAR_BOOLEAN: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u08, &vars[i]));
 			break;
 		case VAR_NUMBER:
-			platformPrintf("VAR_NUMBER: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u32, &vars[i]));
+			printf("VAR_NUMBER: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u32, &vars[i]));
 			break;
 		case VAR_FLOAT:
-			platformPrintf("VAR_FLOAT: size=%d, address=%d(m+%d), value=%f\n",vars[i]->size, vars[i],  (u08*)vars[i] - memory, GCVALUE(float, &vars[i]));
+			printf("VAR_FLOAT: size=%d, address=%d(m+%d), value=%f\n",vars[i]->size, vars[i],  (u08*)vars[i] - memory, GCVALUE(float, &vars[i]));
 			break;
 		case VAR_STRING:
-			platformPrintf("VAR_STRING: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, vars[i]->data);
+			printf("VAR_STRING: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, vars[i]->data);
 			break;
 		case VAR_FILE_POINTER_STR:
 			constpt = GCVALUE(u16, &vars[i]);
-			size = platformReadWord(constpt); constpt += 2;
-			name = platformReadBuffer(constpt, size);
-			platformPrintf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, name);
+			read(name, constpt, 2);
+			size = *(u16*)(&name[0]);
+			read(name, constpt, size);
+			printf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, name);
 			break;
 		case VAR_CLOSURE:
-			platformPrintf("VAR_CLOSURE: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
+			printf("VAR_CLOSURE: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
 			break;
 		case VAR_NULL:
-			platformPrintf("VAR_NULL: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
+			printf("VAR_NULL: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
 			break;
 		default:
-			platformPrintf("UNKNOWN_TYPE: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
+			printf("UNKNOWN_TYPE: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
 			break;
 		}
 	}

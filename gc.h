@@ -3,7 +3,7 @@
 
 #include "vmconfig.h"
 #include "basetypes.h"
-#include "platform.h"
+#include <stdio.h>
 
 //variable accessors
 #define GCVALUE(type,var) ((type*)(*var)->data)[0]

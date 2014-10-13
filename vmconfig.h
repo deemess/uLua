@@ -13,7 +13,7 @@
 #define DEFAULT_TABLE_SIZE 32
 
 // ------ VM ---------
-#define DEBUGVM //comment it out to optimize code
+//#define DEBUGVM //comment it out to optimize code
 #define PCSTACKSIZE 32
 #define REGISTERSIZE 32
 #define UPVALUESIZE 8
@@ -21,5 +21,10 @@
 #define GLOBALNAMESIZE 32
 #define STATEMAXCOUNT 32
 
+#ifdef DEBUGVM
+	#define DPRINTF(a) printf(a)
+#else
+	#define DPRINTF(a)
+#endif
 
 #endif

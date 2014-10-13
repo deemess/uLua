@@ -14,6 +14,7 @@ void initFunction(Function* f, u08* code) {
 	f->instr = NULL;
 	f->instrSize = 0;
 	f->error_code = E_NONE;
+	f->parsed = FALSE;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		f->reg[i].num = i;
 		f->reg[i].consthold = FALSE;
@@ -41,6 +42,7 @@ void freeFunction(Function* f) {
         i = i->next;
         free(li);
     }
+	f->instr = NULL;
     //free all constants
     c = f->consts;
     while(c != NULL) {
@@ -48,6 +50,7 @@ void freeFunction(Function* f) {
         c = c->next;
         free(lc);
     }
+	f->consts = NULL;
     //free all subfunctions
     sf = f->subfuncs;
     while (sf != NULL) {
@@ -56,6 +59,7 @@ void freeFunction(Function* f) {
         sf = sf->next;
         free(lsf);
     }
+	f->subfuncs = NULL;
 }
 
 BOOL constEqueals(Function* f, Constant* a, Constant* b) {
