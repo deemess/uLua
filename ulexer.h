@@ -2,7 +2,7 @@
 #define ULEXER_H
 
 #include <ctype.h>
-#include "platform.h"
+#include <stdlib.h>
 #include "basetypes.h"
 #include "llerror.h"
 #include "uparser.h"
@@ -49,39 +49,6 @@ typedef struct {
 	u08 keyword[10];
 } reserved;
 
-static reserved keywords[] = {
-	{TK_AND, "and"},
-	{TK_BREAK, "break"},
-	{TK_DO, "do"},
-	{TK_ELSE, "else"},
-	{TK_ELSEIF, "elseif"},
-	{TK_END, "end"},
-	{TK_FALSE, "false"},
-	{TK_FOR, "for"},
-	{TK_FUNCTION, "function"},
-	{TK_IF, "if"},
-	{TK_IN, "in"},
-	{TK_LOCAL, "local"},
-	{TK_NIL, "nil"},
-	{TK_NOT, "not"},
-	{TK_OR, "or"},
-	{TK_REPEAT, "repeat"},
-	{TK_RETURN, "return"},
-	{TK_THEN, "then"},
-	{TK_TRUE, "true"},
-	{TK_UNTIL, "until"},
-	{TK_WHILE, "while"},
-/*	{TK_CONCAT, ".."},
-	{TK_DOTS, "..."},
-	{TK_EQ, "=="},
-	{TK_GE, ">="},
-	{TK_LE, "<="},
-	{TK_NE, "~="},
-	{TK_NAME, "<name>"},
-	{TK_NUMBER, "<number>"},
-	{TK_STRING, "<string>"},
-	{TK_EOS, "<eof>"},*/
-};
 
 typedef struct SString { //String structure - store only pointer to existing stream position and string lengh. Used to save RAM.
 	u08 bempty; //boolean if buff is emtry and not saved

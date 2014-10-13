@@ -24,6 +24,10 @@ void printRegister(readBytes read, vmregister reg)
 	u08 name[32];
 	switch(reg.type)
 	{
+		case VAR_NATIVE_FUNC:
+			printf("Native function\t");
+			break;
+			
 		case VAR_BOOLEAN:
 			if(reg.floatval == 1) printf("true\t"); else printf("false\t");
 			break;

@@ -1,6 +1,8 @@
 #ifndef UCODEGEN_H
 #define UCODEGEN_H
 
+#include <stdlib.h>
+#include <stdio.h>
 #include "basetypes.h"
 #include "opcodes.h"
 #include "ulexer.h"

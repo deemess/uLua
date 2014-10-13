@@ -3,7 +3,6 @@
 
 #include "basetypes.h"
 #include "vmconfig.h"
-#include "platform.h"
 #include "opcodes.h"
 #include "gc.h"
 #include "native.h"

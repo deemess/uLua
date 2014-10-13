@@ -123,7 +123,8 @@ u16 skeepFunction(readBytes read, u16 pt)
 u16 getFuncPt(readBytes read, u16 pt, u16 N)
 {
 	u08 i=0;
-	u32 funcsize = platformReadWord(read, pt); pt += 2;
+	//u32 funcsize = platformReadWord(read, pt); 
+	pt += 2;
 	for(i=0; N>i; i++)
 	{
 		pt = skeepFunction(read, pt);

@@ -1,6 +1,39 @@
 #include "ulexer.h"
 
 ERROR_CODE error = E_NONE;
+static reserved keywords[] = {
+	{TK_AND, "and"},
+	{TK_BREAK, "break"},
+	{TK_DO, "do"},
+	{TK_ELSE, "else"},
+	{TK_ELSEIF, "elseif"},
+	{TK_END, "end"},
+	{TK_FALSE, "false"},
+	{TK_FOR, "for"},
+	{TK_FUNCTION, "function"},
+	{TK_IF, "if"},
+	{TK_IN, "in"},
+	{TK_LOCAL, "local"},
+	{TK_NIL, "nil"},
+	{TK_NOT, "not"},
+	{TK_OR, "or"},
+	{TK_REPEAT, "repeat"},
+	{TK_RETURN, "return"},
+	{TK_THEN, "then"},
+	{TK_TRUE, "true"},
+	{TK_UNTIL, "until"},
+	{TK_WHILE, "while"},
+/*	{TK_CONCAT, ".."},
+	{TK_DOTS, "..."},
+	{TK_EQ, "=="},
+	{TK_GE, ">="},
+	{TK_LE, "<="},
+	{TK_NE, "~="},
+	{TK_NAME, "<name>"},
+	{TK_NUMBER, "<number>"},
+	{TK_STRING, "<string>"},
+	{TK_EOS, "<eof>"},*/
+};
 
 void lexerror(ERROR_CODE code) {
 	error = code;
@@ -113,7 +146,6 @@ void read_numeral (LexState *ls, Token *t) {
 }
 
 void read_long_string(LexState* ls, Token* t, u16 sep) {
-	u16 cont = 0;
 	save_and_next(ls);//  -- skip 2nd '['
 	if(currIsNewline(ls)) { // string starts with a newline?
 		inclinenumber(ls);  // skip it

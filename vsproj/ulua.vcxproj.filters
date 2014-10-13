@@ -15,49 +15,67 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="basetypes.h">
+    <ClInclude Include="..\basetypes.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gc.h">
+    <ClInclude Include="..\llerror.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="native.h">
+    <ClInclude Include="..\native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opcodes.h">
+    <ClInclude Include="..\opcodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="platform.h">
+    <ClInclude Include="..\table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="table.h">
+    <ClInclude Include="..\ucodegen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vm.h">
+    <ClInclude Include="..\ulexer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vmconfig.h">
+    <ClInclude Include="..\uparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vmconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gc.c">
+    <ClCompile Include="..\gc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="native.c">
+    <ClCompile Include="..\native.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="platform_PC.c">
+    <ClCompile Include="..\table.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="table.c">
+    <ClCompile Include="..\ucodegen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ulua.c">
+    <ClCompile Include="..\ulexer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vm.c">
+    <ClCompile Include="..\uparser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\vm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ulua.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\uparser.y" />
   </ItemGroup>
 </Project>

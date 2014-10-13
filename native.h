@@ -3,7 +3,6 @@
 
 #include "basetypes.h"
 #include "vmconfig.h"
-#include "platform.h"
 #include <stdio.h>
 
 typedef void (*nativeFunc)(vm* vm, readBytes read, u08 a, u16 b, u16 c);

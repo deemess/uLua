@@ -16,12 +16,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\basetypes.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\gc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\llerror.h">
+    <ClInclude Include="..\gc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\native.h">
@@ -31,15 +28,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\table.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ucodegen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ulexer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\uparser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\vm.h">
@@ -59,23 +47,11 @@
     <ClCompile Include="..\table.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ucodegen.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ulexer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\uparser.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\vm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\uluar.c">
+    <ClCompile Include="..\uluai.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\uparser.y" />
   </ItemGroup>
 </Project>

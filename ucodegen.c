@@ -1,5 +1,4 @@
 #include "ucodegen.h"
-#include <stdio.h>
 
 void initFunction(Function* f, u08* code) {
 	u08 i;
