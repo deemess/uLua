@@ -54,7 +54,7 @@ void printRegister(readBytes read, vmregister reg)
 
 		case VAR_FILE_POINTER_STR:
 			constpt = reg.numval;
-			read(name, constpt, 2);
+			read(name, constpt, 2); constpt += 2;
 			size = *(u16*)(&name[0]);
 			read(name, constpt, size);
 			printf("%s\t", name);
