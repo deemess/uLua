@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
 			}
 			Parse(parser, ls.t.token, ls.t, &top);
 			if(top.error_code != 0) {
-				printf("Syntax error:%d on line: %d token ", top.error_code, ls.linenumber);
+				printf("Syntax error: %d on line: %d token ", top.error_code, ls.linenumber);
 				printToken(&ls.t);
 				printf("\n");
                 freeFunction(&top);
