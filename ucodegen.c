@@ -512,6 +512,7 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	Instruction* i;
 	Instruction* tmp;
+	Instruction* first;
 	u16 count = 0;
 
 	//make register test and skip THEN block if false
@@ -520,12 +521,13 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	i->i.unpacked.a = a->num;
 	i->i.unpacked.bx.l.b = 0;
 	i->i.unpacked.bx.l.c = 1; // if false for OR instruction and true for AND instruction
-	tmp = insertInstruction(f, i, block);
+	insertInstruction(f, i, block);
+	first = i;
 
 	i = (Instruction*)malloc(sizeof(Instruction));
 	i->i.unpacked.opc = OP_JMP;//skip THEN block
 	i->i.unpacked.bx.bx = 1;
-	insertInstruction(f, i, tmp);
+	insertInstruction(f, i, block);
 
 	//count instructions to skip
 	if(block != NULL) { //check if given block is not null. If NULL - we have a problem in parser
@@ -538,7 +540,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	i->i.unpacked.bx.bx = count+1;
 
 	tryFreeRegister(a);
-	return i;
+	return first;
 }
 
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
