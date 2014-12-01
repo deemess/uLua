@@ -1,9 +1,7 @@
-a = 5+6
-b = a*5
-print(b)
-print(b >= 55)
-if b >= 55 then
-	print(a)
+a = 10
+b = 20
+if a >= 10 then
+	if b <= 20 then
+		print(a+b)
+	end
 end
-c = a < 5
-print(c)

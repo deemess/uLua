@@ -13,7 +13,7 @@
 #define DEFAULT_TABLE_SIZE 32
 
 // ------ VM ---------
-//#define DEBUGVM //comment it out to optimize code
+#define DEBUGVM //comment it out to optimize code
 #define PCSTACKSIZE 32
 #define REGISTERSIZE 32
 #define UPVALUESIZE 8

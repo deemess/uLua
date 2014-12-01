@@ -528,10 +528,12 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	insertInstruction(f, i, tmp);
 
 	//count instructions to skip
-	tmp = block->next;
-	while(tmp != NULL) {
-		count++;
-		tmp = tmp->next;
+	if(block != NULL) { //check if given block is not null. If NULL - we have a problem in parser
+		tmp = block->next;
+		while(tmp != NULL) {
+			count++; 
+			tmp = tmp->next;
+		}
 	}
 	i->i.unpacked.bx.bx = count+1;
 

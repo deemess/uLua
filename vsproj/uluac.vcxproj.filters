@@ -15,37 +15,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ulexer.c">
+    <ClCompile Include="..\ulexer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="uluac.c">
+    <ClCompile Include="..\uluac.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="uparser.c">
+    <ClCompile Include="..\uparser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ucodegen.c">
+    <ClCompile Include="..\ucodegen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ulexer.h">
+    <ClInclude Include="..\basetypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="uparser.h">
+    <ClInclude Include="..\opcodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="basetypes.h">
+    <ClInclude Include="..\ucodegen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ucodegen.h">
+    <ClInclude Include="..\ulexer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opcodes.h">
+    <ClInclude Include="..\uparser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="uparser.y" />
+    <None Include="..\uparser.y" />
   </ItemGroup>
 </Project>

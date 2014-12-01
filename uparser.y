@@ -28,6 +28,8 @@
 %type binding	{Instruction*}
 %type block		{Instruction*}
 %type cond		{Instruction*}
+%type conds		{Instruction*}
+%type condlist	{Instruction*}
 %type statlist	{Instruction*}
 %type laststat	{Instruction*}
 
@@ -92,7 +94,8 @@ stat ::= DO block END .
 stat ::= WHILE exp DO block END .
 stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
-stat ::= IF conds END . {
+stat(A) ::= IF conds(B) END . {
+	A = B;
 	DPRINTF("P_STAT_IF\n");
 }
 stat ::= FUNCTION funcname params block END . 
@@ -108,13 +111,15 @@ stat(A) ::= functioncall(B) .  {
 repetition ::= FOR NAME SET explist23 .
 repetition ::= FOR namelist IN explist1 .
 
-conds      ::= condlist . {
+conds(A)      ::= condlist(B) . {
+	A = B;
 	DPRINTF("P_CONDS_CONDLIST\n");
 }
 conds      ::= condlist ELSE block . {
 	DPRINTF("P_CONDS_CONDLIST_ELSE_BLOCK\n");
 }
-condlist   ::= cond . {
+condlist(A)   ::= cond(B) . {
+	A = B;
 	DPRINTF("P_CONDLIST_COND\n");
 }
 condlist   ::= condlist ELSEIF cond . {
@@ -227,12 +232,12 @@ exp(A)	   ::= exp(B) PLUS(E)|MINUS|TIMES|DIVIDE|MOD|POW exp(C) . {
 }
 
 setlist(A) ::= var(B) . {
-	DPRINTF("P_SETLIST_VAR\n");
 	A = B;
+	DPRINTF("P_SETLIST_VAR\n");
 }
 setlist(A) ::= setlist COMMA var(B) . {
-	DPRINTF("P_SETLIST_ADD_VAR\n");
 	A = B;
+	DPRINTF("P_SETLIST_ADD_VAR\n");
 }
 
 var(A) ::= NAME(B) . {

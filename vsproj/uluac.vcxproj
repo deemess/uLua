@@ -92,7 +92,7 @@
     <ClInclude Include="..\uparser.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="uparser.y" />
+    <None Include="..\uparser.y" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
