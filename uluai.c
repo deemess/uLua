@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	//read file
-	file = fopen(argv[1], "r");
+	file = fopen(argv[1], "rb");
 	fread(buffer, 1, 64*1024, file);
 
 	vmInit(&thread);

@@ -402,7 +402,7 @@ int main(int argc, char **argv) {
 	printFunction(&top);
 	
 	//save dump to file
-	ofile = fopen(argv[2], "w");
+	ofile = fopen(argv[2], "wb");
 	dump(&top, &writeToFile);
 	fclose(ofile);
 

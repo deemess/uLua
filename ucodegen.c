@@ -571,7 +571,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	i->i.unpacked.bx.bx = count+1;
 
 	i = (Instruction*)malloc(sizeof(Instruction));
-	i->i.unpacked.opc = OP_JMP;//skip THEN block
+	i->i.unpacked.opc = OP_JMP;//exit from if - will be amended in the next
 	i->i.unpacked.bx.bx = 0;
 
 	//add 1 jump to the end of the "then" to use it in future to jump over "else" or "elseif"
@@ -626,6 +626,46 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 }
 
 Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ //make elseif block
+	Instruction* tmp;
+	Instruction* first;
+	Instruction* jmp;
+	u16 count = 0;
+	u16 countprejump = 0;
+
+	first = condlist;
+	//find last instruction in condlist and make jump over "else" block
+	while(first->next != cond && first->next != NULL)  
+		first = first->next;
+
+	//count instructions to skip
+	if(cond != NULL) { 
+		tmp = cond;
+		while(tmp->next != NULL) {
+			count++; 
+			tmp = tmp->next;
+		}
+	}
+
+	//find last jump and amend it
+	while(first->i.unpacked.opc != OP_JMP && first != condlist) {
+		first = first->prev;
+	}
+
+	//check if we found jump
+	if(first->i.unpacked.opc == OP_JMP) {
+		jmp = first;
+		while(first->next != cond && first->next != NULL) {
+			first = first->next;
+			countprejump++;
+		}
+		jmp->i.unpacked.bx.bx = count + countprejump;
+	}
+
+	//i = (Instruction*)malloc(sizeof(Instruction));
+	//i->i.unpacked.opc = OP_JMP;//skip THEN block
+	//i->i.unpacked.bx.bx = count;
+	//insertInstruction(f, i, tmp);
+
 	return condlist;
 }
 
