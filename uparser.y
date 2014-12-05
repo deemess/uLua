@@ -115,14 +115,16 @@ conds(A)      ::= condlist(B) . {
 	A = B;
 	DPRINTF("P_CONDS_CONDLIST\n");
 }
-conds      ::= condlist ELSE block . {
+conds(A)      ::= condlist(B) ELSE block(C) . {
+	A = statELSE(f, B, C);
 	DPRINTF("P_CONDS_CONDLIST_ELSE_BLOCK\n");
 }
 condlist(A)   ::= cond(B) . {
 	A = B;
 	DPRINTF("P_CONDLIST_COND\n");
 }
-condlist   ::= condlist ELSEIF cond . {
+condlist(A)   ::= condlist(B) ELSEIF cond(C) . {
+	A = statELSEIF(f, B, C);
 	DPRINTF("P_CONDLIST_CONDLIST_ELSEIF_COND\n");
 }
 cond(A)    ::= exp(B) THEN block(C) . {

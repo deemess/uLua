@@ -90,6 +90,8 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make reg
 Instruction*  doReturn(Function* f); //generate return instruction
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement (a = b). return last instruction
 Instruction* statTHEN(Function* f, Register* a, Instruction* block); // make then block if register a is true else skip it
+Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block); //make else block
+Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond); //make elseif block
 Instruction* functionCALL(Function* f, Register* a, Register* b); //call function
 
 #endif

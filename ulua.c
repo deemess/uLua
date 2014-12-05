@@ -368,7 +368,7 @@ static int getLine (char *prmpt, u08 *buff, size_t sz) {
 }
 
 u16 dp = 0;
-void writeToFile(u08* buff, u16 size) {
+void writeBytecode(u08* buff, u16 size) {
 	u16 i;
 	for(i=0; i<size; i++) {
 		bdump[dp + i] = buff[i];
@@ -450,7 +450,7 @@ int main(int argc, char **argv) {
 #endif
 			//get binary dump
 			dp = 0;
-			dump(&top, &writeToFile);
+			dump(&top, &writeBytecode);
 			//run dump on vm
 			vmRun(&thread, &readBytecode);
 		}

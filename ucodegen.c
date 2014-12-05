@@ -206,6 +206,32 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 	return i;
 }
 
+Instruction* addInstruction(Function* f, Instruction* i, Instruction* after) {
+	Instruction* last;
+
+	if(i == NULL) {
+		f->error_code = E_NULL_INSTRUCTION;
+		return NULL;
+	}
+
+	if(after == NULL) {
+		f->error_code = E_NULL_INSTRUCTION;
+		return NULL;
+	}	
+
+	last = after->next;
+	after->next = i;
+	i->prev = after;
+	i->next = last;
+	if(last != NULL) {
+		last->prev = i;
+	}
+
+	f->instrSize++;
+
+	return after;
+}
+
 Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 	Instruction* i = NULL;
 	Constant* c;
@@ -513,7 +539,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	Instruction* i;
 	Instruction* tmp;
 	Instruction* first;
-	u16 count = 0;
+	u16 count = 1;
 
 	//make register test and skip THEN block if false
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -529,18 +555,78 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	i->i.unpacked.bx.bx = 1;
 	insertInstruction(f, i, block);
 
+	//check if given block is not null. If NULL - we have a problem in parser
+	if(block == NULL) {
+		f->error_code = E_NULL_INSTRUCTION;
+		return NULL;
+	}
 	//count instructions to skip
-	if(block != NULL) { //check if given block is not null. If NULL - we have a problem in parser
-		tmp = block->next;
-		while(tmp != NULL) {
+	if(block != NULL) { 
+		tmp = block;
+		while(tmp->next != NULL) {
 			count++; 
 			tmp = tmp->next;
 		}
 	}
 	i->i.unpacked.bx.bx = count+1;
 
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->i.unpacked.opc = OP_JMP;//skip THEN block
+	i->i.unpacked.bx.bx = 0;
+
+	//add 1 jump to the end of the "then" to use it in future to jump over "else" or "elseif"
+	addInstruction(f, i, tmp);
+
 	tryFreeRegister(a);
 	return first;
+}
+
+Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { //make else block
+	Instruction* tmp;
+	Instruction* first;
+	Instruction* jmp;
+	u16 count = 1;
+	u16 countprejump = 0;
+
+	first = condlist;
+	//find last instruction in condlist and make jump over "else" block
+	while(first->next != block && first->next != NULL)  
+		first = first->next;
+
+	//count instructions to skip
+	if(block != NULL) { 
+		tmp = block;
+		while(tmp->next != NULL) {
+			count++; 
+			tmp = tmp->next;
+		}
+	}
+
+	//find last jump and amend it
+	while(first->i.unpacked.opc != OP_JMP && first != condlist) {
+		first = first->prev;
+	}
+
+	//check if we found jump
+	if(first->i.unpacked.opc == OP_JMP) {
+		jmp = first;
+		while(first->next != block && first->next != NULL) {
+			first = first->next;
+			countprejump++;
+		}
+		jmp->i.unpacked.bx.bx = count + countprejump;
+	}
+
+	//i = (Instruction*)malloc(sizeof(Instruction));
+	//i->i.unpacked.opc = OP_JMP;//skip THEN block
+	//i->i.unpacked.bx.bx = count;
+	//insertInstruction(f, i, tmp);
+
+	return condlist;
+}
+
+Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ //make elseif block
+	return condlist;
 }
 
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
