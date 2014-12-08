@@ -6,9 +6,9 @@
 #include "ucodegen.h"
 #include "vm.h"
 
-#define OK       0
-#define NO_INPUT 1
-#define TOO_LONG 2
+#define GETLINE_OK       0
+#define GETLINE_NO_INPUT 1
+#define GETLINE_TOO_LONG 2
 
 #define CODE_BUFFER_SIZE 64*1024
 
@@ -342,7 +342,7 @@ void printFunction(Function *f) {
 }
 
 
-static int getLine (char *prmpt, u08 *buff, size_t sz) {
+static int getLine (char *prmpt, u08 *buff, int sz) {
     int ch, extra;
 
     // Get line with buffer overrun protection.
@@ -351,7 +351,7 @@ static int getLine (char *prmpt, u08 *buff, size_t sz) {
         fflush (stdout);
     }
     if (fgets ((char*)buff, sz, stdin) == NULL)
-        return NO_INPUT;
+        return GETLINE_NO_INPUT;
 
     // If it was too long, there'll be no newline. In that case, we flush
     // to end of line so that excess doesn't affect the next call.
@@ -359,12 +359,12 @@ static int getLine (char *prmpt, u08 *buff, size_t sz) {
         extra = 0;
         while (((ch = getchar()) != '\n') && (ch != EOF))
             extra = 1;
-        return (extra == 1) ? TOO_LONG : OK;
+        return (extra == 1) ? GETLINE_TOO_LONG : GETLINE_OK;
     }
 
     // Otherwise remove newline and give string back to caller.
     buff[strlen((char*)buff)-1] = '\0';
-    return OK;
+    return GETLINE_OK;
 }
 
 u16 dp = 0;

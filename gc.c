@@ -140,7 +140,7 @@ void gcDump(readBytes read)
 	u08 name[32];
 	u16 i=0;
 
-	printf("Dumping memory: size=%d, address=%d\n", GC_SIZE, &memory);
+	printf("Dumping memory: size=%d, address=%d\n", GC_SIZE, (int)&memory);
 	for(i=0; i<GC_VAR_PT_SIZE; i++)
 	{
 		if(vars[i] == NULL)
@@ -148,32 +148,32 @@ void gcDump(readBytes read)
 		switch(vars[i]->type)
 		{
 		case VAR_BOOLEAN:
-			printf("VAR_BOOLEAN: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u08, &vars[i]));
+			printf("VAR_BOOLEAN: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, (int)GCVALUE(u08, &vars[i]));
 			break;
 		case VAR_NUMBER:
-			printf("VAR_NUMBER: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u32, &vars[i]));
+			printf("VAR_NUMBER: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, GCVALUE(u32, &vars[i]));
 			break;
 		case VAR_FLOAT:
-			printf("VAR_FLOAT: size=%d, address=%d(m+%d), value=%f\n",vars[i]->size, vars[i],  (u08*)vars[i] - memory, GCVALUE(float, &vars[i]));
+			printf("VAR_FLOAT: size=%d, address=%d(m+%ld), value=%f\n",vars[i]->size, (int)vars[i],  (u08*)vars[i] - memory, GCVALUE(float, &vars[i]));
 			break;
 		case VAR_STRING:
-			printf("VAR_STRING: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, vars[i]->data);
+			printf("VAR_STRING: size=%d, address=%d(m+%ld), value=%s\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, vars[i]->data);
 			break;
 		case VAR_FILE_POINTER_STR:
 			constpt = GCVALUE(u16, &vars[i]);
 			read(name, constpt, 2);
 			size = *(u16*)(&name[0]);
 			read(name, constpt, size);
-			printf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%d), value=%s\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, name);
+			printf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%ld), value=%s\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, name);
 			break;
 		case VAR_CLOSURE:
-			printf("VAR_CLOSURE: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
+			printf("VAR_CLOSURE: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
 			break;
 		case VAR_NULL:
-			printf("VAR_NULL: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
+			printf("VAR_NULL: size=%d, address=%d(m+%ld)\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory);
 			break;
 		default:
-			printf("UNKNOWN_TYPE: size=%d, address=%d(m+%d)\n",vars[i]->size, vars[i], (u08*)vars[i] - memory);
+			printf("UNKNOWN_TYPE: size=%d, address=%d(m+%ld)\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory);
 			break;
 		}
 	}

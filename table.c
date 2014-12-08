@@ -27,6 +27,7 @@ u32 getHash(vmregister* val)
 
 	case VAR_NUMBER:
 	case VAR_FLOAT:
+    case VAR_NATIVE_FUNC:
 		return val->numval;
 
 	case VAR_STRING:
