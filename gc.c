@@ -148,7 +148,7 @@ void gcDump(readBytes read)
 		switch(vars[i]->type)
 		{
 		case VAR_BOOLEAN:
-			printf("VAR_BOOLEAN: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u08, &vars[i]));
+			printf("VAR_BOOLEAN: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (int)((u08*)vars[i] - memory), GCVALUE(u08, &vars[i]));
 			break;
 		case VAR_NUMBER:
 			printf("VAR_NUMBER: size=%d, address=%d(m+%d), value=%d\n",vars[i]->size, vars[i], (u08*)vars[i] - memory, GCVALUE(u32, &vars[i]));

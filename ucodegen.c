@@ -796,3 +796,4 @@ void dump(Function* f, writeBytes callback) {
 	//dump top level function
 	dumpFunction(f, callback);
 }
+

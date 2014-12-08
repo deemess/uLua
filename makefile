@@ -1,7 +1,7 @@
 # c compiler and linker options
 CC=gcc
 CFLAGS=-g -c -Wall
-LDFLAGS=
+LDFLAGS=-lm
 
 # lemon parse generator
 LEMON_SRC=lemon.c

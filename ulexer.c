@@ -104,7 +104,7 @@ BOOL check_next (LexState *ls, u08 c1, u08 c2) {
 	return TRUE;
 }
 
-u16 skip_sep(LexState* ls) {
+s16 skip_sep(LexState* ls) {
 	u08 count = 0;
 	u08 c = ls->current;
 	save_and_next(ls);
@@ -233,7 +233,8 @@ void read_string (LexState *ls, int del, Token *t) {
 }
 
 u16 llex(LexState* ls, Token* t) {
-	u16 c,sep ;
+	u16 c;
+	s16 sep;
 	u08 i;
 
 	ls->buff.bempty = TRUE;

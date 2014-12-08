@@ -16,3 +16,4 @@ void nativeInit(vm* vm);
 void nativeCall(vm* vm, readBytes read, u08 a, u16 b, u16 c);
 
 #endif
+
