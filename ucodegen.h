@@ -87,7 +87,7 @@ Register* getVarRegister(Function* f, Constant* var); //get register for var nam
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
 Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result
-Instruction*  doReturn(Function* f); //generate return instruction
+Instruction* doReturn(Function* f); //generate return instruction
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal); //set statement (a = b). return last instruction
 Instruction* statTHEN(Function* f, Register* a, Instruction* block); // make then block if register a is true else skip it
 Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block); //make else block
