@@ -1,6 +1,6 @@
 # c compiler and linker options
 CC=gcc
-CFLAGS=-c -Wall
+CFLAGS=-g -c -Wall
 LDFLAGS=
 
 # lemon parse generator
