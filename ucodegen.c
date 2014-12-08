@@ -561,12 +561,10 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 		return NULL;
 	}
 	//count instructions to skip
-	if(block != NULL) { 
-		tmp = block;
-		while(tmp->next != NULL) {
-			count++; 
-			tmp = tmp->next;
-		}
+	tmp = block;
+	while(tmp->next != NULL) {
+		count++; 
+		tmp = tmp->next;
 	}
 	i->i.unpacked.bx.bx = count+1;
 
