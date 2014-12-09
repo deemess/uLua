@@ -535,6 +535,34 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	return r;
 }
 
+Register* doNil(Function* f) { //allocate register and load nil in it
+	Register* res;
+	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+
+	res = getFreeRegister(f);
+	i->i.unpacked.opc = OP_LOADNIL;
+	i->i.unpacked.a = res->num; //from register
+	i->i.unpacked.bx.l.b = res->num; //to register
+	i->i.unpacked.bx.l.c = 0; //nothing
+	pushInstruction(f, i);
+	res->isload = TRUE;
+	return res;
+}
+
+Register* doBoolean(Function* f, Token* t) { //allocate register and load bool value in it
+	Register* res;
+	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+
+	res = getFreeRegister(f);
+	i->i.unpacked.opc = OP_LOADBOOL;
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = t->token == TK_TRUE ? 1 : 0; //boolean value
+	i->i.unpacked.bx.l.c = 0; //do not skip next instruction
+	pushInstruction(f, i);
+	res->isload = TRUE;
+	return res;
+}
+
 Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	Instruction* i;
 	Instruction* tmp;

@@ -185,7 +185,13 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     NOT HASH .
 %right     POW .
 
-exp        ::= NIL|TRUE|FALSE|DOTS .
+exp(A)        ::= NIL . {
+	A = doNil(f);
+}
+exp(A)        ::= TRUE(B)|FALSE . {
+	A = doBoolean(f, &B);
+}
+exp        ::= DOTS .
 exp(A)        ::= NUMBER(B) . {
 	Constant* c;
 	Register* r;
