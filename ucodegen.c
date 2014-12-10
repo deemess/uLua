@@ -232,7 +232,7 @@ Instruction* addInstruction(Function* f, Instruction* i, Instruction* after) {
 	return after;
 }
 
-Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
+Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Instruction* before) {
 	Instruction* i = NULL;
 	Constant* c;
 
@@ -243,7 +243,11 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				i->i.unpacked.opc = OP_LOADK;
 				i->i.unpacked.a = ta->num;
 				i->i.unpacked.bx.bx = a->constnum;
-				pushInstruction(f,i);
+				if(before != NULL) {
+					insertInstruction(f,i,before);
+				} else {
+					pushInstruction(f,i);
+				}
 				ta->isload = TRUE;
 			} else {//just copy constant
 				if(ta->num != a->num) {
@@ -261,7 +265,11 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 				i->i.unpacked.opc = OP_GETGLOBAL;
 				i->i.unpacked.bx.bx = c->num;
 				i->i.unpacked.a = ta->num;
-				pushInstruction(f, i);
+				if(before != NULL) {
+					insertInstruction(f,i,before);
+				} else {
+					pushInstruction(f,i);
+				}
 				ta->varnum = a->varnum;
 				ta->isload = TRUE;
 			} else {//uninitialized local variable - error
@@ -274,7 +282,11 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK) {
 			i->i.unpacked.opc = OP_MOVE;
 			i->i.unpacked.a = ta->num;
 			i->i.unpacked.bx.l.b = a->num;
-			pushInstruction(f, i);
+			if(before != NULL) {
+				insertInstruction(f,i,before);
+			} else {
+				pushInstruction(f,i);
+			}
 			ta->isload = TRUE;
 		}
 	}
@@ -390,8 +402,8 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
 	Instruction* i;
 
-	checkLoad(f, a, a, TRUE);
-	checkLoad(f, b, b, TRUE);
+	checkLoad(f, a, a, TRUE, NULL);
+	checkLoad(f, b, b, TRUE, NULL);
 	res = getFreeRegister(f);
 	
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -431,8 +443,8 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	res = getFreeRegister(f);
 	
-	checkLoad(f, a, a, TRUE);
-	checkLoad(f, b, b, TRUE);
+	checkLoad(f, a, a, TRUE, NULL);
+	checkLoad(f, b, b, TRUE, NULL);
 
 	//generate skip next instruction if true
 	i->i.unpacked.a = 1; //do not skip next instruction if comparison valid
@@ -493,10 +505,11 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	Register* r;
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	
-	checkLoad(f, a, a, FALSE);
-	checkLoad(f, b, b, FALSE);
+	checkLoad(f, a, a, FALSE, NULL);
+	checkLoad(f, b, b, FALSE, NULL);
 
-	r = a->islocal ? getFreeRegister(f) : a;
+	//r = a->islocal ? getFreeRegister(f) : a;
+	r = getFreeRegister(f);
 
 	i->i.unpacked.a = r->num;
 	i->i.unpacked.bx.l.b = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
@@ -525,6 +538,7 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	pushInstruction(f,i);
 
 	tryFreeRegister(b);
+	tryFreeRegister(a);
 	r->consthold = FALSE;
 	r->constpreloaded = FALSE;
 	r->constnum = 0;
@@ -563,11 +577,17 @@ Register* doBoolean(Function* f, Token* t) { //allocate register and load bool v
 	return res;
 }
 
+Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make while block
+	return block;
+}
+
 Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	Instruction* i;
 	Instruction* tmp;
 	Instruction* first;
 	u16 count = 1;
+
+	checkLoad(f, a, a, TRUE, block);
 
 	//make register test and skip THEN block if false
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -700,11 +720,11 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 	Constant* c;
 
 	if(islocal) { //local variable - just load
-		i = checkLoad(f, b, a, TRUE);
+		i = checkLoad(f, b, a, TRUE, NULL);
 		a->islocal = TRUE;
 		tryFreeRegister(b);
 	} else {//global variable
-		checkLoad(f, b, b, TRUE);
+		checkLoad(f, b, b, TRUE, NULL);
 		i = (Instruction*)malloc(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
@@ -734,10 +754,10 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	tb = &f->reg[ta->num + 1];
 
 	//FUNCTION A reg
-	checkLoad(f,a,ta,TRUE);
+	checkLoad(f,a,ta,TRUE, NULL);
 
 	//ARGUMENTS B reg
-	checkLoad(f,b,tb,TRUE);
+	checkLoad(f,b,tb,TRUE, NULL);
 
 	i->i.unpacked.opc = OP_CALL;
 	i->i.unpacked.a = ta->num;

@@ -91,7 +91,10 @@ statlist(A) ::= statlist(B) stat(C) semi . {
 }
 
 stat ::= DO block END .
-stat ::= WHILE exp DO block END .
+stat(A) ::= WHILE exp(B) DO block(C) END . {
+	A = statWHILE(f, B, C);
+	DPRINTF("P_STAT_IF\n");
+}
 stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
 stat(A) ::= IF conds(B) END . {
