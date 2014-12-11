@@ -5,7 +5,7 @@
 
 #define CODE_BUFFER_SIZE 64*1024
 
-static u08 code[CODE_BUFFER_SIZE];
+static lu08 code[CODE_BUFFER_SIZE];
 
 void printToken(Token* t) {
 	int i;
@@ -79,8 +79,8 @@ void printToken(Token* t) {
 	printf("\n");
 }
 
-void printSString(SString* s, u08* c) {
-	u08 i;
+void printSString(SString* s, lu08* c) {
+	lu08 i;
 
 	if(!s->bempty) {// print token
 		for(i=0; i<s->bplen; i++) {
@@ -89,7 +89,7 @@ void printSString(SString* s, u08* c) {
 	}
 }
 
-void printConst(Function *f, u08 num) {
+void printConst(Function *f, lu08 num) {
 		Constant* c = f->consts;
 		while(c->next != NULL && c->num != num) {
 			c = c->next;
@@ -103,7 +103,7 @@ void printConst(Function *f, u08 num) {
 		}
 }
 
-void printRK(Function *f, u08 reg) {
+void printRK(Function *f, lu08 reg) {
 	if(reg<CG_REG_COUNT) {
 		printf("%d\t", reg);
 	} else {
@@ -335,7 +335,7 @@ void printFunction(Function *f) {
 
 FILE* ofile;
 
-void writeToFile(u08* buff, u16 size) {
+void writeToFile(lu08* buff, lu16 size) {
 	fwrite(buff, 1, size, ofile);
 }
 
@@ -344,7 +344,7 @@ int main(int argc, char **argv) {
 	//local variable
 	//int i;
 	FILE* file;
-	u16 codelen;
+	lu16 codelen;
 	LexState ls;
 	Function top;
 	void *parser;
@@ -363,7 +363,7 @@ int main(int argc, char **argv) {
 		code[i]=0;
 
 	file = fopen(argv[1], "r");
-	codelen = (u32)fread(code, 1, CODE_BUFFER_SIZE, file);
+	codelen = (lu32)fread(code, 1, CODE_BUFFER_SIZE, file);
 	code[codelen] = 0;
 	fclose(file);
 
@@ -371,10 +371,10 @@ int main(int argc, char **argv) {
 	parser = ParseAlloc (malloc); 
 
 	//init Lexer
-	setInput(&ls, (u08*)code);
+	setInput(&ls, (lu08*)code);
 
 	//init top level function
-	initFunction(&top, (u08*)code);
+	initFunction(&top, (lu08*)code);
 
 	//parse source code
 	next(&ls);

@@ -1,7 +1,7 @@
 #include "ucodegen.h"
 
-void initFunction(Function* f, u08* code) {
-	u08 i;
+void initFunction(Function* f, lu08* code) {
+	lu08 i;
 
 	f->code = code;
 	f->consts = NULL;
@@ -62,7 +62,7 @@ void freeFunction(Function* f) {
 }
 
 BOOL constEqueals(Function* f, Constant* a, Constant* b) {
-	u08 i;
+	lu08 i;
 	if(a->type == b->type) {
 		if(a->type == NUMBER_TYPE) {
 			if(a->val_number == b->val_number)
@@ -153,7 +153,7 @@ Constant* pushVarName(Function* f, SString* str) {
 	return c;
 }
 
-Constant* getVarByNum(Function* f, u08 num) {
+Constant* getVarByNum(Function* f, lu08 num) {
 	Constant* v = f->vars;
 	while(v != NULL && v->num != num) {
 		v = v->next;
@@ -345,7 +345,7 @@ Constant* pushConstNumber(Function* f, float number) {
 }
 
 Register* getFreeRegister(Function* f) {
-	u08 i;
+	lu08 i;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		if(f->reg[i].isfree) {
 			f->reg[i].isfree = FALSE;
@@ -356,9 +356,9 @@ Register* getFreeRegister(Function* f) {
 	return NULL;
 }
 
-Register* getFreeRegisters(Function* f, u08 count) {
-	u08 i;
-	u08 j;
+Register* getFreeRegisters(Function* f, lu08 count) {
+	lu08 i;
+	lu08 j;
 	BOOL found;
 
 	for(i=0; i<CG_REG_COUNT; i++) {
@@ -383,7 +383,7 @@ Register* getFreeRegisters(Function* f, u08 count) {
 }
 
 Register* getVarRegister(Function* f, Constant* var) {
-	u08 i;
+	lu08 i;
 	Register* r;
 
 	for(i=0; i<CG_REG_COUNT; i++){
@@ -585,7 +585,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	Instruction* i;
 	Instruction* tmp;
 	Instruction* first;
-	u16 count = 1;
+	lu16 count = 1;
 
 	checkLoad(f, a, a, TRUE, block);
 
@@ -631,8 +631,8 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 	Instruction* tmp;
 	Instruction* first;
 	Instruction* jmp;
-	u16 count = 1;
-	u16 countprejump = 0;
+	lu16 count = 1;
+	lu16 countprejump = 0;
 
 	first = condlist;
 	//find last instruction in condlist and make jump over "else" block
@@ -675,8 +675,8 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 	Instruction* tmp;
 	Instruction* first;
 	Instruction* jmp;
-	u16 count = 0;
-	u16 countprejump = 0;
+	lu16 count = 0;
+	lu16 countprejump = 0;
 
 	first = condlist;
 	//find last instruction in condlist and make jump over "else" block
@@ -784,22 +784,22 @@ Instruction*  doReturn(Function* f)  {
 
 
 void dumpFunction(Function* f, writeBytes write) {
-	u08 buff[6];
+	lu08 buff[6];
 	Instruction *i;
 	Constant* c;
 	Function* fp;
-	u08 j;
+	lu08 j;
 
 	//dump instructions
-	((u16*)buff)[0] = f->instrSize; write(buff, 2);
+	((lu16*)buff)[0] = f->instrSize; write(buff, 2);
 	i = f->instr;
 	while(i != NULL) {
-		((u32*)buff)[0] = i->i.packed; write(buff, 4);
+		((lu32*)buff)[0] = i->i.packed; write(buff, 4);
 		i = i->next;
 	}
 
 	//dump constants
-	((u16*)buff)[0] = f->constsSize; write(buff, 2);
+	((lu16*)buff)[0] = f->constsSize; write(buff, 2);
 	c = f->consts;
 	while(c != NULL) {
 		buff[0] = c->type; write(buff, 1); //const type
@@ -808,7 +808,7 @@ void dumpFunction(Function* f, writeBytes write) {
 				((float*)buff)[0] = c->val_number ; write(buff, sizeof(float));
 				break;
 			case STRING_TYPE: //string
-				((u16*)buff)[0] = c->val_string.bplen + 1; write(buff, 2); //string len
+				((lu16*)buff)[0] = c->val_string.bplen + 1; write(buff, 2); //string len
 				for(j=0; j < c->val_string.bplen; j++) {
 					buff[0] = f->code[c->val_string.bp+j]; write(buff, 1); //string char
 				}
@@ -819,7 +819,7 @@ void dumpFunction(Function* f, writeBytes write) {
 	}
 
 	//dump functions
-	((u16*)buff)[0] = f->subfuncsSize; write(buff, 2);
+	((lu16*)buff)[0] = f->subfuncsSize; write(buff, 2);
 	fp = f->subfuncs;
 	while(fp != NULL) {
 		dumpFunction(fp, write);
@@ -828,7 +828,7 @@ void dumpFunction(Function* f, writeBytes write) {
 }
 
 void dump(Function* f, writeBytes callback) {
-	u08 buff[6];
+	lu08 buff[6];
 
 	//write header
 	buff[0] = 0x1B; //"Lua"

@@ -12,8 +12,8 @@
 
 #define CODE_BUFFER_SIZE 64*1024
 
-static u08 code[CODE_BUFFER_SIZE];
-static u08 bdump[CODE_BUFFER_SIZE];
+static lu08 code[CODE_BUFFER_SIZE];
+static lu08 bdump[CODE_BUFFER_SIZE];
 
 void printToken(Token* t) {
 	int i;
@@ -87,8 +87,8 @@ void printToken(Token* t) {
 	printf("\n");
 }
 
-void printSString(SString* s, u08* c) {
-	u08 i;
+void printSString(SString* s, lu08* c) {
+	lu08 i;
 
 	if(!s->bempty) {// print token
 		for(i=0; i<s->bplen; i++) {
@@ -97,7 +97,7 @@ void printSString(SString* s, u08* c) {
 	}
 }
 
-void printConst(Function *f, u08 num) {
+void printConst(Function *f, lu08 num) {
 		Constant* c = f->consts;
 		while(c->next != NULL && c->num != num) {
 			c = c->next;
@@ -111,7 +111,7 @@ void printConst(Function *f, u08 num) {
 		}
 }
 
-void printRK(Function *f, u08 reg) {
+void printRK(Function *f, lu08 reg) {
 	if(reg<CG_REG_COUNT) {
 		printf("%d\t", reg);
 	} else {
@@ -342,7 +342,7 @@ void printFunction(Function *f) {
 }
 
 
-static int getLine (char *prmpt, u08 *buff, int sz) {
+static int getLine (char *prmpt, lu08 *buff, int sz) {
     int ch, extra;
 
     // Get line with buffer overrun protection.
@@ -367,17 +367,17 @@ static int getLine (char *prmpt, u08 *buff, int sz) {
     return GETLINE_OK;
 }
 
-u16 dp = 0;
-void writeBytecode(u08* buff, u16 size) {
-	u16 i;
+lu16 dp = 0;
+void writeBytecode(lu08* buff, lu16 size) {
+	lu16 i;
 	for(i=0; i<size; i++) {
 		bdump[dp + i] = buff[i];
 	}
 	dp += size;
 }
 
-void readBytecode(u08* buff, u16 offset, u16 size) {
-	u16 i;
+void readBytecode(lu08* buff, lu16 offset, lu16 size) {
+	lu16 i;
 	for(i=0; i<size; i++) {
 		buff[i] = bdump[offset+i];
 	}
@@ -388,7 +388,7 @@ int main(int argc, char **argv) {
 	Function top;
 	vm thread;
 	void *parser;
-	u32 i;
+	lu32 i;
 
 	//clear buffers
 	for(i=0; i<CODE_BUFFER_SIZE; i++) {
@@ -409,9 +409,9 @@ int main(int argc, char **argv) {
 		//init Parser
 		parser = ParseAlloc (malloc); 
 		//init top level function
-		initFunction(&top, (u08*)code);
+		initFunction(&top, (lu08*)code);
         //init Lexer
-        setInput(&ls, (u08*)code);
+        setInput(&ls, (lu08*)code);
         //parse code
 		next(&ls);
 		while(ls.t.token != TK_EOS) {

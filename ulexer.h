@@ -45,42 +45,42 @@
 
 
 typedef struct {
-	u16 type;
-	u08 keyword[10];
+	lu16 type;
+	lu08 keyword[10];
 } reserved;
 
 
 typedef struct SString { //String structure - store only pointer to existing stream position and string lengh. Used to save RAM.
-	u08 bempty; //boolean if buff is emtry and not saved
-	u16 bp; //pointer in stream for buff
-	u16 bplen; //buff len
+	lu08 bempty; //boolean if buff is emtry and not saved
+	lu16 bp; //pointer in stream for buff
+	lu16 bplen; //buff len
 } SString;
 
 typedef struct Token {
-	u16 token;
+	lu16 token;
 	SString semInfo;
 	union {
-		u32 nvalue;
+		lu32 nvalue;
 		float fvalue;
 	} number;
 } Token;
 
 typedef struct LexState {
-	u08 current;
-	u08 linenumber;
-	u08 lastline;
+	lu08 current;
+	lu08 linenumber;
+	lu08 lastline;
 	Token t;
 	Token lookahead;
-	u08 decpoint;
-	u08* z; //input stream
-	u16 zp; //current pointer in z input stream
+	lu08 decpoint;
+	lu08* z; //input stream
+	lu16 zp; //current pointer in z input stream
 	SString buff;
 } LexState;
 
 //lexer function export
-u16 llex(LexState* ls, Token* t);
+lu16 llex(LexState* ls, Token* t);
 void next(LexState* ls);
-void setInput(LexState* ls, u08* stream);
+void setInput(LexState* ls, lu08* stream);
 ERROR_CODE getLastULexError();
 
 #endif

@@ -19,9 +19,9 @@
 
 void printRegister(readBytes read, vmregister reg)
 {
-	u16 constpt;
-	u16 size;
-	u08 name[32];
+	lu16 constpt;
+	lu16 size;
+	lu08 name[32];
 	switch(reg.type)
 	{
 		case VAR_NATIVE_FUNC:
@@ -55,7 +55,7 @@ void printRegister(readBytes read, vmregister reg)
 		case VAR_FILE_POINTER_STR:
 			constpt = reg.numval;
 			read(name, constpt, 2); constpt += 2;
-			size = *(u16*)(&name[0]);
+			size = *(lu16*)(&name[0]);
 			read(name, constpt, size);
 			printf("%s\t", name);
 			break;
@@ -67,9 +67,9 @@ void printRegister(readBytes read, vmregister reg)
 }
 
 //native print(..) function
-void nativePrint(vm* vm, readBytes read, u08 a, u16 b, u16 c)
+void nativePrint(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
 {
-	u08 i=0;
+	lu08 i=0;
 	//print all variables
 	for(i=0; i<b-1; i++)
 	{
@@ -88,9 +88,9 @@ void nativePrint(vm* vm, readBytes read, u08 a, u16 b, u16 c)
 
 
 //Find  free global variable .Return global index
-u08 getFreeGlobal(vm* vm)
+lu08 getFreeGlobal(vm* vm)
 {
-	u08 foundGlobal = 0;
+	lu08 foundGlobal = 0;
 	for(foundGlobal=0; foundGlobal<GLOBALSIZE; foundGlobal++)
 	{
 		if(vm->global[foundGlobal].val.type == VAR_NULL) //find free global
@@ -100,10 +100,10 @@ u08 getFreeGlobal(vm* vm)
 	return foundGlobal;
 }
 
-void putNative(vm* v, u08* name, nativeFunc func)
+void putNative(vm* v, lu08* name, nativeFunc func)
 {
 	int i=0;
-	u08 freeIndex = getFreeGlobal(v);
+	lu08 freeIndex = getFreeGlobal(v);
 	//set global
 	v->global[freeIndex].val.type = VAR_NATIVE_FUNC;
 	v->global[freeIndex].val.pointer = (void*)(func);
@@ -120,11 +120,11 @@ void putNative(vm* v, u08* name, nativeFunc func)
 void nativeInit(vm* vm)
 {
 	//add native "print" function
-	putNative(vm, (u08*)"print", &nativePrint);
+	putNative(vm, (lu08*)"print", &nativePrint);
 }
 
 //call native function stored in reg
-void nativeCall(vm* vm, readBytes read, u08 a, u16 b, u16 c)
+void nativeCall(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
 {
 	nativeFunc func = (nativeFunc)vm->state[vm->statept].reg[a].pointer;
 	func(vm, read, a, b, c);

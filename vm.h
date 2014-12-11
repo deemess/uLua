@@ -10,7 +10,7 @@
 
 //exported functions
 void vmInit(vm* vm);
-u08 vmRun(vm* vm, readBytes read);
+lu08 vmRun(vm* vm, readBytes read);
 
 
 #endif

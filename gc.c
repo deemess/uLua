@@ -1,14 +1,14 @@
 #include "gc.h"
 
 //global variables for gc
-u08 memory[GC_SIZE]; //gc heap
+lu08 memory[GC_SIZE]; //gc heap
 gcvarpt vars[GC_VAR_PT_SIZE];//gc pointers to the heap
-u08 freePt;//free pointer in vars[]
+lu08 freePt;//free pointer in vars[]
 
 //initialize garbage collector and memory management
 void gcInit()
 {
-	u16 i=0;
+	lu16 i=0;
 	for(i=0; i<GC_SIZE;i++)
 	{
 		memory[i] = 0;
@@ -19,7 +19,7 @@ void gcInit()
 //create new variable and return its number
 gcvarpt* gcNew(vartype type)
 {
-	u16 size=0;
+	lu16 size=0;
 	//init size for new type
 	switch(type)
 	{
@@ -39,7 +39,7 @@ gcvarpt* gcNew(vartype type)
 		//u16			funcp; //pointer to function
 		//u08			upvalcount; //count of upvalues
 		//vmregister	upval[UPVALUESIZE]; //upvals from GC
-		size = (u16)(sizeof(vmclosure));
+		size = (lu16)(sizeof(vmclosure));
 		break;
 	case VAR_FILE_POINTER_STR:
 		size = 4;//u32 - point to some address in the source byte code
@@ -54,10 +54,10 @@ gcvarpt* gcNew(vartype type)
 }
 
 //create new variable with given size and return its number
-gcvarpt* gcNewVar(vartype type, u16 size)
+gcvarpt* gcNewVar(vartype type, lu16 size)
 {
-	u16 i=0;
-	u16 foundFreePt = 0;
+	lu16 i=0;
+	lu16 foundFreePt = 0;
 	//allocate memory for a new variable
 	gcvar* newvar = (gcvar*)(&memory[freePt]);
 	newvar->type = type;
@@ -88,11 +88,11 @@ gcvarpt* gcNewVar(vartype type, u16 size)
 //delete variable
 void gcDelete(gcvarpt* variable)
 {
-	u16 i;
+	lu16 i;
 	//get variable number
-	u08 varNum = variable - &vars[0];
-	u08 varMemoryAddr = (u08*)(*variable) - &memory[0];
-	u08 varSize = (*variable)->size + 2; // + type + size
+	lu08 varNum = variable - &vars[0];
+	lu08 varMemoryAddr = (lu08*)(*variable) - &memory[0];
+	lu08 varSize = (*variable)->size + 2; // + type + size
 
 	//copy all vars to the left in the array
 	/*for(u08 i=freeVarPt-varNum; i++; i<freeVarPt)
@@ -121,9 +121,9 @@ void gcDelete(gcvarpt* variable)
 	{
 		if(vars[i] == NULL)
 			continue;
-		if((u08*)vars[i] - &memory[0] > varMemoryAddr)
+		if((lu08*)vars[i] - &memory[0] > varMemoryAddr)
 		{
-			vars[i] = (gcvarpt)( ((u08*)vars[i]) - varSize );
+			vars[i] = (gcvarpt)( ((lu08*)vars[i]) - varSize );
 		}
 	}
 
@@ -135,10 +135,10 @@ void gcDelete(gcvarpt* variable)
 //dump gc memory
 void gcDump(readBytes read)
 {
-	u16 constpt;
-	u16 size;
-	u08 name[32];
-	u16 i=0;
+	lu16 constpt;
+	lu16 size;
+	lu08 name[32];
+	lu16 i=0;
 
 	printf("Dumping memory: size=%d, address=%d\n", GC_SIZE, (int)&memory);
 	for(i=0; i<GC_VAR_PT_SIZE; i++)
@@ -148,32 +148,32 @@ void gcDump(readBytes read)
 		switch(vars[i]->type)
 		{
 		case VAR_BOOLEAN:
-			printf("VAR_BOOLEAN: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, (int)GCVALUE(u08, &vars[i]));
+			printf("VAR_BOOLEAN: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory, (int)GCVALUE(lu08, &vars[i]));
 			break;
 		case VAR_NUMBER:
-			printf("VAR_NUMBER: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, GCVALUE(u32, &vars[i]));
+			printf("VAR_NUMBER: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory, GCVALUE(lu32, &vars[i]));
 			break;
 		case VAR_FLOAT:
-			printf("VAR_FLOAT: size=%d, address=%d(m+%ld), value=%f\n",vars[i]->size, (int)vars[i],  (u08*)vars[i] - memory, GCVALUE(float, &vars[i]));
+			printf("VAR_FLOAT: size=%d, address=%d(m+%ld), value=%f\n",vars[i]->size, (int)vars[i],  (lu08*)vars[i] - memory, GCVALUE(float, &vars[i]));
 			break;
 		case VAR_STRING:
-			printf("VAR_STRING: size=%d, address=%d(m+%ld), value=%s\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, vars[i]->data);
+			printf("VAR_STRING: size=%d, address=%d(m+%ld), value=%s\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory, vars[i]->data);
 			break;
 		case VAR_FILE_POINTER_STR:
-			constpt = GCVALUE(u16, &vars[i]);
+			constpt = GCVALUE(lu16, &vars[i]);
 			read(name, constpt, 2);
-			size = *(u16*)(&name[0]);
+			size = *(lu16*)(&name[0]);
 			read(name, constpt, size);
-			printf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%ld), value=%s\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, name);
+			printf("VAR_FILE_POINTER_STR: size=%d, address=%d(m+%ld), value=%s\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory, name);
 			break;
 		case VAR_CLOSURE:
-			printf("VAR_CLOSURE: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory, GCVALUE(u16, &vars[i]));
+			printf("VAR_CLOSURE: size=%d, address=%d(m+%ld), value=%d\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory, GCVALUE(lu16, &vars[i]));
 			break;
 		case VAR_NULL:
-			printf("VAR_NULL: size=%d, address=%d(m+%ld)\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory);
+			printf("VAR_NULL: size=%d, address=%d(m+%ld)\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory);
 			break;
 		default:
-			printf("UNKNOWN_TYPE: size=%d, address=%d(m+%ld)\n",vars[i]->size, (int)vars[i], (u08*)vars[i] - memory);
+			printf("UNKNOWN_TYPE: size=%d, address=%d(m+%ld)\n",vars[i]->size, (int)vars[i], (lu08*)vars[i] - memory);
 			break;
 		}
 	}

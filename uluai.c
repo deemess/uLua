@@ -14,26 +14,26 @@ void testGC()
 	num2 = gcNew(VAR_BOOLEAN);
 	num3 = gcNew(VAR_FLOAT);
 
-	GCVALUE(s32,num1) = 10;
-	GCVALUE(u08,num2) = TRUE;
+	GCVALUE(ls32,num1) = 10;
+	GCVALUE(lu08,num2) = TRUE;
 	GCVALUE(float,num3) = 1.5f;
-	GCVALUE(u08,num2) = FALSE;
+	GCVALUE(lu08,num2) = FALSE;
 
 	gcDelete(num2);
 
 	num4 = gcNew(VAR_FLOAT);
 	GCVALUE(float,num4) = 9.99f;
 
-	if(GCVALUE(s32,num1) != 10 || GCVALUE(float,num3) != 1.5f || GCVALUE(float,num4) != 9.99f)
+	if(GCVALUE(ls32,num1) != 10 || GCVALUE(float,num3) != 1.5f || GCVALUE(float,num4) != 9.99f)
 	{
 		printf("GC test failed!");
 	}
 	//gcDump();
 }
 
-u08 buffer[64*1024];
-void readBytecode(u08* buff, u16 offset, u16 size) {
-	u16 i;
+lu08 buffer[64*1024];
+void readBytecode(lu08* buff, lu16 offset, lu16 size) {
+	lu16 i;
 	for(i=0; i<size; i++) {
 		buff[i] = buffer[offset+i];
 	}

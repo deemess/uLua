@@ -43,16 +43,16 @@ ERROR_CODE getLastULexError() {
 	return error;
 }
 
-u08 nextchar(LexState* ls) {
-	u08 c = ls->z[ls->zp++];
+lu08 nextchar(LexState* ls) {
+	lu08 c = ls->z[ls->zp++];
 	ls->current = c;
 	return c;
 }
 
-void setInput(LexState* ls, u08* stream) {
+void setInput(LexState* ls, lu08* stream) {
 	error = E_NONE;
 
-	ls->decpoint = (u08)'.';
+	ls->decpoint = (lu08)'.';
 	ls->lookahead.token = TK_EOS;
 	ls->z = stream;
 	ls->zp = 0;
@@ -69,7 +69,7 @@ BOOL currIsNewline(LexState* ls) {
 }
 
 void inclinenumber(LexState* ls) {
-	u08 old = ls->current;
+	lu08 old = ls->current;
 	nextchar(ls);  // skip '\n' or '\r'
 	if (currIsNewline(ls) && ls->current != old) {
 		nextchar(ls);  // skip '\n\r' or '\r\n'
@@ -78,7 +78,7 @@ void inclinenumber(LexState* ls) {
 }
 
 
-void save(LexState* ls, u08 c) {
+void save(LexState* ls, lu08 c) {
 	if(ls->buff.bempty == TRUE) { //if buff empty - start counting new one
 		ls->buff.bempty = FALSE;
 		ls->buff.bp = ls->zp-1;
@@ -87,12 +87,12 @@ void save(LexState* ls, u08 c) {
 	ls->buff.bplen++;
 }
 
-u08 save_and_next(LexState* ls) {
+lu08 save_and_next(LexState* ls) {
 	save(ls, ls->current);
 	return nextchar(ls);
 }
 
-BOOL check_next (LexState *ls, u08 c1, u08 c2) {
+BOOL check_next (LexState *ls, lu08 c1, lu08 c2) {
 	if(c2 == 0) {
 		if (!ls->current != c1)
 			return FALSE;
@@ -104,9 +104,9 @@ BOOL check_next (LexState *ls, u08 c1, u08 c2) {
 	return TRUE;
 }
 
-s16 skip_sep(LexState* ls) {
-	u08 count = 0;
-	u08 c = ls->current;
+ls16 skip_sep(LexState* ls) {
+	lu08 count = 0;
+	lu08 c = ls->current;
 	save_and_next(ls);
 	while (ls->current == '=') {
 		save_and_next(ls);
@@ -115,7 +115,7 @@ s16 skip_sep(LexState* ls) {
 	return (ls->current == c) ? count : (-count) - 1;
 }
 
-u08 str2f (Token *t, u08 *stream) {
+lu08 str2f (Token *t, lu08 *stream) {
 	char *endptr;
 	t->number.fvalue = (float)strtod((const char*)&stream[t->semInfo.bp], &endptr);
 	if (endptr == (char*)&stream[t->semInfo.bp]) 
@@ -145,13 +145,13 @@ void read_numeral (LexState *ls, Token *t) {
 		lexerror(E_NUMBERFORMAT);
 }
 
-void read_long_string(LexState* ls, Token* t, u16 sep) {
+void read_long_string(LexState* ls, Token* t, lu16 sep) {
 	save_and_next(ls);//  -- skip 2nd '['
 	if(currIsNewline(ls)) { // string starts with a newline?
 		inclinenumber(ls);  // skip it
 	}
 	while(TRUE) {
-		u08 c = ls->current;
+		lu08 c = ls->current;
 		if(c == 0) { //end of stream
 			lexerror(E_LONGSTR);
 		} else if(c == ']') { 
@@ -232,10 +232,10 @@ void read_string (LexState *ls, int del, Token *t) {
 	t->semInfo.bplen = ls->buff.bplen-2;  
 }
 
-u16 llex(LexState* ls, Token* t) {
-	u16 c;
-	s16 sep;
-	u08 i;
+lu16 llex(LexState* ls, Token* t) {
+	lu16 c;
+	ls16 sep;
+	lu08 i;
 
 	ls->buff.bempty = TRUE;
 	ls->buff.bp = 0;
@@ -347,7 +347,7 @@ u16 llex(LexState* ls, Token* t) {
 
 			  //try to match word with reserved keyword
 			  for(i=0; i<21; i++) {
-				  u08 p = 0;
+				  lu08 p = 0;
 				  BOOL matched = FALSE;
 				  while(keywords[i].keyword[p] != 0 && p <10) {
 					  if(keywords[i].keyword[p] == ls->z[ls->buff.bp+p]) {

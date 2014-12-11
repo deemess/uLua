@@ -56,41 +56,41 @@ void vmInit(vm* vm)
 
 //read from bytecode functions
 
-u08 buff[4];
-u08 platformReadByte(readBytes read, u16 offset)
+lu08 buff[4];
+lu08 platformReadByte(readBytes read, lu16 offset)
 {
 	read(buff, offset, 1);
 	return buff[0];
 }
 
-u16 platformReadWord(readBytes read, u16 offset)
+lu16 platformReadWord(readBytes read, lu16 offset)
 {
 	read(buff, offset, 2);
-	return *(u16*)(&buff[0]);
+	return *(lu16*)(&buff[0]);
 }
 
-float platformReadNumber(readBytes read, u16 offset)
+float platformReadNumber(readBytes read, lu16 offset)
 {
 	read(buff, offset, sizeof(float));
 	return  *(float*)(&buff[0]) ;
 }
 
 //Get pointer to sub functions
-u16 getFuncsPt(readBytes read, u16 pt)
+lu16 getFuncsPt(readBytes read, lu16 pt)
 {
-	u08 i=0;
-	u16 csize = platformReadWord(read, pt); pt += 2;
+	lu08 i=0;
+	lu16 csize = platformReadWord(read, pt); pt += 2;
 
 	for(i=0; i<csize; i++)
 	{
-		u08 type = platformReadByte(read, pt++);
+		lu08 type = platformReadByte(read, pt++);
 		if(type == NUMBER_TYPE)
 		{
 			pt += sizeof(float);
 		}
 		else if(type == STRING_TYPE)
 		{
-			u16 strsize = platformReadWord(read, pt); pt += 2;
+			lu16 strsize = platformReadWord(read, pt); pt += 2;
 			pt += strsize;
 		}
 	}
@@ -99,11 +99,11 @@ u16 getFuncsPt(readBytes read, u16 pt)
 
 //skeep function which starts on pt
 //return pointer to the next byte after function
-u16 skeepFunction(readBytes read, u16 pt)
+lu16 skeepFunction(readBytes read, lu16 pt)
 {
-	u08 i=0;
-	u16 codesize;
-	u16 funcsize;
+	lu08 i=0;
+	lu16 codesize;
+	lu16 funcsize;
 
 	//pt += 16; //function header;
 	codesize = platformReadWord(read, pt); pt += 2;
@@ -120,9 +120,9 @@ u16 skeepFunction(readBytes read, u16 pt)
 
 //Get sub function number N
 // pt - pointer to sub functions
-u16 getFuncPt(readBytes read, u16 pt, u16 N)
+lu16 getFuncPt(readBytes read, lu16 pt, lu16 N)
 {
-	u08 i=0;
+	lu08 i=0;
 	//u32 funcsize = platformReadWord(read, pt); 
 	pt += 2;
 	for(i=0; N>i; i++)
@@ -134,15 +134,15 @@ u16 getFuncPt(readBytes read, u16 pt, u16 N)
 }
 
 //Get potinter to constant number
-u16 getConstPt(readBytes read, u16 constspt, u16 N)
+lu16 getConstPt(readBytes read, lu16 constspt, lu16 N)
 {
-	u08 i;
-	u16 strsize;
-	u16 csize = platformReadWord(read, constspt); constspt += 2;
+	lu08 i;
+	lu16 strsize;
+	lu16 csize = platformReadWord(read, constspt); constspt += 2;
 
 	for(i=1; i<csize &&  i<N; i++)
 	{
-		u08 type = platformReadByte(read, constspt++);
+		lu08 type = platformReadByte(read, constspt++);
 		if(type == NUMBER_TYPE)
 		{
 			constspt += sizeof(float);
@@ -157,10 +157,10 @@ u16 getConstPt(readBytes read, u16 constspt, u16 N)
 }
 
 //Find global variable by name .Return global index
-u08 getGlobalByName(vm* vm, u08* name)
+lu08 getGlobalByName(vm* vm, lu08* name)
 {
-	u08 foundGlobal = 0;
-	u08 match;
+	lu08 foundGlobal = 0;
+	lu08 match;
 	int i;
 
 	for(foundGlobal=0; foundGlobal<GLOBALSIZE; foundGlobal++)
@@ -186,7 +186,7 @@ u08 getGlobalByName(vm* vm, u08* name)
 }
 
 //compare values in register a and b. return:  0: a!=b   1: a=b  -1: a>b  -2: a<b 
-s08 compare(vmregister* a, vmregister* b)
+ls08 compare(vmregister* a, vmregister* b)
 {
 	if(a->type != b->type)
 		return 0;
@@ -225,18 +225,18 @@ void clearRegister(vmregister* reg)
 }
 
 
-u08 vmRun(vm* vm, readBytes read)
+lu08 vmRun(vm* vm, readBytes read)
 {
-	u08 a = 0;
-	u08 b = 0;
-	u08 c = 0;
-	s16 sbx = 0;
-	u16 constpt = 0;
-	u08 type;
-	u08 glindex;
-	u08 name[32];
-	u16 codesize;
-	u08 opcode;
+	lu08 a = 0;
+	lu08 b = 0;
+	lu08 c = 0;
+	ls16 sbx = 0;
+	lu16 constpt = 0;
+	lu08 type;
+	lu08 glindex;
+	lu08 name[32];
+	lu16 codesize;
+	lu08 opcode;
 	gcvarpt* gcpointer = NULL;
 	int i;
 
@@ -267,7 +267,7 @@ u08 vmRun(vm* vm, readBytes read)
 		a =		platformReadByte(read, vm->pc+1);
 		b =		platformReadByte(read, vm->pc+2);
 		c =		platformReadByte(read, vm->pc+3);
-		sbx = (s16)((((u16)c)<<8 & 0xFF00) + b);
+		sbx = (ls16)((((lu16)c)<<8 & 0xFF00) + b);
 		//inst = platformReadDWord(vm->pc);
 		//opcode = GET_OPCODE(inst);
 

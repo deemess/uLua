@@ -20,34 +20,34 @@ typedef struct Instruction Instruction;
 typedef struct Constant Constant;
 
 typedef struct Register {
-	u08		num;//register number (0 - CG_REG_COUNT)
+	lu08	num;//register number (0 - CG_REG_COUNT)
 	BOOL	isfree;//is register used or not
 	BOOL	isload;//is register holds any value
 	BOOL	islocal;//is register local variable
-	u08		constnum;//constant number (0 for defauld - no constant)
-	u08		varnum;//if register refer to variable - holds var number in constant pool
+	lu08	constnum;//constant number (0 for defauld - no constant)
+	lu08	varnum;//if register refer to variable - holds var number in constant pool
 	BOOL	consthold;//is register refer to constant
 	BOOL	constpreloaded;//is register refer to constant and load
 } Register;
 
 struct Function {
-	u08*			code;
+	lu08*			code;
 	Register		reg[CG_REG_COUNT];
-	u16				instrSize;
+	lu16			instrSize;
 	Instruction*	instr;
 	Constant*		vars;
 	Constant*		consts;
-	u16				constsSize;
+	lu16			constsSize;
 	Function*		subfuncs;
-	u16				subfuncsSize;
+	lu16			subfuncsSize;
     Function*       next;
 	ERROR_CODE		error_code;
 	BOOL			parsed;
 };
 
 struct Constant {
-	u08			num;
-	u08			type;
+	lu08		num;
+	lu08		type;
 	BOOL		isglobal;
 	SString		val_string;
 	float		val_number;
@@ -57,15 +57,15 @@ struct Constant {
 
 struct Instruction {
 	union i {
-		u32		packed;
+		lu32	packed;
 		struct unpacked {
-			u08		opc;
-			u08		a;
+			lu08	opc;
+			lu08	a;
 			union bx {
-				s16		bx;
+				ls16	bx;
 				struct	l {
-					u08		b;
-					u08		c;
+					lu08	b;
+					lu08	c;
 				} l;
 			} bx;
 		} unpacked;
@@ -74,9 +74,9 @@ struct Instruction {
 	Instruction* prev;
 };
 
-typedef void (*writeBytes)(u08* buff, u16 size);
+typedef void (*writeBytes)(lu08* buff, lu16 size);
 
-void initFunction(Function* f, u08* code);
+void initFunction(Function* f, lu08* code);
 void freeFunction(Function* f); //free all resources used by function and its subfunctions
 void dump(Function* f, writeBytes callback); // make binary dump using given callback function
 Constant* pushConstString(Function* f, SString* str); //save string in constant pool

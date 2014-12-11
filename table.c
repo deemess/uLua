@@ -7,17 +7,17 @@ gcvarpt* tableNew()
 }
 
 //create new table instance
-gcvarpt* tableNewSize(u32 tsize)
+gcvarpt* tableNewSize(lu32 tsize)
 {
-	gcvarpt* table = gcNewVar(VAR_TABLE, sizeof(u32)*tsize*2 + sizeof(u32) + sizeof(u32));
+	gcvarpt* table = gcNewVar(VAR_TABLE, sizeof(lu32)*tsize*2 + sizeof(lu32) + sizeof(lu32));
 	GCVALUE(hashtable,table).count = 0;
 	GCVALUE(hashtable,table).size = tsize;
-	GCVALUE(hashtable,table).keys = (u32*) &((*table)->data[sizeof(u32) + sizeof(u32)]);
-	GCVALUE(hashtable,table).vals = (u32*) &((*table)->data[sizeof(u32) + sizeof(u32)+sizeof(u32)*tsize]);
+	GCVALUE(hashtable,table).keys = (lu32*) &((*table)->data[sizeof(lu32) + sizeof(lu32)]);
+	GCVALUE(hashtable,table).vals = (lu32*) &((*table)->data[sizeof(lu32) + sizeof(lu32)+sizeof(lu32)*tsize]);
 	return table;
 }
 
-u32 getHash(vmregister* val)
+lu32 getHash(vmregister* val)
 {
 	switch(val->type)
 	{
@@ -54,13 +54,13 @@ u32 getHash(vmregister* val)
 //put value into table for a key
 void tablePut(gcvarpt* table, vmregister* key, vmregister* val)
 {
-	u32 i;
+	lu32 i;
 	//get table structure
 	hashtable* tb = (hashtable*)(*table)->data;
 
 	//calculate hash for the key and index
-	u32 hashkey = getHash(key);
-	u32 keyindex = hashkey % tb->size;
+	lu32 hashkey = getHash(key);
+	lu32 keyindex = hashkey % tb->size;
 
 	//find empty slot
 	//TODO: process running out from size

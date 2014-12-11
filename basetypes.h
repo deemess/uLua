@@ -4,33 +4,33 @@
 #include <stdint.h>
 #include "vmconfig.h"
 
-typedef uint8_t u08;
-typedef uint16_t u16;
-typedef uint32_t u32;
+typedef uint8_t lu08;
+typedef uint16_t lu16;
+typedef uint32_t lu32;
 
-typedef int8_t s08;
-typedef int16_t s16;
-typedef int32_t s32;
+typedef int8_t ls08;
+typedef int16_t ls16;
+typedef int32_t ls32;
 
 #ifndef NULL
 #define NULL 0
 #endif
 
-typedef u08 BOOL;
+typedef lu08 BOOL;
 #define TRUE  1
 #define FALSE 0
 
 //callback functions type
-typedef void (*readBytes)(u08* buff, u16 offset, u16 size);
+typedef void (*readBytes)(lu08* buff, lu16 offset, lu16 size);
 
 
 //gc types
 //variable structure
 typedef struct gcvar {
-	u08 refcount;
-	u08 type;
-	u16 size;
-	u08 data[GC_MAX_VAR_SIZE];
+	lu08 refcount;
+	lu08 type;
+	lu16 size;
+	lu08 data[GC_MAX_VAR_SIZE];
 	/*union {
 		u08 boolean;
 		s32 number;
@@ -65,15 +65,15 @@ typedef enum threadstate {
 typedef struct vmregister {
 	vartype type;
 	union {
-		u32   numval;
+		lu32   numval;
 		float floatval;
 		void* pointer;
 	};
 } vmregister;
 
 typedef struct vmclosure {
-	u16			funcp; //pointer to function
-	u08			upvalcount; //count of upvalues
+	lu16		funcp; //pointer to function
+	lu08		upvalcount; //count of upvalues
 	//upvalues registers
 	vmregister	upval[UPVALUESIZE]; //upvals from GC
 } vmclosure;
@@ -86,11 +86,11 @@ typedef struct vmglobal {
 
 typedef struct vmstate {
 	gcvarpt* closure;
-	u16	pc;
-	u16 constp; //pointer to constants for the current function
-	u16 funcp; //pointer to subfunctions in the current function
-	u08 regcount; //count of register used in current funtion
-	u08 retreg; //return register pointer to store function call result
+	lu16	pc;
+	lu16 constp; //pointer to constants for the current function
+	lu16 funcp; //pointer to subfunctions in the current function
+	lu08 regcount; //count of register used in current funtion
+	lu08 retreg; //return register pointer to store function call result
 
 	//registers
 	vmregister reg[REGISTERSIZE];
@@ -107,14 +107,14 @@ typedef struct vm {
 
 	//states (call stack)
 	vmstate	state[STATEMAXCOUNT];
-	u08	statept;
+	lu08	statept;
 
 	//PC means pointer in the file
-	u16 pc; 
+	lu16 pc; 
 
 	//pc call stack
-	u16 pcstack[PCSTACKSIZE];
-	u08 pcstackpt;
+	lu16 pcstack[PCSTACKSIZE];
+	lu08 pcstackpt;
 } vm;
 
 #endif
