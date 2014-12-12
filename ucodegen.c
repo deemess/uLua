@@ -203,6 +203,14 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 		i->next = NULL;
 		i->prev = NULL;
 		f->instrSize++;
+
+		if(f->currentStat == NULL)
+			f->currentStat = i;
+
+#ifdef DEBUGVM
+	printf("push\t");
+	printIntruction(f, i);
+#endif
 		return i;
 	}
 	last = f->instr;
@@ -221,7 +229,6 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 	printf("push\t");
 	printIntruction(f, i);
 #endif
-
 	return i;
 }
 
