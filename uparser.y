@@ -38,7 +38,7 @@
 }
 
 %syntax_error {
-  f->error_code = 1;
+  f->error_code = E_SYNTAX_ERROR;
 }
 
 %stack_overflow {

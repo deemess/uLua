@@ -27,6 +27,9 @@
     <ClCompile Include="..\ucodegen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\udebug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\basetypes.h">
@@ -42,6 +45,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\uparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\llerror.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vmconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\udebug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

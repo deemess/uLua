@@ -79,6 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\udebug.c" />
     <ClCompile Include="..\ulexer.c" />
     <ClCompile Include="..\uluac.c" />
     <ClCompile Include="..\uparser.c" />
@@ -86,10 +87,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\basetypes.h" />
+    <ClInclude Include="..\llerror.h" />
     <ClInclude Include="..\opcodes.h" />
     <ClInclude Include="..\ucodegen.h" />
+    <ClInclude Include="..\udebug.h" />
     <ClInclude Include="..\ulexer.h" />
     <ClInclude Include="..\uparser.h" />
+    <ClInclude Include="..\vmconfig.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\uparser.y" />

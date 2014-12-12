@@ -48,6 +48,9 @@
     <ClInclude Include="..\basetypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\udebug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\gc.c">
@@ -72,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ulua.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\udebug.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

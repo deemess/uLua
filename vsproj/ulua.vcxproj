@@ -81,6 +81,7 @@
     <ClInclude Include="..\opcodes.h" />
     <ClInclude Include="..\table.h" />
     <ClInclude Include="..\ucodegen.h" />
+    <ClInclude Include="..\udebug.h" />
     <ClInclude Include="..\ulexer.h" />
     <ClInclude Include="..\uparser.h" />
     <ClInclude Include="..\vm.h" />
@@ -88,6 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\gc.c" />
+    <ClCompile Include="..\udebug.c" />
     <ClCompile Include="..\ulua.c" />
     <ClCompile Include="..\native.c" />
     <ClCompile Include="..\table.c" />
