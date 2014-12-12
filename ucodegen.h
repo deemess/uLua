@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "vmconfig.h"
 #include "basetypes.h"
 #include "opcodes.h"
 #include "ulexer.h"
@@ -28,6 +29,7 @@ typedef struct Register {
 	lu08	varnum;//if register refer to variable - holds var number in constant pool
 	BOOL	consthold;//is register refer to constant
 	BOOL	constpreloaded;//is register refer to constant and load
+	Instruction* exprStart;
 } Register;
 
 struct Function {
@@ -35,6 +37,7 @@ struct Function {
 	Register		reg[CG_REG_COUNT];
 	lu16			instrSize;
 	Instruction*	instr;
+	Instruction*	currentStat;
 	Constant*		vars;
 	Constant*		consts;
 	lu16			constsSize;

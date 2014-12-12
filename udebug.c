@@ -107,39 +107,7 @@ void printRK(Function *f, lu08 reg) {
 	}
 }
 
-void printFunction(Function *f) {
-	Instruction* i;
-	Constant* c = f->consts;
-	printf("\nConstants:\n");
-	while(c != NULL) {
-		if(c->type == STRING_TYPE) {
-			printf("%d: ", c->num);
-			printSString(&c->val_string, f->code);
-			printf("\n");
-		} else if (c->type == NUMBER_TYPE) {
-			printf("%d: %.0f\n", c->num, c->val_number);
-		} else {
-			printf("%d: unknown type\n", c->num);
-		}
-		c = c->next;
-	}
-	c = f->vars;
-	printf("\nVars:\n");
-	while(c != NULL) {
-		if(c->type == STRING_TYPE) {
-			printf("%d: ", c->num);
-			printSString(&c->val_string, f->code);
-			printf("\n");
-		} else if (c->type == NUMBER_TYPE) {
-			printf("%d: %f\n", c->num, c->val_number);
-		} else {
-			printf("%d: unknown type\n", c->num);
-		}
-		c = c->next;
-	}
-	i = f->instr;
-	printf("\nInstructions:\n");
-	while(i != NULL) {
+void printIntruction(Function *f, Instruction* i) {
 		switch(i->i.unpacked.opc) {
 			case OP_MOVE:/*	A B	R(A) := R(B)					*/
 				printf("OP_MOVE ");
@@ -323,6 +291,42 @@ void printFunction(Function *f) {
 				break;
 		}
 		printf("\n");
+}
+
+void printFunction(Function *f) {
+	Instruction* i;
+	Constant* c = f->consts;
+	printf("\nConstants:\n");
+	while(c != NULL) {
+		if(c->type == STRING_TYPE) {
+			printf("%d: ", c->num);
+			printSString(&c->val_string, f->code);
+			printf("\n");
+		} else if (c->type == NUMBER_TYPE) {
+			printf("%d: %.0f\n", c->num, c->val_number);
+		} else {
+			printf("%d: unknown type\n", c->num);
+		}
+		c = c->next;
+	}
+	c = f->vars;
+	printf("\nVars:\n");
+	while(c != NULL) {
+		if(c->type == STRING_TYPE) {
+			printf("%d: ", c->num);
+			printSString(&c->val_string, f->code);
+			printf("\n");
+		} else if (c->type == NUMBER_TYPE) {
+			printf("%d: %f\n", c->num, c->val_number);
+		} else {
+			printf("%d: unknown type\n", c->num);
+		}
+		c = c->next;
+	}
+	i = f->instr;
+	printf("\nInstructions:\n");
+	while(i != NULL) {
+		printIntruction(f, i);
 		i = i->next;
 	}
 

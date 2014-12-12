@@ -10,6 +10,7 @@
 #include "ucodegen.h"
 
 
+void printIntruction(Function *f, Instruction* i);
 void printFunction(Function *f);
 void printToken(Token* t, lu08* code);
 

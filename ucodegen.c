@@ -1,4 +1,5 @@
 #include "ucodegen.h"
+#include "udebug.h"
 
 void initFunction(Function* f, lu08* code) {
 	lu08 i;
@@ -12,6 +13,7 @@ void initFunction(Function* f, lu08* code) {
     f->next = NULL;
 	f->instr = NULL;
 	f->instrSize = 0;
+	f->currentStat = NULL;
 	f->error_code = E_NONE;
 	f->parsed = FALSE;
 	for(i=0; i<CG_REG_COUNT; i++) {
@@ -23,6 +25,7 @@ void initFunction(Function* f, lu08* code) {
 		f->reg[i].isload = FALSE;
 		f->reg[i].islocal = FALSE;
 		f->reg[i].constpreloaded = FALSE;
+		f->reg[i].exprStart = NULL;
 	}
 }
 
@@ -181,6 +184,14 @@ Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before)
 	before->prev = i;
 	f->instrSize++;
 
+	if(f->currentStat == NULL)
+		f->currentStat = i;
+
+#ifdef DEBUGVM
+	printf("insert\t");
+	printIntruction(f, i);
+#endif
+
 	return before;
 }
 
@@ -202,6 +213,14 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 	i->next = NULL;
 	i->prev = last;
 	f->instrSize++;
+
+	if(f->currentStat == NULL)
+		f->currentStat = i;
+
+#ifdef DEBUGVM
+	printf("push\t");
+	printIntruction(f, i);
+#endif
 
 	return i;
 }
@@ -228,6 +247,14 @@ Instruction* addInstruction(Function* f, Instruction* i, Instruction* after) {
 	}
 
 	f->instrSize++;
+
+	if(f->currentStat == NULL)
+		f->currentStat = i;
+
+#ifdef DEBUGVM
+	printf("add\t");
+	printIntruction(f, i);
+#endif
 
 	return after;
 }
@@ -303,6 +330,7 @@ void freeRegister(Register* r) {
 	r->isload = FALSE;
 	r->islocal = FALSE;
 	r->constpreloaded = FALSE;
+	r->exprStart = NULL;
 }
 
 void tryFreeRegister(Register* r) {
@@ -578,7 +606,59 @@ Register* doBoolean(Function* f, Token* t) { //allocate register and load bool v
 }
 
 Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make while block
-	return block;
+	Instruction* i;
+	Instruction* tmp;
+	Instruction* last;
+	Instruction* result;
+	lu16 count = 0;
+
+	checkLoad(f, a, a, TRUE, block);
+
+	//make register test and skip WHILE block if true
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->i.unpacked.opc = OP_TEST;//load false in result register
+	i->i.unpacked.a = a->num;
+	i->i.unpacked.bx.l.b = 0;
+	i->i.unpacked.bx.l.c = 1; // if false for OR instruction and true for AND instruction
+	insertInstruction(f, i, block);
+
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->i.unpacked.opc = OP_JMP;//skip while block block
+	i->i.unpacked.bx.bx = 1;
+	insertInstruction(f, i, block);
+
+	//check if given block is not null. If NULL - we have a problem in parser
+	if(block == NULL || a->exprStart == NULL) {
+		f->error_code = E_NULL_INSTRUCTION;
+		return NULL;
+	}
+	//count instructions to skip
+	tmp = block;
+	count++;
+	while(tmp->next != NULL) {
+		count++; 
+		tmp = tmp->next;
+	}
+	i->i.unpacked.bx.bx = ++count; // +1 for final jump instruction
+	last = tmp;
+
+	//count expression block
+	tmp = a->exprStart;
+	count++;
+	while(tmp->next != NULL && tmp->next != block) {
+		count++; 
+		tmp = tmp->next;
+	}
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->i.unpacked.opc = OP_JMP;//repeat while iteration from expression start
+	i->i.unpacked.bx.bx = -count; //repeat while block + expressions
+
+	//add 1 jump to the end of the "then" to use it in future to jump over "else" or "elseif"
+	addInstruction(f, i, last);
+
+	result = a->exprStart;
+	tryFreeRegister(a);
+	return result;
 }
 
 Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
@@ -737,7 +817,9 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		b->consthold = FALSE;
 		b->constpreloaded = FALSE;
 		b->constnum = 0;
-		tryFreeRegister(a);
+		//tryFreeRegister(a);
+		freeRegister(a);
+		freeRegister(b);
 		pushInstruction(f,i);
 	}
 	return i;
