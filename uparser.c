@@ -1469,7 +1469,7 @@ static void yy_syntax_error(
 #define TOKEN (yyminor.yy0)
 #line 40 "uparser.y"
 
-  f->error_code = 1;
+  f->error_code = E_SYNTAX_ERROR;
 #line 1474 "uparser.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
