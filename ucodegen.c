@@ -177,7 +177,11 @@ Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before)
 	}
 
 	tmp = before->prev;
-	tmp->next = i;
+    if(tmp != NULL) {
+        tmp->next = i;
+    } else {
+        f->instr = i;
+    }
 	i->prev = tmp;
 	i->next = before;
 	before->prev = i;
@@ -428,6 +432,14 @@ Register* getVarRegister(Function* f, Constant* var) {
 	r->varnum = var->num;
 
 	return r;
+}
+
+void unloadRegisters(Function* f) {//unload/mark registers
+    lu08 i;
+    for(i=0; i<CG_REG_COUNT; i++){
+        if(f->reg[i].varnum > 0) //unload only variable registers
+            f->reg[i].isload = FALSE;
+    }
 }
 
 Register* doLogic(Function* f, Register* a, Register* b, Token* t) {

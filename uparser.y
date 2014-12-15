@@ -62,10 +62,12 @@ semi ::= . {
 block(A) ::= scope statlist(B) . {
     DPRINTF("P_BLOCK_STATLIST\n");
 	A = B;
+    unloadRegisters(f);
 }
 block(A) ::= scope statlist(B) laststat semi . {
     DPRINTF("P_BLOCK_STATLIST_LASTSTAT\n");
 	A = B;
+    unloadRegisters(f);
 }
 ublock ::= block UNTIL exp . {
 	//doReturn(f);

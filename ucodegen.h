@@ -87,6 +87,7 @@ Constant* pushConstNumber(Function* f, float number); //save number in constant 
 Constant* pushVarName(Function* f, SString* str); //save var name in var name pool
 Register* getFreeRegister(Function* f); //get non used register
 Register* getVarRegister(Function* f, Constant* var); //get register for var name
+void unloadRegisters(Function* f);//unload/mark registers
 Register* doMath(Function* f, Register* a, Register* b, Token* t); //make math
 Register* doLogic(Function* f, Register* a, Register* b, Token* t); //make logic
 Register* doCompare(Function* f, Register* a, Register* b, Token* t); //make register comparison. return boolean result
