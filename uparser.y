@@ -48,8 +48,8 @@
 %start_symbol  chunk
 
 chunk ::= block . {
+    DPRINTF("P_CHUNK\n");
 	doReturn(f);
-	DPRINTF("P_CHUNK\n");
 }
 
 semi ::= SEMICOL . {
@@ -60,12 +60,12 @@ semi ::= . {
 }
 
 block(A) ::= scope statlist(B) . {
+    DPRINTF("P_BLOCK_STATLIST\n");
 	A = B;
-	DPRINTF("P_BLOCK_STATLIST\n");
 }
 block(A) ::= scope statlist(B) laststat semi . {
+    DPRINTF("P_BLOCK_STATLIST_LASTSTAT\n");
 	A = B;
-	DPRINTF("P_BLOCK_STATLIST_LASTSTAT\n");
 }
 ublock ::= block UNTIL exp . {
 	//doReturn(f);
@@ -80,66 +80,66 @@ scope ::= scope statlist binding semi. {
 }
 
 statlist(A) ::= . {
+    DPRINTF("P_STATLIST_EMPTY\n");
 	A = NULL;
 	f->currentStat = NULL;
-	DPRINTF("P_STATLIST_EMPTY\n");
 }
 statlist(A) ::= statlist(B) stat semi . {
-	if(B == NULL) { 
+    DPRINTF("P_STATLIST_ADD_STAT\n");
+	if(B == NULL) {
 		A = f->currentStat; //save only pointer to first statement
 	} else {
 		A = B;
 	}
 	f->currentStat = NULL;
-	DPRINTF("P_STATLIST_ADD_STAT\n");
 }
 
 stat(A) ::= DO block(B) END . {
+    DPRINTF("P_STAT_BLOCK\n");
 	A = B;
-	DPRINTF("P_STAT_BLOCK\n");
 }
 stat(A) ::= WHILE exp(B) DO block(C) END . {
+    DPRINTF("P_STAT_WHILE\n");
 	A = statWHILE(f, B, C);
-	DPRINTF("P_STAT_WHILE\n");
 }
 stat ::= repetition DO block END .
 stat ::= REPEAT ublock .
 stat(A) ::= IF conds(B) END . {
+    DPRINTF("P_STAT_IF\n");
 	A = B;
-	DPRINTF("P_STAT_IF\n");
 }
 stat ::= FUNCTION funcname params block END . 
 stat(A) ::= setlist(B) SET explist1(C) . {
+    DPRINTF("P_STAT_SET\n");
 	A = statSET(f, B, C, FALSE);
-	DPRINTF("P_STAT_SET\n");
 }
 stat(A) ::= functioncall(B) .  {
+    DPRINTF("P_STAT_FCALL\n");
 	A = B;
-	DPRINTF("P_STAT_FCALL\n");
 }
 
 repetition ::= FOR NAME SET explist23 .
 repetition ::= FOR namelist IN explist1 .
 
 conds(A)      ::= condlist(B) . {
+    DPRINTF("P_CONDS_CONDLIST\n");
 	A = B;
-	DPRINTF("P_CONDS_CONDLIST\n");
 }
 conds(A)      ::= condlist(B) ELSE block(C) . {
+    DPRINTF("P_CONDS_CONDLIST_ELSE_BLOCK\n");
 	A = statELSE(f, B, C);
-	DPRINTF("P_CONDS_CONDLIST_ELSE_BLOCK\n");
 }
 condlist(A)   ::= cond(B) . {
+    DPRINTF("P_CONDLIST_COND\n");
 	A = B;
-	DPRINTF("P_CONDLIST_COND\n");
 }
 condlist(A)   ::= condlist(B) ELSEIF cond(C) . {
+    DPRINTF("P_CONDLIST_CONDLIST_ELSEIF_COND\n");
 	A = statELSEIF(f, B, C);
-	DPRINTF("P_CONDLIST_CONDLIST_ELSEIF_COND\n");
 }
 cond(A)    ::= exp(B) THEN block(C) . {
+    DPRINTF("P_COND_EXP_THEN_BLOCK\n");
 	A = statTHEN(f, B, C);
-	DPRINTF("P_COND_EXP_THEN_BLOCK\n");
 }
 
 laststat ::= BREAK . 
@@ -150,8 +150,8 @@ binding    ::= LOCAL namelist . {
 	DPRINTF("P_LOCAL\n");
 }
 binding(A)    ::= LOCAL namelist(B) SET explist1(C) .{
+    DPRINTF("P_LOCAL_SET\n");
 	A = statSET(f, B, C, TRUE);
-	DPRINTF("P_LOCAL_SET\n");
 }
 binding    ::= LOCAL FUNCTION NAME(B) params block END .{
 	DPRINTF("P_LOCAL_FUNCTION\n");
@@ -165,23 +165,23 @@ dottedname ::= NAME .
 dottedname ::= dottedname DOT NAME . 
 
 namelist(A)   ::= NAME(B) . {
+    DPRINTF("P_NAMELIST_NAME\n");
 	Constant* c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
-	DPRINTF("P_NAMELIST_NAME\n");
 }
 namelist(A)   ::= namelist COMMA NAME(B) . {
+    DPRINTF("P_NAMELIST_COMMA_NAME\n");
 	Constant* c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
-	DPRINTF("P_NAMELIST_COMMA_NAME\n");
 }
 
 explist1(A)	::= exp(B) . {
+    DPRINTF("P_EXPLIST_EXP\n");
 	A = B;
-	DPRINTF("P_EXPLIST_EXP\n");
 }
 explist1(A)	::= explist1 COMMA exp(B) . {
+    DPRINTF("P_EXPLIST_ADD_EXP\n");
 	A = B;
-	DPRINTF("P_EXPLIST_ADD_EXP\n");
 }
 explist23  ::= exp COMMA exp .
 explist23  ::= exp COMMA exp COMMA exp .
@@ -196,19 +196,21 @@ explist23  ::= exp COMMA exp COMMA exp .
 %right     POW .
 
 exp(A)        ::= NIL . {
+    DPRINTF("P_EXP_NIL\n");
 	A = doNil(f);
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
 }
 exp(A)        ::= TRUE(B)|FALSE . {
+    DPRINTF("P_EXP_BOOLEAN\n");
 	A = doBoolean(f, &B);
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
 }
 exp        ::= DOTS .
 exp(A)        ::= NUMBER(B) . {
+    DPRINTF("P_EXP_NUMBER\n");
 	Constant* c;
 	Register* r;
 
-	DPRINTF("P_EXP_NUMBER\n");
 	c = pushConstNumber(f, B.number.fvalue);
 	r = getFreeRegister(f);
 	r->consthold = TRUE;
@@ -218,10 +220,10 @@ exp(A)        ::= NUMBER(B) . {
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
 }
 exp(A)        ::= STRING(B) . {
+    DPRINTF("P_EXP_STRING\n");
 	Constant* c;
 	Register* r;
 
-	DPRINTF("P_EXP_STRING\n");
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
 	r->consthold = TRUE;
@@ -240,35 +242,35 @@ exp(A)        ::= prefixexp(B) . {
 exp        ::= tableconstructor .
 exp        ::= NOT|HASH|MINUS exp .
 exp(A)        ::= exp(B) OR(D)|AND exp(C) . {
+    DPRINTF("P_EXP_LOGIC\n");
 	A = doLogic(f,B,C,&D);
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
-	DPRINTF("P_EXP_LOGIC\n");
 }
 exp(A)     ::= exp(B) L(D)|LE|G|GE|EQ|NE exp(C) . {
+    DPRINTF("P_EXP_COMPARE\n");
 	A = doCompare(f,B,C,&D);
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
-	DPRINTF("P_EXP_COMPARE\n");
 }
 exp        ::= exp CONCAT exp .
 exp(A)	   ::= exp(B) PLUS(E)|MINUS|TIMES|DIVIDE|MOD|POW exp(C) . {
+    DPRINTF("P_EXP_MATH\n");
 	A = doMath(f,B,C,&E);
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
-	DPRINTF("P_EXP_MATH\n");
 }
 
 setlist(A) ::= var(B) . {
+    DPRINTF("P_SETLIST_VAR\n");
 	A = B;
-	DPRINTF("P_SETLIST_VAR\n");
 }
 setlist(A) ::= setlist COMMA var(B) . {
+    DPRINTF("P_SETLIST_ADD_VAR\n");
 	A = B;
-	DPRINTF("P_SETLIST_ADD_VAR\n");
 }
 
 var(A) ::= NAME(B) . {
+    DPRINTF("P_VAR_NAME\n");
 	Constant* c;
 
-	DPRINTF("P_VAR_NAME\n");
 	c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
 }
@@ -287,28 +289,29 @@ prefixexp  ::= functioncall .  {
 	DPRINTF("P_PREFEXP_FCALL\n");
 }
 prefixexp(A) ::= OPEN exp(B) RPAREN . {
+    DPRINTF("P_PREFEXP_EXP\n");
 	A = B;
-	DPRINTF("P_PREFEXP_EXP\n");
 }
 
 functioncall(A) ::= prefixexp(B) args(C) . {
+    DPRINTF("P_FCALL_ARGS\n");
 	A = functionCALL(f, B, C);
-	DPRINTF("P_FCALL_ARGS\n");
 }
 functioncall ::= prefixexp COLON NAME args . {
 	DPRINTF("P_FCALL_NAME_ARGS\n");
 }
 
 args(A)        ::= LPAREN RPAREN . {
+    DPRINTF("P_ARGS_EMPTY\n");
 	A = NULL;
-	DPRINTF("P_ARGS_EMPTY\n");
 }
 args(A)        ::= LPAREN explist1(B) RPAREN . {
+    DPRINTF("P_ARGS_EXPLIST\n");
 	A = B;
-	DPRINTF("P_ARGS_EXPLIST\n");
 }
 args        ::= tableconstructor .
 args(A)        ::= STRING(B) . {
+    DPRINTF("P_ARGS_STRING\n");
 	Constant* c;
 	Register* r;
 
@@ -318,7 +321,6 @@ args(A)        ::= STRING(B) . {
 	r->constpreloaded = FALSE;
 	r->constnum = c->num;
 	A = r;
-	DPRINTF("P_ARGS_STRING\n");
 }
 function    ::= FUNCTION params block END . 
 params      ::= LPAREN parlist LPAREN . 
