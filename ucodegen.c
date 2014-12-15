@@ -24,7 +24,6 @@ void initFunction(Function* f, lu08* code) {
 		f->reg[i].isfree = TRUE;
 		f->reg[i].isload = FALSE;
 		f->reg[i].islocal = FALSE;
-		f->reg[i].constpreloaded = FALSE;
 		f->reg[i].exprStart = NULL;
 	}
 }
@@ -287,7 +286,6 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 				if(ta->num != a->num) {
 					ta->consthold = TRUE;
 					ta->constnum = a->constnum;
-					ta->constpreloaded = FALSE;
 				}
 			}
 		} else {
@@ -336,7 +334,6 @@ void freeRegister(Register* r) {
 	r->isfree = TRUE;
 	r->isload = FALSE;
 	r->islocal = FALSE;
-	r->constpreloaded = FALSE;
 	r->exprStart = NULL;
 }
 
@@ -575,7 +572,6 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	tryFreeRegister(b);
 	tryFreeRegister(a);
 	r->consthold = FALSE;
-	r->constpreloaded = FALSE;
 	r->constnum = 0;
 	r->varnum = 0;
 	r->islocal = FALSE;
@@ -634,6 +630,8 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 	i->i.unpacked.bx.bx = 1;
 	insertInstruction(f, i, block);
 
+	if(a->exprStart == NULL)
+		a->exprStart = f->currentStat;
 	//check if given block is not null. If NULL - we have a problem in parser
 	if(block == NULL || a->exprStart == NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
@@ -811,22 +809,16 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		a->islocal = TRUE;
 		tryFreeRegister(b);
 	} else {//global variable
-		checkLoad(f, b, b, TRUE, NULL);
+		checkLoad(f, b, a, TRUE, NULL);
 		i = (Instruction*)malloc(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
 		//register or preloaded constant
 		i->i.unpacked.opc = OP_SETGLOBAL;
-		i->i.unpacked.a = b->num;//register number
+		i->i.unpacked.a = a->num;//register number
 		i->i.unpacked.bx.bx = c->num;//global const name number
-		b->isload = TRUE;
-		b->varnum = a->varnum;
-		b->consthold = FALSE;
-		b->constpreloaded = FALSE;
-		b->constnum = 0;
-		//tryFreeRegister(a);
-		freeRegister(a);
-		freeRegister(b);
+
+		tryFreeRegister(b);
 		pushInstruction(f,i);
 	}
 	return i;
@@ -857,6 +849,8 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	//free all registers
 	freeRegister(ta);
 	freeRegister(tb);
+	tryFreeRegister(a);
+	tryFreeRegister(b);
 
 	return i;
 }

@@ -214,7 +214,6 @@ exp(A)        ::= NUMBER(B) . {
 	c = pushConstNumber(f, B.number.fvalue);
 	r = getFreeRegister(f);
 	r->consthold = TRUE;
-	r->constpreloaded = FALSE;
 	r->constnum = c->num;
 	A = r;
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
@@ -227,7 +226,6 @@ exp(A)        ::= STRING(B) . {
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
 	r->consthold = TRUE;
-	r->constpreloaded = FALSE;
 	r->constnum = c->num;
 	A = r;
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
@@ -273,6 +271,7 @@ var(A) ::= NAME(B) . {
 
 	c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
+	if(A->exprStart == NULL) A->exprStart = f->currentStat;
 }
 var ::= prefixexp SLPAREN exp SRPAREN . {
 	DPRINTF("P_PREFEXP_SPAREN_EXP\n");
@@ -318,7 +317,6 @@ args(A)        ::= STRING(B) . {
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
 	r->consthold = TRUE;
-	r->constpreloaded = FALSE;
 	r->constnum = c->num;
 	A = r;
 }
