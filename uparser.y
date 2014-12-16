@@ -70,7 +70,6 @@ block(A) ::= scope statlist(B) laststat semi . {
     unloadRegisters(f);
 }
 ublock ::= block UNTIL exp . {
-	//doReturn(f);
 	DPRINTF("P_UBLOCK\n");
 }
 
@@ -167,13 +166,15 @@ dottedname ::= NAME .
 dottedname ::= dottedname DOT NAME . 
 
 namelist(A)   ::= NAME(B) . {
+	Constant* c;
     DPRINTF("P_NAMELIST_NAME\n");
-	Constant* c = pushVarName(f, &B.semInfo);
+	c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
 }
 namelist(A)   ::= namelist COMMA NAME(B) . {
+	Constant* c;
     DPRINTF("P_NAMELIST_COMMA_NAME\n");
-	Constant* c = pushVarName(f, &B.semInfo);
+	c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
 }
 
@@ -209,9 +210,9 @@ exp(A)        ::= TRUE(B)|FALSE . {
 }
 exp        ::= DOTS .
 exp(A)        ::= NUMBER(B) . {
-    DPRINTF("P_EXP_NUMBER\n");
 	Constant* c;
 	Register* r;
+    DPRINTF("P_EXP_NUMBER\n");
 
 	c = pushConstNumber(f, B.number.fvalue);
 	r = getFreeRegister(f);
@@ -221,9 +222,9 @@ exp(A)        ::= NUMBER(B) . {
 	if(A->exprStart == NULL) A->exprStart = f->currentStat;
 }
 exp(A)        ::= STRING(B) . {
-    DPRINTF("P_EXP_STRING\n");
 	Constant* c;
 	Register* r;
+    DPRINTF("P_EXP_STRING\n");
 
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
@@ -268,8 +269,8 @@ setlist(A) ::= setlist COMMA var(B) . {
 }
 
 var(A) ::= NAME(B) . {
-    DPRINTF("P_VAR_NAME\n");
 	Constant* c;
+    DPRINTF("P_VAR_NAME\n");
 
 	c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
@@ -312,9 +313,9 @@ args(A)        ::= LPAREN explist1(B) RPAREN . {
 }
 args        ::= tableconstructor .
 args(A)        ::= STRING(B) . {
-    DPRINTF("P_ARGS_STRING\n");
 	Constant* c;
 	Register* r;
+    DPRINTF("P_ARGS_STRING\n");
 
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
