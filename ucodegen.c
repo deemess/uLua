@@ -442,6 +442,26 @@ void unloadRegisters(Function* f) {//unload/mark registers
     }
 }
 
+Register* doNot(Function* f, Register* a, Token* t) { //do not\minus logic
+	Instruction* i;
+	Register* res;
+
+	checkLoad(f, a, a, TRUE, NULL);
+	res = getFreeRegister(f);
+
+	i = (Instruction*)malloc(sizeof(Instruction));
+	i->i.unpacked.opc = t->token == TK_NOT ? OP_NOT : OP_UNM;
+	i->i.unpacked.a = res->num;
+	i->i.unpacked.bx.l.b = a->num;
+	i->i.unpacked.bx.l.c = 0;
+	pushInstruction(f,i);
+
+	tryFreeRegister(a);
+
+	res->isload = TRUE;
+	return res;
+}
+
 Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
 	Instruction* i;

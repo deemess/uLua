@@ -662,9 +662,26 @@ lu08 vmRun(vm* vm, readBytes read)
 			{
 				curstate->reg[a].floatval = pow(tmp.floatval, curstate->reg[c].floatval);
 			}
-
 			break;
 		
+		case OP_NOT://	A B 	R(A) := not R(B)
+			clearRegister(&curstate->reg[a]);
+			curstate->reg[a].type = VAR_BOOLEAN;
+			if(curstate->reg[b].type == VAR_NULL) {
+				curstate->reg[a].floatval = 1;
+			} else {
+				curstate->reg[a].floatval = curstate->reg[b].floatval == 0 ? 1 : 0;
+			}
+			break;
+		case OP_UNM://	A B		R(A) := -R(B)
+			clearRegister(&curstate->reg[a]);
+			curstate->reg[a].type = VAR_FLOAT;
+			if(curstate->reg[b].type == VAR_NULL) {
+				curstate->reg[a].type == VAR_NULL;
+			} else {
+				curstate->reg[a].floatval = -curstate->reg[b].floatval;
+			}
+			break;
 		//execution logic functions
 		//FOR LOOPS
 		case OP_FORPREP:

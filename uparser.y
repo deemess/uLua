@@ -241,7 +241,11 @@ exp(A)        ::= prefixexp(B) . {
 	A = B;
 }
 exp        ::= tableconstructor .
-exp        ::= NOT|HASH|MINUS exp .
+exp        ::= HASH exp .
+exp(A)     ::= NOT(B)|MINUS exp(C) . {
+    DPRINTF("P_EXP_NOT_MINUS\n");
+	A = doNot(f, C, &B);
+}
 exp(A)        ::= exp(B) OR(D)|AND exp(C) . {
     DPRINTF("P_EXP_LOGIC\n");
 	A = doLogic(f,B,C,&D);
