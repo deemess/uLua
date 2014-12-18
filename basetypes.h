@@ -44,11 +44,11 @@ typedef gcvar* gcvarpt;
 //vm types
 //variable types
 typedef enum vartype {
+	VAR_NULL,
 	VAR_BOOLEAN,
 	VAR_NUMBER,
 	VAR_FLOAT,
 	VAR_STRING,
-	VAR_NULL,
 	VAR_CLOSURE,
 	VAR_FILE_POINTER_STR,
 	VAR_TABLE,

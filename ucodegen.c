@@ -507,13 +507,13 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	res = getFreeRegister(f);
 	
-	checkLoad(f, a, a, TRUE, NULL);
-	checkLoad(f, b, b, TRUE, NULL);
+	checkLoad(f, a, a, FALSE, NULL);
+	checkLoad(f, b, b, FALSE, NULL);
 
 	//generate skip next instruction if true
 	i->i.unpacked.a = 1; //do not skip next instruction if comparison valid
-	i->i.unpacked.bx.l.b = a->num;
-	i->i.unpacked.bx.l.c = b->num;
+	i->i.unpacked.bx.l.b = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
+	i->i.unpacked.bx.l.c = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
 	switch(t->token)
 	{
 		case TK_L:
@@ -527,18 +527,18 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 			break;
 		case TK_G:
 			i->i.unpacked.opc = OP_LT;
-			i->i.unpacked.bx.l.b = b->num;
-			i->i.unpacked.bx.l.c = a->num;
+			i->i.unpacked.bx.l.b = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
+			i->i.unpacked.bx.l.c = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
 			break;
 		case TK_GE:
 			i->i.unpacked.opc = OP_LE;
-			i->i.unpacked.bx.l.b = b->num;
-			i->i.unpacked.bx.l.c = a->num;
+			i->i.unpacked.bx.l.b = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
+			i->i.unpacked.bx.l.c = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
 			break;
 		case TK_NE:
 			i->i.unpacked.opc = OP_EQ;
-			i->i.unpacked.bx.l.b = b->num;
-			i->i.unpacked.bx.l.c = a->num;
+			i->i.unpacked.bx.l.b = b->consthold ? b->constnum + CG_REG_COUNT : b->num;
+			i->i.unpacked.bx.l.c = a->consthold ? a->constnum + CG_REG_COUNT : a->num;
 			i->i.unpacked.a = 0;
 			break;
 	}

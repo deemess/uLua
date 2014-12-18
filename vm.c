@@ -241,8 +241,11 @@ lu08 vmRun(vm* vm, readBytes read)
 	int i;
 
 	vmregister tmp;
+	vmregister tmp2;
 	tmp.type = VAR_NULL;
 	tmp.numval = 0;
+	tmp2.type = VAR_NULL;
+	tmp2.numval = 0;
 
 	//vmstate* state = &vm->state[0];
 	//set running state
@@ -496,7 +499,6 @@ lu08 vmRun(vm* vm, readBytes read)
 		//TODO: check types and nulls
 		case OP_ADD://	A B C	R(A) := RK(B) + RK(C)
 			clearRegister(&curstate->reg[a]);
-			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 
@@ -525,7 +527,6 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_SUB://	A B C	R(A) := RK(B) - RK(C)
 			clearRegister(&curstate->reg[a]);
-			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 
@@ -554,7 +555,6 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_MUL://	A B C	R(A) := RK(B) * RK(C)
 			clearRegister(&curstate->reg[a]);
-			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 			if(b > CG_REG_COUNT)
@@ -582,7 +582,6 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_DIV://	A B C	R(A) := RK(B) / RK(C)
 			clearRegister(&curstate->reg[a]);
-			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 			if(b > CG_REG_COUNT)
@@ -610,7 +609,6 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_MOD://	A B C	R(A) := RK(B) % RK(C)
 			clearRegister(&curstate->reg[a]);
-			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 			if(b > CG_REG_COUNT)
@@ -638,7 +636,6 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_POW://	A B C	R(A) := RK(B) ^ RK(C)
 			clearRegister(&curstate->reg[a]);
-			clearRegister(&tmp);
 			curstate->reg[a].type = VAR_FLOAT;
 			tmp.type = VAR_FLOAT;
 			if(b > CG_REG_COUNT)
@@ -677,7 +674,7 @@ lu08 vmRun(vm* vm, readBytes read)
 			clearRegister(&curstate->reg[a]);
 			curstate->reg[a].type = VAR_FLOAT;
 			if(curstate->reg[b].type == VAR_NULL) {
-				curstate->reg[a].type == VAR_NULL;
+				curstate->reg[a].type = VAR_NULL;
 			} else {
 				curstate->reg[a].floatval = -curstate->reg[b].floatval;
 			}
@@ -708,19 +705,70 @@ lu08 vmRun(vm* vm, readBytes read)
 			vm->pc += sbx*4;
 			break;
 		case OP_EQ: //	A B C	if ((RK(B) == RK(C)) ~= A) then pc++
-			if((compare(&curstate->reg[b], &curstate->reg[c]) == 1) != a)
+			if(b > CG_REG_COUNT) {
+				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
+				tmp.type = (vartype)platformReadByte(read, constpt++);
+				tmp.floatval = platformReadNumber(read, constpt);
+			} else {
+				tmp.floatval = curstate->reg[b].floatval;
+				tmp.type = curstate->reg[b].type;;
+			}
+			if(c > CG_REG_COUNT) {
+				constpt = getConstPt(read, curstate->constp, c - CG_REG_COUNT);
+				tmp2.type = (vartype)platformReadByte(read, constpt++);
+				tmp2.floatval = platformReadNumber(read, constpt);
+			} else {
+				tmp2.floatval = curstate->reg[c].floatval;
+				tmp2.type = curstate->reg[c].type;
+			}
+
+			if((compare(&tmp, &tmp2) == 1) != a)
 			{
 				vm->pc += 4;
 			}
 			break;
 		case OP_LT: //	A B C	if ((RK(B) <  RK(C)) ~= A) then pc++
-			if((compare(&curstate->reg[b], &curstate->reg[c]) == -2) != a)
+			if(b > CG_REG_COUNT) {
+				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
+				tmp.type = (vartype)platformReadByte(read, constpt++);
+				tmp.floatval = platformReadNumber(read, constpt);
+			} else {
+				tmp.floatval = curstate->reg[b].floatval;
+				tmp.type = curstate->reg[b].type;;
+			}
+			if(c > CG_REG_COUNT) {
+				constpt = getConstPt(read, curstate->constp, c - CG_REG_COUNT);
+				tmp2.type = (vartype)platformReadByte(read, constpt++);
+				tmp2.floatval = platformReadNumber(read, constpt);
+			} else {
+				tmp2.floatval = curstate->reg[c].floatval;
+				tmp2.type = curstate->reg[c].type;
+			}
+
+			if((compare(&tmp, &tmp2) == -2) != a)
 			{
 				vm->pc += 4;
 			}
 			break;
 		case OP_LE: //	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++
-			if((compare(&curstate->reg[b], &curstate->reg[c]) == -2 || compare(&curstate->reg[b], &curstate->reg[c]) == 1) != a)
+			if(b > CG_REG_COUNT) {
+				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
+				tmp.type = (vartype)platformReadByte(read, constpt++);
+				tmp.floatval = platformReadNumber(read, constpt);
+			} else {
+				tmp.floatval = curstate->reg[b].floatval;
+				tmp.type = curstate->reg[b].type;;
+			}
+			if(c > CG_REG_COUNT) {
+				constpt = getConstPt(read, curstate->constp, c - CG_REG_COUNT);
+				tmp2.type = (vartype)platformReadByte(read, constpt++);
+				tmp2.floatval = platformReadNumber(read, constpt);
+			} else {
+				tmp2.floatval = curstate->reg[c].floatval;
+				tmp2.type = curstate->reg[c].type;
+			}
+
+			if((compare(&tmp, &tmp2) == -2 || compare(&tmp, &tmp2) == 1) != a)
 			{
 				vm->pc += 4;
 			}
