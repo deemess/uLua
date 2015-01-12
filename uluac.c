@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 	if(argc < 3) 
 	{
 		printf("Usage: \n");
-		printf("uluac file.lua file.clu");
+		printf("uluac file.lua file.clu\n");
 		return 1;
 	}
 

@@ -12,13 +12,10 @@ typedef int8_t ls08;
 typedef int16_t ls16;
 typedef int32_t ls32;
 
-#ifndef NULL
-#define NULL 0
-#endif
-
+#define ULUA_NULL 0
 typedef lu08 BOOL;
-#define TRUE  1
-#define FALSE 0
+#define ULUA_TRUE  1
+#define ULUA_FALSE 0
 
 //callback functions type
 typedef void (*readBytes)(lu08* buff, lu16 offset, lu16 size);

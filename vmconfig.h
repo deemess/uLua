@@ -2,6 +2,9 @@
 #define VMCONFIG_H
 
 // -----  GC ---------
+#define UMEMORY_SIZE 1024
+
+// -----  GC ---------
 //memory total size
 #define GC_SIZE 1024
 //maximum data size which variable can hold

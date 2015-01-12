@@ -58,9 +58,9 @@ void setInput(LexState* ls, lu08* stream) {
 	ls->zp = 0;
 	ls->linenumber = 1;
 	ls->lastline = 1;
-	ls->buff.bempty=TRUE;
-	ls->t.semInfo.bempty=TRUE;
-	ls->lookahead.semInfo.bempty=TRUE;
+	ls->buff.bempty=ULUA_TRUE;
+	ls->t.semInfo.bempty=ULUA_TRUE;
+	ls->lookahead.semInfo.bempty=ULUA_TRUE;
 	nextchar(ls);
 }
 
@@ -79,8 +79,8 @@ void inclinenumber(LexState* ls) {
 
 
 void save(LexState* ls, lu08 c) {
-	if(ls->buff.bempty == TRUE) { //if buff empty - start counting new one
-		ls->buff.bempty = FALSE;
+	if(ls->buff.bempty == ULUA_TRUE) { //if buff empty - start counting new one
+		ls->buff.bempty = ULUA_FALSE;
 		ls->buff.bp = ls->zp-1;
 		ls->buff.bplen = 0;
 	}
@@ -95,13 +95,13 @@ lu08 save_and_next(LexState* ls) {
 BOOL check_next (LexState *ls, lu08 c1, lu08 c2) {
 	if(c2 == 0) {
 		if (!ls->current != c1)
-			return FALSE;
+			return ULUA_FALSE;
 	} else {
 		if (!ls->current != c1 || !ls->current != c2)
-			return FALSE;
+			return ULUA_FALSE;
 	}
 	save_and_next(ls);
-	return TRUE;
+	return ULUA_TRUE;
 }
 
 ls16 skip_sep(LexState* ls) {
@@ -138,7 +138,7 @@ void read_numeral (LexState *ls, Token *t) {
 	while (isalnum(ls->current) || ls->current == '_')
 		save_and_next(ls);
 
-	t->semInfo.bempty = FALSE;
+	t->semInfo.bempty = ULUA_FALSE;
 	t->semInfo.bp = ls->buff.bp;
 	t->semInfo.bplen = ls->buff.bplen;
 	if(!str2f(t, ls->z))
@@ -150,7 +150,7 @@ void read_long_string(LexState* ls, Token* t, lu16 sep) {
 	if(currIsNewline(ls)) { // string starts with a newline?
 		inclinenumber(ls);  // skip it
 	}
-	while(TRUE) {
+	while(ULUA_TRUE) {
 		lu08 c = ls->current;
 		if(c == 0) { //end of stream
 			lexerror(E_LONGSTR);
@@ -172,7 +172,7 @@ void read_long_string(LexState* ls, Token* t, lu16 sep) {
 		}
 	}
 	if(t) {
-		t->semInfo.bempty = FALSE;
+		t->semInfo.bempty = ULUA_FALSE;
 		t->semInfo.bp = ls->buff.bp;
 		t->semInfo.bplen = ls->buff.bplen;
 	}
@@ -227,7 +227,7 @@ void read_string (LexState *ls, int del, Token *t) {
     }
   }
 	save_and_next(ls);  // skip delimiter 
-	t->semInfo.bempty = FALSE;
+	t->semInfo.bempty = ULUA_FALSE;
 	t->semInfo.bp = ls->buff.bp+1;
 	t->semInfo.bplen = ls->buff.bplen-2;  
 }
@@ -237,12 +237,12 @@ lu16 llex(LexState* ls, Token* t) {
 	ls16 sep;
 	lu08 i;
 
-	ls->buff.bempty = TRUE;
+	ls->buff.bempty = ULUA_TRUE;
 	ls->buff.bp = 0;
 	ls->buff.bplen = 0;
-	t->semInfo.bempty = TRUE;
+	t->semInfo.bempty = ULUA_TRUE;
 
-	while(TRUE) {
+	while(ULUA_TRUE) {
 		c = ls->current;
 		if(currIsNewline(ls)) {
 			inclinenumber(ls);
@@ -348,14 +348,14 @@ lu16 llex(LexState* ls, Token* t) {
 			  //try to match word with reserved keyword
 			  for(i=0; i<21; i++) {
 				  lu08 p = 0;
-				  BOOL matched = FALSE;
+				  BOOL matched = ULUA_FALSE;
 				  while(keywords[i].keyword[p] != 0 && p <10) {
 					  if(keywords[i].keyword[p] == ls->z[ls->buff.bp+p]) {
-						matched = TRUE;
+						matched = ULUA_TRUE;
 						p++;
 						continue;
 					  } else {
-						  matched = FALSE;
+						  matched = ULUA_FALSE;
 						  break;
 					  }
 				  }

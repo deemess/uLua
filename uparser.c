@@ -1041,8 +1041,8 @@ static void yy_reduce(
 #line 83 "uparser.y"
 {
     DPRINTF("P_STATLIST_EMPTY\n");
-	yygotominor.yy15 = NULL;
-	f->currentStat = NULL;
+	yygotominor.yy15 = ULUA_NULL;
+	f->currentStat = ULUA_NULL;
 }
 #line 1048 "uparser.c"
         break;
@@ -1050,12 +1050,12 @@ static void yy_reduce(
 #line 88 "uparser.y"
 {
     DPRINTF("P_STATLIST_ADD_STAT\n");
-	if(yymsp[-2].minor.yy15 == NULL) {
+	if(yymsp[-2].minor.yy15 == ULUA_NULL) {
 		yygotominor.yy15 = f->currentStat; //save only pointer to first statement
 	} else {
 		yygotominor.yy15 = yymsp[-2].minor.yy15;
 	}
-	f->currentStat = NULL;
+	f->currentStat = ULUA_NULL;
 }
 #line 1061 "uparser.c"
         break;
@@ -1087,7 +1087,7 @@ static void yy_reduce(
 #line 113 "uparser.y"
 {
     DPRINTF("P_STAT_SET\n");
-	yygotominor.yy15 = statSET(f, yymsp[-2].minor.yy88, yymsp[0].minor.yy88, FALSE);
+	yygotominor.yy15 = statSET(f, yymsp[-2].minor.yy88, yymsp[0].minor.yy88, ULUA_FALSE);
 }
 #line 1093 "uparser.c"
         break;
@@ -1150,7 +1150,7 @@ static void yy_reduce(
 #line 153 "uparser.y"
 {
     DPRINTF("P_LOCAL_SET\n");
-	yygotominor.yy15 = statSET(f, yymsp[-2].minor.yy88, yymsp[0].minor.yy88, TRUE);
+	yygotominor.yy15 = statSET(f, yymsp[-2].minor.yy88, yymsp[0].minor.yy88, ULUA_TRUE);
 }
 #line 1156 "uparser.c"
         break;
@@ -1203,7 +1203,7 @@ static void yy_reduce(
 {
     DPRINTF("P_EXP_NIL\n");
 	yygotominor.yy88 = doNil(f);
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1209 "uparser.c"
         break;
@@ -1212,7 +1212,7 @@ static void yy_reduce(
 {
     DPRINTF("P_EXP_BOOLEAN\n");
 	yygotominor.yy88 = doBoolean(f, &yymsp[0].minor.yy0);
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1218 "uparser.c"
         break;
@@ -1225,10 +1225,10 @@ static void yy_reduce(
 
 	c = pushConstNumber(f, yymsp[0].minor.yy0.number.fvalue);
 	r = getFreeRegister(f);
-	r->consthold = TRUE;
+	r->consthold = ULUA_TRUE;
 	r->constnum = c->num;
 	yygotominor.yy88 = r;
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1234 "uparser.c"
         break;
@@ -1241,10 +1241,10 @@ static void yy_reduce(
 
 	c = pushConstString(f, &yymsp[0].minor.yy0.semInfo);
 	r = getFreeRegister(f);
-	r->consthold = TRUE;
+	r->consthold = ULUA_TRUE;
 	r->constnum = c->num;
 	yygotominor.yy88 = r;
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1250 "uparser.c"
         break;
@@ -1276,7 +1276,7 @@ static void yy_reduce(
 {
     DPRINTF("P_EXP_LOGIC\n");
 	yygotominor.yy88 = doLogic(f,yymsp[-2].minor.yy88,yymsp[0].minor.yy88,&yymsp[-1].minor.yy0);
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1282 "uparser.c"
         break;
@@ -1285,7 +1285,7 @@ static void yy_reduce(
 {
     DPRINTF("P_EXP_COMPARE\n");
 	yygotominor.yy88 = doCompare(f,yymsp[-2].minor.yy88,yymsp[0].minor.yy88,&yymsp[-1].minor.yy0);
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1291 "uparser.c"
         break;
@@ -1294,7 +1294,7 @@ static void yy_reduce(
 {
     DPRINTF("P_EXP_MATH\n");
 	yygotominor.yy88 = doMath(f,yymsp[-2].minor.yy88,yymsp[0].minor.yy88,&yymsp[-1].minor.yy0);
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1300 "uparser.c"
         break;
@@ -1322,7 +1322,7 @@ static void yy_reduce(
 
 	c = pushVarName(f, &yymsp[0].minor.yy0.semInfo);
 	yygotominor.yy88 = getVarRegister(f,c);
-	if(yygotominor.yy88->exprStart == NULL) yygotominor.yy88->exprStart = f->currentStat;
+	if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
 #line 1328 "uparser.c"
         break;
@@ -1382,7 +1382,7 @@ static void yy_reduce(
 #line 310 "uparser.y"
 {
     DPRINTF("P_ARGS_EMPTY\n");
-	yygotominor.yy88 = NULL;
+	yygotominor.yy88 = ULUA_NULL;
 }
 #line 1388 "uparser.c"
         break;
@@ -1403,7 +1403,7 @@ static void yy_reduce(
 
 	c = pushConstString(f, &yymsp[0].minor.yy0.semInfo);
 	r = getFreeRegister(f);
-	r->consthold = TRUE;
+	r->consthold = ULUA_TRUE;
 	r->constnum = c->num;
 	yygotominor.yy88 = r;
 }
@@ -1526,7 +1526,7 @@ static void yy_accept(
   ** parser accepts */
 #line 36 "uparser.y"
 
-	f->parsed = TRUE;
+	f->parsed = ULUA_TRUE;
 #line 1531 "uparser.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }

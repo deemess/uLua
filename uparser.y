@@ -34,7 +34,7 @@
 %type laststat	{Instruction*}
 
 %parse_accept {
-	f->parsed = TRUE;
+	f->parsed = ULUA_TRUE;
 }
 
 %syntax_error {
@@ -82,17 +82,17 @@ scope ::= scope statlist binding semi. {
 
 statlist(A) ::= . {
     DPRINTF("P_STATLIST_EMPTY\n");
-	A = NULL;
-	f->currentStat = NULL;
+	A = ULUA_NULL;
+	f->currentStat = ULUA_NULL;
 }
 statlist(A) ::= statlist(B) stat semi . {
     DPRINTF("P_STATLIST_ADD_STAT\n");
-	if(B == NULL) {
+	if(B == ULUA_NULL) {
 		A = f->currentStat; //save only pointer to first statement
 	} else {
 		A = B;
 	}
-	f->currentStat = NULL;
+	f->currentStat = ULUA_NULL;
 }
 
 stat(A) ::= DO block(B) END . {
@@ -112,7 +112,7 @@ stat(A) ::= IF conds(B) END . {
 stat ::= FUNCTION funcname params block END . 
 stat(A) ::= setlist(B) SET explist1(C) . {
     DPRINTF("P_STAT_SET\n");
-	A = statSET(f, B, C, FALSE);
+	A = statSET(f, B, C, ULUA_FALSE);
 }
 stat(A) ::= functioncall(B) .  {
     DPRINTF("P_STAT_FCALL\n");
@@ -152,7 +152,7 @@ binding    ::= LOCAL namelist . {
 }
 binding(A)    ::= LOCAL namelist(B) SET explist1(C) .{
     DPRINTF("P_LOCAL_SET\n");
-	A = statSET(f, B, C, TRUE);
+	A = statSET(f, B, C, ULUA_TRUE);
 }
 binding    ::= LOCAL FUNCTION NAME(B) params block END .{
 	DPRINTF("P_LOCAL_FUNCTION\n");
@@ -201,12 +201,12 @@ explist23  ::= exp COMMA exp COMMA exp .
 exp(A)        ::= NIL . {
     DPRINTF("P_EXP_NIL\n");
 	A = doNil(f);
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 exp(A)        ::= TRUE(B)|FALSE . {
     DPRINTF("P_EXP_BOOLEAN\n");
 	A = doBoolean(f, &B);
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 exp        ::= DOTS .
 exp(A)        ::= NUMBER(B) . {
@@ -216,10 +216,10 @@ exp(A)        ::= NUMBER(B) . {
 
 	c = pushConstNumber(f, B.number.fvalue);
 	r = getFreeRegister(f);
-	r->consthold = TRUE;
+	r->consthold = ULUA_TRUE;
 	r->constnum = c->num;
 	A = r;
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 exp(A)        ::= STRING(B) . {
 	Constant* c;
@@ -228,10 +228,10 @@ exp(A)        ::= STRING(B) . {
 
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
-	r->consthold = TRUE;
+	r->consthold = ULUA_TRUE;
 	r->constnum = c->num;
 	A = r;
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 exp        ::= function . {
 	DPRINTF("P_EXP_FUNCTION\n");
@@ -249,18 +249,18 @@ exp(A)     ::= NOT(B)|MINUS exp(C) . {
 exp(A)        ::= exp(B) OR(D)|AND exp(C) . {
     DPRINTF("P_EXP_LOGIC\n");
 	A = doLogic(f,B,C,&D);
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 exp(A)     ::= exp(B) L(D)|LE|G|GE|EQ|NE exp(C) . {
     DPRINTF("P_EXP_COMPARE\n");
 	A = doCompare(f,B,C,&D);
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 exp        ::= exp CONCAT exp .
 exp(A)	   ::= exp(B) PLUS(E)|MINUS|TIMES|DIVIDE|MOD|POW exp(C) . {
     DPRINTF("P_EXP_MATH\n");
 	A = doMath(f,B,C,&E);
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 
 setlist(A) ::= var(B) . {
@@ -278,7 +278,7 @@ var(A) ::= NAME(B) . {
 
 	c = pushVarName(f, &B.semInfo);
 	A = getVarRegister(f,c);
-	if(A->exprStart == NULL) A->exprStart = f->currentStat;
+	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 var ::= prefixexp SLPAREN exp SRPAREN . {
 	DPRINTF("P_PREFEXP_SPAREN_EXP\n");
@@ -309,7 +309,7 @@ functioncall ::= prefixexp COLON NAME args . {
 
 args(A)        ::= LPAREN RPAREN . {
     DPRINTF("P_ARGS_EMPTY\n");
-	A = NULL;
+	A = ULUA_NULL;
 }
 args(A)        ::= LPAREN explist1(B) RPAREN . {
     DPRINTF("P_ARGS_EXPLIST\n");
@@ -323,7 +323,7 @@ args(A)        ::= STRING(B) . {
 
 	c = pushConstString(f, &B.semInfo);
 	r = getFreeRegister(f);
-	r->consthold = TRUE;
+	r->consthold = ULUA_TRUE;
 	r->constnum = c->num;
 	A = r;
 }

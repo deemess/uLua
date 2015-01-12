@@ -5,26 +5,26 @@ void initFunction(Function* f, lu08* code) {
 	lu08 i;
 
 	f->code = code;
-	f->consts = NULL;
+	f->consts = ULUA_NULL;
 	f->constsSize = 0;
-	f->vars = NULL;
-	f->subfuncs = NULL;
+	f->vars = ULUA_NULL;
+	f->subfuncs = ULUA_NULL;
 	f->subfuncsSize = 0;
-    f->next = NULL;
-	f->instr = NULL;
+    f->next = ULUA_NULL;
+	f->instr = ULUA_NULL;
 	f->instrSize = 0;
-	f->currentStat = NULL;
+	f->currentStat = ULUA_NULL;
 	f->error_code = E_NONE;
-	f->parsed = FALSE;
+	f->parsed = ULUA_FALSE;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		f->reg[i].num = i;
-		f->reg[i].consthold = FALSE;
+		f->reg[i].consthold = ULUA_FALSE;
 		f->reg[i].constnum = 0;
 		f->reg[i].varnum = 0;
-		f->reg[i].isfree = TRUE;
-		f->reg[i].isload = FALSE;
-		f->reg[i].islocal = FALSE;
-		f->reg[i].exprStart = NULL;
+		f->reg[i].isfree = ULUA_TRUE;
+		f->reg[i].isload = ULUA_FALSE;
+		f->reg[i].islocal = ULUA_FALSE;
+		f->reg[i].exprStart = ULUA_NULL;
 	}
 }
 
@@ -38,29 +38,29 @@ void freeFunction(Function* f) {
     
     //free all instructions
     i = f->instr;
-    while(i != NULL) {
+    while(i != ULUA_NULL) {
         li = i;
         i = i->next;
         free(li);
     }
-	f->instr = NULL;
+	f->instr = ULUA_NULL;
     //free all constants
     c = f->consts;
-    while(c != NULL) {
+    while(c != ULUA_NULL) {
         lc = c;
         c = c->next;
         free(lc);
     }
-	f->consts = NULL;
+	f->consts = ULUA_NULL;
     //free all subfunctions
     sf = f->subfuncs;
-    while (sf != NULL) {
+    while (sf != ULUA_NULL) {
         freeFunction(sf);
         lsf = sf;
         sf = sf->next;
         free(lsf);
     }
-	f->subfuncs = NULL;
+	f->subfuncs = ULUA_NULL;
 }
 
 BOOL constEqueals(Function* f, Constant* a, Constant* b) {
@@ -68,25 +68,25 @@ BOOL constEqueals(Function* f, Constant* a, Constant* b) {
 	if(a->type == b->type) {
 		if(a->type == NUMBER_TYPE) {
 			if(a->val_number == b->val_number)
-				return TRUE;
+				return ULUA_TRUE;
 		} else if(a->type == STRING_TYPE) {
 			if(a->val_string.bplen == b->val_string.bplen){
 				for(i=0; i<a->val_string.bplen; i++) {
 					if(f->code[a->val_string.bp + i] != f->code[b->val_string.bp + i]) 
-						return FALSE;
+						return ULUA_FALSE;
 				}
-				return TRUE;
+				return ULUA_TRUE;
 			}
 		}
 	}
-	return FALSE;
+	return ULUA_FALSE;
 }
 
 
 Constant* pushConst(Function* f, Constant* c) {
 	Constant* last;
 
-	if(f->consts == NULL) {
+	if(f->consts == ULUA_NULL) {
 		c->num = 1;
 		f->consts = c;
 		f->constsSize++;
@@ -98,7 +98,7 @@ Constant* pushConst(Function* f, Constant* c) {
 		free(c);
 		return last;
 	}
-	while(last->next != NULL) {
+	while(last->next != ULUA_NULL) {
 		last = last->next;
 		if(constEqueals(f, last, c)) {
 			free(c);
@@ -116,7 +116,7 @@ Constant* pushConst(Function* f, Constant* c) {
 Constant* pushVar(Function* f, Constant* c) {
 	Constant* last;
 
-	if(f->vars == NULL) {
+	if(f->vars == ULUA_NULL) {
 		c->num = 1;
 		f->vars = c;
 		return c;
@@ -127,7 +127,7 @@ Constant* pushVar(Function* f, Constant* c) {
 		free(c);
 		return last;
 	}
-	while(last->next != NULL) {
+	while(last->next != ULUA_NULL) {
 		last = last->next;
 		if(constEqueals(f, last, c)) {
 			free(c);
@@ -144,8 +144,8 @@ Constant* pushVarName(Function* f, SString* str) {
 	Constant* c = (Constant*)malloc(sizeof(Constant));
 
 	c->num = 0;
-	c->isglobal = TRUE;
-	c->next = NULL;
+	c->isglobal = ULUA_TRUE;
+	c->next = ULUA_NULL;
 	c->type = STRING_TYPE;
 	c->val_string.bp = str->bp;
 	c->val_string.bplen = str->bplen;
@@ -157,7 +157,7 @@ Constant* pushVarName(Function* f, SString* str) {
 
 Constant* getVarByNum(Function* f, lu08 num) {
 	Constant* v = f->vars;
-	while(v != NULL && v->num != num) {
+	while(v != ULUA_NULL && v->num != num) {
 		v = v->next;
 	}
 	return v;
@@ -166,18 +166,18 @@ Constant* getVarByNum(Function* f, lu08 num) {
 Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before) {
 	Instruction* tmp;
 
-	if(i == NULL) {
+	if(i == ULUA_NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
-		return NULL;
+		return ULUA_NULL;
 	}
 
-	if(before == NULL) {
+	if(before == ULUA_NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
-		return NULL;
+		return ULUA_NULL;
 	}
 
 	tmp = before->prev;
-    if(tmp != NULL) {
+    if(tmp != ULUA_NULL) {
         tmp->next = i;
     } else {
         f->instr = i;
@@ -187,7 +187,7 @@ Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before)
 	before->prev = i;
 	f->instrSize++;
 
-	if(f->currentStat == NULL)
+	if(f->currentStat == ULUA_NULL)
 		f->currentStat = i;
 
 #ifdef DEBUGVM
@@ -201,13 +201,13 @@ Instruction* insertInstruction(Function* f, Instruction* i, Instruction* before)
 Instruction* pushInstruction(Function* f, Instruction* i) {
 	Instruction* last;
 
-	if(f->instr == NULL) {
+	if(f->instr == ULUA_NULL) {
 		f->instr = i;
-		i->next = NULL;
-		i->prev = NULL;
+		i->next = ULUA_NULL;
+		i->prev = ULUA_NULL;
 		f->instrSize++;
 
-		if(f->currentStat == NULL)
+		if(f->currentStat == ULUA_NULL)
 			f->currentStat = i;
 
 #ifdef DEBUGVM
@@ -217,15 +217,15 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 		return i;
 	}
 	last = f->instr;
-	while(last->next != NULL) {
+	while(last->next != ULUA_NULL) {
 		last = last->next;
 	}
 	last->next = i;
-	i->next = NULL;
+	i->next = ULUA_NULL;
 	i->prev = last;
 	f->instrSize++;
 
-	if(f->currentStat == NULL)
+	if(f->currentStat == ULUA_NULL)
 		f->currentStat = i;
 
 #ifdef DEBUGVM
@@ -238,27 +238,27 @@ Instruction* pushInstruction(Function* f, Instruction* i) {
 Instruction* addInstruction(Function* f, Instruction* i, Instruction* after) {
 	Instruction* last;
 
-	if(i == NULL) {
+	if(i == ULUA_NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
-		return NULL;
+		return ULUA_NULL;
 	}
 
-	if(after == NULL) {
+	if(after == ULUA_NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
-		return NULL;
+		return ULUA_NULL;
 	}	
 
 	last = after->next;
 	after->next = i;
 	i->prev = after;
 	i->next = last;
-	if(last != NULL) {
+	if(last != ULUA_NULL) {
 		last->prev = i;
 	}
 
 	f->instrSize++;
 
-	if(f->currentStat == NULL)
+	if(f->currentStat == ULUA_NULL)
 		f->currentStat = i;
 
 #ifdef DEBUGVM
@@ -270,7 +270,7 @@ Instruction* addInstruction(Function* f, Instruction* i, Instruction* after) {
 }
 
 Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Instruction* before) {
-	Instruction* i = NULL;
+	Instruction* i = ULUA_NULL;
 	Constant* c;
 
 	if(!a->isload) { //make pre loading function
@@ -280,15 +280,15 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 				i->i.unpacked.opc = OP_LOADK;
 				i->i.unpacked.a = ta->num;
 				i->i.unpacked.bx.bx = a->constnum;
-				if(before != NULL) {
+				if(before != ULUA_NULL) {
 					insertInstruction(f,i,before);
 				} else {
 					pushInstruction(f,i);
 				}
-				ta->isload = TRUE;
+				ta->isload = ULUA_TRUE;
 			} else {//just copy constant
 				if(ta->num != a->num) {
-					ta->consthold = TRUE;
+					ta->consthold = ULUA_TRUE;
 					ta->constnum = a->constnum;
 				}
 			}
@@ -301,13 +301,13 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 				i->i.unpacked.opc = OP_GETGLOBAL;
 				i->i.unpacked.bx.bx = c->num;
 				i->i.unpacked.a = ta->num;
-				if(before != NULL) {
+				if(before != ULUA_NULL) {
 					insertInstruction(f,i,before);
 				} else {
 					pushInstruction(f,i);
 				}
 				ta->varnum = a->varnum;
-				ta->isload = TRUE;
+				ta->isload = ULUA_TRUE;
 			} else {//uninitialized local variable - error
 				f->error_code = E_NOTINIT_LOCAL;
 			}
@@ -318,12 +318,12 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 			i->i.unpacked.opc = OP_MOVE;
 			i->i.unpacked.a = ta->num;
 			i->i.unpacked.bx.l.b = a->num;
-			if(before != NULL) {
+			if(before != ULUA_NULL) {
 				insertInstruction(f,i,before);
 			} else {
 				pushInstruction(f,i);
 			}
-			ta->isload = TRUE;
+			ta->isload = ULUA_TRUE;
 		}
 	}
 	ta->islocal = a->islocal;
@@ -332,13 +332,13 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 
 
 void freeRegister(Register* r) {
-	r->consthold = FALSE;
+	r->consthold = ULUA_FALSE;
 	r->constnum = 0;
 	r->varnum = 0;
-	r->isfree = TRUE;
-	r->isload = FALSE;
-	r->islocal = FALSE;
-	r->exprStart = NULL;
+	r->isfree = ULUA_TRUE;
+	r->isload = ULUA_FALSE;
+	r->islocal = ULUA_FALSE;
+	r->exprStart = ULUA_NULL;
 }
 
 void tryFreeRegister(Register* r) {
@@ -355,8 +355,8 @@ Constant* pushConstString(Function* f, SString* str) {
 	Constant* c = (Constant*)malloc(sizeof(Constant));
 	
 	c->num = 0;
-	c->isglobal = TRUE;
-	c->next = NULL;
+	c->isglobal = ULUA_TRUE;
+	c->next = ULUA_NULL;
 	c->type = STRING_TYPE;
 	c->val_string.bempty = str->bempty;
 	c->val_string.bp = str->bp;
@@ -370,8 +370,8 @@ Constant* pushConstNumber(Function* f, float number) {
 	Constant* c = (Constant*)malloc(sizeof(Constant));
 	
 	c->num = 0;
-	c->isglobal = TRUE;
-	c->next = NULL;
+	c->isglobal = ULUA_TRUE;
+	c->next = ULUA_NULL;
 	c->type = NUMBER_TYPE;
 	c->val_number = number;
 	
@@ -384,12 +384,12 @@ Register* getFreeRegister(Function* f) {
 	lu08 i;
 	for(i=0; i<CG_REG_COUNT; i++) {
 		if(f->reg[i].isfree) {
-			f->reg[i].isfree = FALSE;
+			f->reg[i].isfree = ULUA_FALSE;
 			return &f->reg[i];
 		}
 	}
 	f->error_code = E_NO_FREE_REGITER;
-	return NULL;
+	return ULUA_NULL;
 }
 
 Register* getFreeRegisters(Function* f, lu08 count) {
@@ -398,24 +398,24 @@ Register* getFreeRegisters(Function* f, lu08 count) {
 	BOOL found;
 
 	for(i=0; i<CG_REG_COUNT; i++) {
-		found = TRUE;
+		found = ULUA_TRUE;
 		if(f->reg[i].isfree) {
 			for(j=i+1; j<CG_REG_COUNT && j<i+1+count; j++) {
 				if(!f->reg[j].isfree) {
-					found = FALSE;
+					found = ULUA_FALSE;
 					break;
 				}
 			}
 			if(found) {
 				for(j=0; j<count+1; j++) {
-					f->reg[i+j].isfree = FALSE;
+					f->reg[i+j].isfree = ULUA_FALSE;
 				}
 				return &f->reg[i];
 			}
 		}
 	}
 	f->error_code = E_NO_FREE_REGITER;
-	return NULL;
+	return ULUA_NULL;
 }
 
 Register* getVarRegister(Function* f, Constant* var) {
@@ -428,7 +428,7 @@ Register* getVarRegister(Function* f, Constant* var) {
 	}
 
 	r = getFreeRegister(f);
-	r->isfree = FALSE;
+	r->isfree = ULUA_FALSE;
 	r->varnum = var->num;
 
 	return r;
@@ -438,7 +438,7 @@ void unloadRegisters(Function* f) {//unload/mark registers
     lu08 i;
     for(i=0; i<CG_REG_COUNT; i++){
         if(f->reg[i].varnum > 0) //unload only variable registers
-            f->reg[i].isload = FALSE;
+            f->reg[i].isload = ULUA_FALSE;
     }
 }
 
@@ -446,7 +446,7 @@ Register* doNot(Function* f, Register* a, Token* t) { //do not\minus logic
 	Instruction* i;
 	Register* res;
 
-	checkLoad(f, a, a, TRUE, NULL);
+	checkLoad(f, a, a, ULUA_TRUE, ULUA_NULL);
 	res = getFreeRegister(f);
 
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -458,7 +458,7 @@ Register* doNot(Function* f, Register* a, Token* t) { //do not\minus logic
 
 	tryFreeRegister(a);
 
-	res->isload = TRUE;
+	res->isload = ULUA_TRUE;
 	return res;
 }
 
@@ -466,8 +466,8 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
 	Instruction* i;
 
-	checkLoad(f, a, a, TRUE, NULL);
-	checkLoad(f, b, b, TRUE, NULL);
+	checkLoad(f, a, a, ULUA_TRUE, ULUA_NULL);
+	checkLoad(f, b, b, ULUA_TRUE, ULUA_NULL);
 	res = getFreeRegister(f);
 	
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -498,7 +498,7 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	tryFreeRegister(a);
 	tryFreeRegister(b);
 
-	res->isload = TRUE;
+	res->isload = ULUA_TRUE;
 	return res;
 }
 
@@ -507,8 +507,8 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	res = getFreeRegister(f);
 	
-	checkLoad(f, a, a, FALSE, NULL);
-	checkLoad(f, b, b, FALSE, NULL);
+	checkLoad(f, a, a, ULUA_FALSE, ULUA_NULL);
+	checkLoad(f, b, b, ULUA_FALSE, ULUA_NULL);
 
 	//generate skip next instruction if true
 	i->i.unpacked.a = 1; //do not skip next instruction if comparison valid
@@ -557,7 +557,7 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	i->i.unpacked.bx.l.b = 0; //false
 	i->i.unpacked.bx.l.c = 0; //do not skip next instruction
 	pushInstruction(f, i);
-	res->isload = TRUE;
+	res->isload = ULUA_TRUE;
 
 	tryFreeRegister(a);
 	tryFreeRegister(b);
@@ -569,8 +569,8 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	Register* r;
 	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
 	
-	checkLoad(f, a, a, FALSE, NULL);
-	checkLoad(f, b, b, FALSE, NULL);
+	checkLoad(f, a, a, ULUA_FALSE, ULUA_NULL);
+	checkLoad(f, b, b, ULUA_FALSE, ULUA_NULL);
 
 	//r = a->islocal ? getFreeRegister(f) : a;
 	r = getFreeRegister(f);
@@ -603,11 +603,11 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 
 	tryFreeRegister(b);
 	tryFreeRegister(a);
-	r->consthold = FALSE;
+	r->consthold = ULUA_FALSE;
 	r->constnum = 0;
 	r->varnum = 0;
-	r->islocal = FALSE;
-	r->isload = TRUE;
+	r->islocal = ULUA_FALSE;
+	r->isload = ULUA_TRUE;
 	
 	return r;
 }
@@ -622,7 +622,7 @@ Register* doNil(Function* f) { //allocate register and load nil in it
 	i->i.unpacked.bx.l.b = res->num; //to register
 	i->i.unpacked.bx.l.c = 0; //nothing
 	pushInstruction(f, i);
-	res->isload = TRUE;
+	res->isload = ULUA_TRUE;
 	return res;
 }
 
@@ -636,7 +636,7 @@ Register* doBoolean(Function* f, Token* t) { //allocate register and load bool v
 	i->i.unpacked.bx.l.b = t->token == TK_TRUE ? 1 : 0; //boolean value
 	i->i.unpacked.bx.l.c = 0; //do not skip next instruction
 	pushInstruction(f, i);
-	res->isload = TRUE;
+	res->isload = ULUA_TRUE;
 	return res;
 }
 
@@ -647,7 +647,7 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 	Instruction* result;
 	lu16 count = 0;
 
-	checkLoad(f, a, a, TRUE, block);
+	checkLoad(f, a, a, ULUA_TRUE, block);
 
 	//make register test and skip WHILE block if true
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -662,17 +662,17 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 	i->i.unpacked.bx.bx = 1;
 	insertInstruction(f, i, block);
 
-	if(a->exprStart == NULL)
+	if(a->exprStart == ULUA_NULL)
 		a->exprStart = f->currentStat;
 	//check if given block is not null. If NULL - we have a problem in parser
-	if(block == NULL || a->exprStart == NULL) {
+	if(block == ULUA_NULL || a->exprStart == ULUA_NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
-		return NULL;
+		return ULUA_NULL;
 	}
 	//count instructions to skip
 	tmp = block;
 	count++;
-	while(tmp->next != NULL) {
+	while(tmp->next != ULUA_NULL) {
 		count++; 
 		tmp = tmp->next;
 	}
@@ -682,7 +682,7 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 	//count expression block
 	tmp = a->exprStart;
 	count++;
-	while(tmp->next != NULL && tmp->next != block) {
+	while(tmp->next != ULUA_NULL && tmp->next != block) {
 		count++; 
 		tmp = tmp->next;
 	}
@@ -704,7 +704,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	Instruction* first;
 	lu16 count = 1;
 
-	checkLoad(f, a, a, TRUE, block);
+	checkLoad(f, a, a, ULUA_TRUE, block);
 
 	//make register test and skip THEN block if false
 	i = (Instruction*)malloc(sizeof(Instruction));
@@ -721,13 +721,13 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	insertInstruction(f, i, block);
 
 	//check if given block is not null. If NULL - we have a problem in parser
-	if(block == NULL) {
+	if(block == ULUA_NULL) {
 		f->error_code = E_NULL_INSTRUCTION;
-		return NULL;
+		return ULUA_NULL;
 	}
 	//count instructions to skip
 	tmp = block;
-	while(tmp->next != NULL) {
+	while(tmp->next != ULUA_NULL) {
 		count++; 
 		tmp = tmp->next;
 	}
@@ -753,13 +753,13 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 
 	first = condlist;
 	//find last instruction in condlist and make jump over "else" block
-	while(first->next != block && first->next != NULL)  
+	while(first->next != block && first->next != ULUA_NULL)
 		first = first->next;
 
 	//count instructions to skip
-	if(block != NULL) { 
+	if(block != ULUA_NULL) {
 		tmp = block;
-		while(tmp->next != NULL) {
+		while(tmp->next != ULUA_NULL) {
 			count++; 
 			tmp = tmp->next;
 		}
@@ -773,7 +773,7 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 	//check if we found jump
 	if(first->i.unpacked.opc == OP_JMP) {
 		jmp = first;
-		while(first->next != block && first->next != NULL) {
+		while(first->next != block && first->next != ULUA_NULL) {
 			first = first->next;
 			countprejump++;
 		}
@@ -797,13 +797,13 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 
 	first = condlist;
 	//find last instruction in condlist and make jump over "else" block
-	while(first->next != cond && first->next != NULL)  
+	while(first->next != cond && first->next != ULUA_NULL)
 		first = first->next;
 
 	//count instructions to skip
-	if(cond != NULL) { 
+	if(cond != ULUA_NULL) {
 		tmp = cond;
-		while(tmp->next != NULL) {
+		while(tmp->next != ULUA_NULL) {
 			count++; 
 			tmp = tmp->next;
 		}
@@ -817,7 +817,7 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 	//check if we found jump
 	if(first->i.unpacked.opc == OP_JMP) {
 		jmp = first;
-		while(first->next != cond && first->next != NULL) {
+		while(first->next != cond && first->next != ULUA_NULL) {
 			first = first->next;
 			countprejump++;
 		}
@@ -837,11 +837,11 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 	Constant* c;
 
 	if(islocal) { //local variable - just load
-		i = checkLoad(f, b, a, TRUE, NULL);
-		a->islocal = TRUE;
+		i = checkLoad(f, b, a, ULUA_TRUE, ULUA_NULL);
+		a->islocal = ULUA_TRUE;
 		tryFreeRegister(b);
 	} else {//global variable
-		checkLoad(f, b, a, TRUE, NULL);
+		checkLoad(f, b, a, ULUA_TRUE, ULUA_NULL);
 		i = (Instruction*)malloc(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
@@ -867,10 +867,10 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	tb = &f->reg[ta->num + 1];
 
 	//FUNCTION A reg
-	checkLoad(f,a,ta,TRUE, NULL);
+	checkLoad(f,a,ta,ULUA_TRUE, ULUA_NULL);
 
 	//ARGUMENTS B reg
-	checkLoad(f,b,tb,TRUE, NULL);
+	checkLoad(f,b,tb,ULUA_TRUE, ULUA_NULL);
 
 	i->i.unpacked.opc = OP_CALL;
 	i->i.unpacked.a = ta->num;
@@ -908,7 +908,7 @@ void dumpFunction(Function* f, writeBytes write) {
 	//dump instructions
 	((lu16*)buff)[0] = f->instrSize; write(buff, 2);
 	i = f->instr;
-	while(i != NULL) {
+	while(i != ULUA_NULL) {
 		((lu32*)buff)[0] = i->i.packed; write(buff, 4);
 		i = i->next;
 	}
@@ -916,7 +916,7 @@ void dumpFunction(Function* f, writeBytes write) {
 	//dump constants
 	((lu16*)buff)[0] = f->constsSize; write(buff, 2);
 	c = f->consts;
-	while(c != NULL) {
+	while(c != ULUA_NULL) {
 		buff[0] = c->type; write(buff, 1); //const type
 		switch(c->type) {
 			case NUMBER_TYPE: //number
@@ -936,7 +936,7 @@ void dumpFunction(Function* f, writeBytes write) {
 	//dump functions
 	((lu16*)buff)[0] = f->subfuncsSize; write(buff, 2);
 	fp = f->subfuncs;
-	while(fp != NULL) {
+	while(fp != ULUA_NULL) {
 		dumpFunction(fp, write);
 	}
 	

@@ -20,11 +20,11 @@ static int getLine (char *prmpt, lu08 *buff, int sz) {
     int ch, extra;
 
     // Get line with buffer overrun protection.
-    if (prmpt != NULL) {
+    if (prmpt != ULUA_NULL) {
         printf ("%s", prmpt);
         fflush (stdout);
     }
-    if (fgets ((char*)buff, sz, stdin) == NULL)
+    if (fgets ((char*)buff, sz, stdin) == ULUA_NULL)
         return GETLINE_NO_INPUT;
 
     // If it was too long, there'll be no newline. In that case, we flush
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 	vmInit(&thread);
 
 	//main cycle
-	while(TRUE) {
+	while(ULUA_TRUE) {
 		//read code from command line
 		getLine(">> ", code, CODE_BUFFER_SIZE);
 		//exit on exit() command
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 		}
 
 		//execude code only if there were no errors
-		if(top.parsed == TRUE && top.error_code == 0 && getLastULexError() == E_NONE) {
+		if(top.parsed == ULUA_TRUE && top.error_code == 0 && getLastULexError() == E_NONE) {
 			//dump function
 #ifdef DEBUGVM
 			printFunction(&top);

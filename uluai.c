@@ -15,9 +15,9 @@ void testGC()
 	num3 = gcNew(VAR_FLOAT);
 
 	GCVALUE(ls32,num1) = 10;
-	GCVALUE(lu08,num2) = TRUE;
+	GCVALUE(lu08,num2) = ULUA_TRUE;
 	GCVALUE(float,num3) = 1.5f;
-	GCVALUE(lu08,num2) = FALSE;
+	GCVALUE(lu08,num2) = ULUA_FALSE;
 
 	gcDelete(num2);
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	if(argc < 2) 
 	{
 		printf("Usage: \n");
-		printf("uLua file.luc");
+		printf("uluai file.clu\n");
 		return 1;
 	}
 	//read file
