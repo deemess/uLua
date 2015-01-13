@@ -1,7 +1,7 @@
 #ifndef VMCONFIG_H
 #define VMCONFIG_H
 
-// -----  GC ---------
+// -----  Memory ---------
 #define UMEMORY_SIZE 1024
 
 // -----  GC ---------
