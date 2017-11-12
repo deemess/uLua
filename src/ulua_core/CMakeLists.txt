@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.5)   # CMake version check
 project(ulua_core)
 set(CMAKE_CXX_STANDARD 11)            # Enable c++11 standard
 
-set(ULUA_CORE_INCLUDE_DIR include)
-
 set(ULUA_CORE_SOURCES
         src/gc.c
         src/native.c
@@ -15,8 +13,6 @@ set(ULUA_CORE_SOURCES
         src/uparser.c
         src/vm.c
         )
-
-include_directories(${ULUA_CORE_INCLUDE_DIR})
 
 add_executable(lemon src/lemon.c)
 
