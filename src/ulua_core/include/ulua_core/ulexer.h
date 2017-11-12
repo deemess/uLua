@@ -1,11 +1,8 @@
 #ifndef ULEXER_H
 #define ULEXER_H
 
-#include <ctype.h>
-#include <stdlib.h>
 #include "ulua_core/basetypes.h"
 #include "ulua_core/llerror.h"
-#include "ulua_core/uparser.h"
 
 //#define TK_AND 257
 //#define TK_BREAK 258

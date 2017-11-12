@@ -3,7 +3,6 @@
 
 #include "ulua_core/basetypes.h"
 #include "ulua_core/vmconfig.h"
-#include <stdio.h>
 
 typedef void (*nativeFunc)(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c);
 

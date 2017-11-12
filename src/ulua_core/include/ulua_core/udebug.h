@@ -5,7 +5,6 @@
 
 #ifdef DEBUGVM
 
-#include <stdio.h>
 #include "basetypes.h"
 #include "ucodegen.h"
 

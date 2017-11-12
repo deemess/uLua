@@ -1,6 +1,12 @@
-#include "ulua_core/vm.h"
 #include <math.h>
 #include <stdio.h>
+#include "ulua_core/vm.h"
+#include "ulua_core/vmconfig.h"
+#include "ulua_core/opcodes.h"
+#include "ulua_core/gc.h"
+#include "ulua_core/native.h"
+#include "ulua_core/ucodegen.h"
+
 
 //reset structs functions
 static void initStructState(vmstate* state)

@@ -2,7 +2,6 @@
 #define TABLE_H
 
 #include "ulua_core/basetypes.h"
-#include "ulua_core/vmconfig.h"
 #include "ulua_core/gc.h"
 
 //table structure

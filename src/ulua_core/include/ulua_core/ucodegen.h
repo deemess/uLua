@@ -1,13 +1,9 @@
 #ifndef UCODEGEN_H
 #define UCODEGEN_H
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "ulua_core/vmconfig.h"
 #include "ulua_core/basetypes.h"
-#include "ulua_core/opcodes.h"
 #include "ulua_core/ulexer.h"
-#include "ulua_core/llerror.h"
 
 #define CG_REG_COUNT 30
 

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "ulua_core/gc.h"
 
 //global variables for gc

@@ -1,5 +1,9 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "ulua_core/ucodegen.h"
 #include "ulua_core/udebug.h"
+#include "ulua_core/opcodes.h"
+#include "ulua_core/uparser.h"
 
 void initFunction(Function* f, lu08* code) {
 	lu08 i;

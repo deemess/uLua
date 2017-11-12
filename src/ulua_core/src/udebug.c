@@ -1,4 +1,7 @@
+#include <stdio.h>
 #include "ulua_core/udebug.h"
+#include "ulua_core/uparser.h"
+#include "ulua_core/opcodes.h"
 
 #ifdef DEBUGVM
 

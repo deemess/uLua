@@ -3,7 +3,6 @@
 
 #include "ulua_core/vmconfig.h"
 #include "ulua_core/basetypes.h"
-#include <stdio.h>
 
 //variable accessors
 #define GCVALUE(type,var) ((type*)(*var)->data)[0]

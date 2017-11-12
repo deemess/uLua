@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "ulua_core/ulexer.h"
 #include "ulua_core/uparser_static.h"
 #include "ulua_core/ucodegen.h"

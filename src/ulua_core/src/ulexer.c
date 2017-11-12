@@ -1,4 +1,7 @@
+#include <ctype.h>
+#include <stdlib.h>
 #include "ulua_core/ulexer.h"
+#include "ulua_core/uparser.h"
 
 ERROR_CODE error = E_NONE;
 static reserved keywords[] = {

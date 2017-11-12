@@ -2,7 +2,6 @@
 #define UPARSER_STATIC_H
 
 #include <stddef.h>
-#include "ulua_core/uparser.h"
 #include "ulua_core/ulexer.h"
 #include "ulua_core/ucodegen.h"
 

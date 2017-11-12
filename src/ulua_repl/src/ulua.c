@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include "ulua_core/ulexer.h"
 #include "ulua_core/uparser_static.h"
-#include "ulua_core/ucodegen.h"
 #include "ulua_core/vm.h"
 #include "ulua_core/udebug.h"
 
@@ -11,7 +10,7 @@
 #define GETLINE_NO_INPUT 1
 #define GETLINE_TOO_LONG 2
 
-#define CODE_BUFFER_SIZE 64*1024
+#define CODE_BUFFER_SIZE (64*1024)
 
 static lu08 code[CODE_BUFFER_SIZE];
 static lu08 bdump[CODE_BUFFER_SIZE];
@@ -42,7 +41,7 @@ static int getLine (char *prmpt, lu08 *buff, int sz) {
 }
 
 lu16 dp = 0;
-void writeBytecode(lu08* buff, lu16 size) {
+void writeBytecode(const lu08* buff, lu16 size) {
 	lu16 i;
 	for(i=0; i<size; i++) {
 		bdump[dp + i] = buff[i];
@@ -124,7 +123,7 @@ int main(int argc, char **argv) {
 #endif
 			//get binary dump
 			dp = 0;
-			dump(&top, &writeBytecode);
+			dump(&top, (writeBytes) &writeBytecode);
 			//run dump on vm
 			vmRun(&thread, &readBytecode);
 		}

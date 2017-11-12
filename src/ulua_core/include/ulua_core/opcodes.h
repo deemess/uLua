@@ -7,8 +7,6 @@
 #ifndef lopcodes_h
 #define lopcodes_h
 
-#include "ulua_core/basetypes.h"
-
 #ifndef cast
 #define cast(t, exp)	((t)(exp))
 #endif
