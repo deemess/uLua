@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)   # CMake version check
+cmake_minimum_required(VERSION 3.5)   # CMake version check
 set(CMAKE_CXX_STANDARD 11)            # Enable c++11 standard
 
 include_directories(src/ulua_core/include)
