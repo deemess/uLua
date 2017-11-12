@@ -31,3 +31,5 @@ add_custom_target(lemon_run
 add_library(ulua_core ${ULUA_CORE_SOURCES} )
 
 add_dependencies(ulua_core lemon_run)
+
+target_link_libraries(ulua_core m)
