@@ -1,7 +1,5 @@
 # ignore obj compiled files
 *.o
-lemon
-ulua
 uluac
 uluai
 uparser.out
