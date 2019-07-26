@@ -2,17 +2,17 @@
 #define NATIVE_H
 
 #include "ulua_core/basetypes.h"
-#include "ulua_core/vmconfig.h"
+#include "ulua_core/vm.h"
 
-typedef void (*nativeFunc)(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c);
+typedef void (*nativeFunc)(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c);
 
 //exported functions
 
 //preload native functions in global namespace
-void nativeInit(vm* vm);
+void nativeInit(ulua_vm* vm);
 
 //call native function stored in reg
-void nativeCall(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c);
+void nativeCall(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c);
 
 #endif
 

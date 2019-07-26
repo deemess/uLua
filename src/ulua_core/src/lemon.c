@@ -3827,7 +3827,7 @@ void ReportTable(
   **  yy_default[]       Default action for each state.
   */
 
-  /* Compute the actions on all states and count them up */
+  /* Compute the actions on all states and size them up */
   ax = (struct axset *) calloc(lemp->nstate*2, sizeof(ax[0]));
   if( ax==0 ){
     fprintf(stderr,"malloc failed\n");

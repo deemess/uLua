@@ -3,7 +3,6 @@
 #include "ulua_core/vm.h"
 #include "ulua_core/vmconfig.h"
 #include "ulua_core/opcodes.h"
-#include "ulua_core/gc.h"
 #include "ulua_core/native.h"
 #include "ulua_core/ucodegen.h"
 
@@ -18,13 +17,13 @@ static void initStructState(vmstate* state)
 	state->retreg = 0;
 
 	for(i=0; i<REGISTERSIZE; i++) {
-		state->reg[i].type = VAR_NULL;
+		state->reg[i].type = REGISTER_VAR_NULL;
 		state->reg[i].numval = 0;
 	}
 
 }
 
-void initStructVM(vm* vm)
+void initStructVM(ulua_vm* vm)
 {
 	int i=0;
 	int j=0;
@@ -37,27 +36,29 @@ void initStructVM(vm* vm)
 	for(i=0; i<PCSTACKSIZE; i++)
 		vm->pcstack[i] = 0;
 
-	for(i=0; i<GLOBALSIZE; i++) {
-		vm->global[i].val.type = VAR_NULL;
-		vm->global[i].val.numval = 0;
-
-		for(j=0; j<GLOBALNAMESIZE; j++)
-			vm->global[i].name[j] = 0;
-	}
+	vm->globals_table = ulua_mem_table_new();
 
 	for(i=0; i<STATEMAXCOUNT; i++)
 		initStructState(&vm->state[i]);
 }
 
 //Initialize virtual machine
-void vmInit(vm* vm)
+ulua_memvar* vmInit(lu08* memory, lu16 memory_size)
 {
-	//reset structure
-	initStructVM(vm);
 	//Init garbage collector and mamory management
-	gcInit();
+    ulua_mem_init(memory, memory_size);
+    //allocate memory for vm struct
+    ulua_memvar* v = ulua_mem_new(ULUA_MEM_TYPE_VM, sizeof(ulua_vm));
+
+    //reset structure
+    initStructVM(GCVALUE(ulua_vm*, v));
+
+    GCVALUE(ulua_vm*, v)->memory = memory;
+    GCVALUE(ulua_vm*, v)->memory_size = memory_size;
 	//pre load native functions in global namespace
-	nativeInit(vm);
+	nativeInit(GCVALUE(ulua_vm*, v));
+
+	return v;
 }
 
 //read from bytecode functions
@@ -162,35 +163,6 @@ lu16 getConstPt(readBytes read, lu16 constspt, lu16 N)
 	return constspt;
 }
 
-//Find global variable by name .Return global index
-lu08 getGlobalByName(vm* vm, lu08* name)
-{
-	lu08 foundGlobal = 0;
-	lu08 match;
-	int i;
-
-	for(foundGlobal=0; foundGlobal<GLOBALSIZE; foundGlobal++)
-	{
-		if(vm->global[foundGlobal].val.type == VAR_NULL) //global not found - return free one
-			break;
-
-		match = 1;
-		for(i=0; i<GLOBALNAMESIZE && name[i] != 0 && vm->global[foundGlobal].name[i] != 0; i++)
-		{
-			if(vm->global[foundGlobal].name[i] != name[i])
-			{
-				match = 0;
-				break;
-			}
-		}
-				
-		if(match == 1)
-			break;
-	}
-
-	return foundGlobal;
-}
-
 //compare values in register a and b. return:  0: a!=b   1: a=b  -1: a>b  -2: a<b 
 ls08 compare(vmregister* a, vmregister* b)
 {
@@ -200,7 +172,7 @@ ls08 compare(vmregister* a, vmregister* b)
 	if(a->numval == b->numval)
 		return 1;
 
-	if(a->type == VAR_FLOAT)
+	if(a->type == REGISTER_VAR_FLOAT)
 	{ 
 		if(a->floatval > b->floatval)
 			return -1;
@@ -208,7 +180,7 @@ ls08 compare(vmregister* a, vmregister* b)
 			return -2;
 	}
 
-	if(a->type == VAR_NUMBER)
+	if(a->type == REGISTER_VAR_NUMBER)
 	{ 
 		if(a->numval > b->numval)
 			return -1;
@@ -222,17 +194,19 @@ ls08 compare(vmregister* a, vmregister* b)
 void clearRegister(vmregister* reg)
 {
 	//check register for GC ref
-	if(reg->type == VAR_CLOSURE) {
-		GCREFDEC((gcvarpt*)reg->pointer);
-		GCCHECK((gcvarpt*)reg->pointer);
-	}
-	//reg->type = VAR_NULL;
+//	if(reg->type == REGISTER_VAR_CLOSURE) {
+//		GCREFDEC((gcvarpt*)reg->pointer);
+//		GCCHECK((gcvarpt*)reg->pointer);
+//	}
+	//reg->type = REGISTER_VAR_NULL;
 	//reg->numval = 0;
 }
 
 
-lu08 vmRun(vm* vm, readBytes read)
+lu08 vmRun(ulua_memvar* memvm, readBytes read)
 {
+    ulua_vm* vm = GCVALUE(ulua_vm*, memvm);
+
 	lu08 a = 0;
 	lu08 b = 0;
 	lu08 c = 0;
@@ -243,14 +217,17 @@ lu08 vmRun(vm* vm, readBytes read)
 	lu08 name[32];
 	lu16 codesize;
 	lu08 opcode;
-	gcvarpt* gcpointer = NULL;
+    ulua_memvar* gcpointer = NULL;
 	int i;
+    ulua_memvar* stringvar = ULUA_NULL;
+    ulua_memvar* regvar = ULUA_NULL;
+    vmregister* reg = ULUA_NULL;
 
 	vmregister tmp;
 	vmregister tmp2;
-	tmp.type = VAR_NULL;
+	tmp.type = REGISTER_VAR_NULL;
 	tmp.numval = 0;
-	tmp2.type = VAR_NULL;
+	tmp2.type = REGISTER_VAR_NULL;
 	tmp2.numval = 0;
 
 	//vmstate* state = &vm->state[0];
@@ -294,12 +271,12 @@ lu08 vmRun(vm* vm, readBytes read)
 
 		case OP_CLOSURE: //Create closure and put it into R(A)
 			//create closure in GC
-			gcpointer = gcNew(VAR_CLOSURE);
-			GCVALUE(vmclosure, gcpointer).funcp = getFuncPt(read, curstate->funcp, sbx);
-			GCVALUE(vmclosure, gcpointer).upvalcount = platformReadByte(read, GCVALUE(vmclosure, gcpointer).funcp + 3*4);
+			gcpointer = ulua_mem_new(REGISTER_VAR_CLOSURE, sizeof(vmclosure));
+			GCVALUE(vmclosure*, gcpointer)->funcp = getFuncPt(read, curstate->funcp, sbx);
+			GCVALUE(vmclosure*, gcpointer)->upvalcount = platformReadByte(read, GCVALUE(vmclosure*, gcpointer)->funcp + 3*4);
 
 			//init upvalues
-			for(i=0; i < GCVALUE(vmclosure, gcpointer).upvalcount; i++)
+			for(i=0; i < GCVALUE(vmclosure*, gcpointer)->upvalcount; i++)
 			{
 				//TODO: implement upvalues
 				//u32 nextint = platformReadDWord(read, vm->pc);
@@ -331,9 +308,9 @@ lu08 vmRun(vm* vm, readBytes read)
 			}
 
 			//save pointer to the closure into register
-			GCREFINC(gcpointer);
+			//GCREFINC(gcpointer);
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_CLOSURE;
+			curstate->reg[a].type = REGISTER_VAR_CLOSURE;
 			curstate->reg[a].pointer = gcpointer;
 			break;
 
@@ -345,22 +322,13 @@ lu08 vmRun(vm* vm, readBytes read)
 			constpt += 2;
 			read(name, constpt, codesize);
 
-			//search global
-			glindex = getGlobalByName(vm, name);
-			//copy name
-			for(i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
-			{
-				vm->global[glindex].name[i] = name[i];
-			}
+			stringvar = ulua_mem_string_new(name);
+			regvar = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
+			reg = GCVALUE(vmregister*, regvar);
+			reg->type = curstate->reg[a].type;
+			reg->pointer = curstate->reg[a].pointer;
 
-			//set global value
-			if(curstate->reg[a].type == VAR_CLOSURE)
-			{
-				GCREFINC((gcvarpt*)curstate->reg[a].pointer);
-			}
-			clearRegister(&vm->global[glindex].val);
-			vm->global[glindex].val.type = curstate->reg[a].type;
-			vm->global[glindex].val.pointer = curstate->reg[a].pointer;
+			ulua_mem_table_put(vm->globals_table, stringvar, regvar);
 			break;
 
 		case OP_GETGLOBAL: // A Bx	R(A) := Gbl[Kst(Bx)]
@@ -371,25 +339,23 @@ lu08 vmRun(vm* vm, readBytes read)
 			constpt += 2;
 			read(name, constpt, codesize);
 
-			//search global
-			glindex = getGlobalByName(vm, name);
-
-
-			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = vm->global[glindex].val.type;
-			curstate->reg[a].pointer = vm->global[glindex].val.pointer;
+			stringvar = ulua_mem_string_new(name);
+			regvar = ulua_mem_table_get(vm->globals_table, stringvar);
+			reg = GCVALUE(vmregister*, regvar);
+			curstate->reg[a].type = reg->type;
+			curstate->reg[a].pointer = reg->pointer;
 			break;
 
 		case OP_GETUPVAL: //R(A) := UpValue[B]
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = GCVALUE(vmclosure, curstate->closure).upval[b].type;
-			curstate->reg[a].pointer = GCVALUE(vmclosure, curstate->closure).upval[b].pointer;
+			curstate->reg[a].type = GCVALUE(vmclosure*, curstate->closure)->upval[b].type;
+			curstate->reg[a].pointer = GCVALUE(vmclosure*, curstate->closure)->upval[b].pointer;
 			break;
 
 		case OP_SETUPVAL: //UpValue[B] := R(A)
-			clearRegister(&GCVALUE(vmclosure, curstate->closure).upval[b]);
-			GCVALUE(vmclosure, curstate->closure).upval[b].type = curstate->reg[a].type;
-			GCVALUE(vmclosure, curstate->closure).upval[b].pointer = curstate->reg[a].pointer;
+			clearRegister(&GCVALUE(vmclosure*, curstate->closure)->upval[b]);
+			GCVALUE(vmclosure*, curstate->closure)->upval[b].type = curstate->reg[a].type;
+			GCVALUE(vmclosure*, curstate->closure)->upval[b].pointer = curstate->reg[a].pointer;
 			break;
 		
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
@@ -401,22 +367,22 @@ lu08 vmRun(vm* vm, readBytes read)
 			switch(type)
 			{
 			case BOOL_TYPE:
-				curstate->reg[a].type = VAR_BOOLEAN;
+				curstate->reg[a].type = REGISTER_VAR_BOOLEAN;
 				break;
 
 			case NUMBER_TYPE:
-				curstate->reg[a].type = VAR_FLOAT;
+				curstate->reg[a].type = REGISTER_VAR_FLOAT;
 				curstate->reg[a].floatval = platformReadNumber(read, constpt);
 				break;
 
 			case STRING_TYPE:
-				curstate->reg[a].type = VAR_FILE_POINTER_STR;
+				curstate->reg[a].type = REGISTER_VAR_FILE_POINTER_STR;
 				curstate->reg[a].numval = constpt;
 				break;
 
 			default:
 			case NULL_TYPE:
-				curstate->reg[a].type = VAR_NULL;
+				curstate->reg[a].type = REGISTER_VAR_NULL;
 				break;
 			}
 			break;
@@ -426,33 +392,33 @@ lu08 vmRun(vm* vm, readBytes read)
 			for(i=a; i<=b; i++)
 			{
 				clearRegister(&curstate->reg[i]);
-				curstate->reg[i].type = VAR_NULL;
+				curstate->reg[i].type = REGISTER_VAR_NULL;
 				curstate->reg[i].numval = 0;
 			}
 			break;
 
 		case OP_LOADBOOL:
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_BOOLEAN;
+			curstate->reg[a].type = REGISTER_VAR_BOOLEAN;
 			curstate->reg[a].floatval = (float)b;
 			if(c > 0) //skip instruction
 				vm->pc += 4;
 			break;
 
 		case OP_CALL: //A B C	R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
-			if(curstate->reg[a].type == VAR_NATIVE_FUNC)
+			if(curstate->reg[a].type == REGISTER_VAR_NATIVE_FUNC)
 			{//native function call
 				nativeCall(vm, read, a, b, c);
 			}
-			else if(curstate->reg[a].type == VAR_CLOSURE)
+			else if(curstate->reg[a].type == REGISTER_VAR_CLOSURE)
 			{//lua function call
 
 				//save next pc instruction address to the stack
 				vm->pcstack[vm->pcstackpt++] = vm->pc;
 				//set pc = call function address
 				//TODO: check reg type
-				gcpointer = (gcvarpt*)curstate->reg[a].pointer;
-				vm->pc = GCVALUE(vmclosure,gcpointer).funcp;
+				gcpointer = (ulua_memvar*)curstate->reg[a].pointer;
+				vm->pc = GCVALUE(vmclosure*,gcpointer)->funcp;
 				vm->pc += 16; //skip functino header
 
 				//prepare state
@@ -505,8 +471,8 @@ lu08 vmRun(vm* vm, readBytes read)
 		//TODO: check types and nulls
 		case OP_ADD://	A B C	R(A) := RK(B) + RK(C)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			tmp.type = VAR_FLOAT;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			tmp.type = REGISTER_VAR_FLOAT;
 
 			if(b > CG_REG_COUNT)
 			{
@@ -533,8 +499,8 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_SUB://	A B C	R(A) := RK(B) - RK(C)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			tmp.type = VAR_FLOAT;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			tmp.type = REGISTER_VAR_FLOAT;
 
 			if(b > CG_REG_COUNT)
 			{
@@ -561,8 +527,8 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_MUL://	A B C	R(A) := RK(B) * RK(C)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			tmp.type = VAR_FLOAT;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			tmp.type = REGISTER_VAR_FLOAT;
 			if(b > CG_REG_COUNT)
 			{
 				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
@@ -588,8 +554,8 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_DIV://	A B C	R(A) := RK(B) / RK(C)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			tmp.type = VAR_FLOAT;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			tmp.type = REGISTER_VAR_FLOAT;
 			if(b > CG_REG_COUNT)
 			{
 				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
@@ -615,8 +581,8 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_MOD://	A B C	R(A) := RK(B) % RK(C)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			tmp.type = VAR_FLOAT;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			tmp.type = REGISTER_VAR_FLOAT;
 			if(b > CG_REG_COUNT)
 			{
 				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
@@ -642,8 +608,8 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_POW://	A B C	R(A) := RK(B) ^ RK(C)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			tmp.type = VAR_FLOAT;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			tmp.type = REGISTER_VAR_FLOAT;
 			if(b > CG_REG_COUNT)
 			{
 				constpt = getConstPt(read, curstate->constp, b - CG_REG_COUNT);
@@ -669,8 +635,8 @@ lu08 vmRun(vm* vm, readBytes read)
 		
 		case OP_NOT://	A B 	R(A) := not R(B)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_BOOLEAN;
-			if(curstate->reg[b].type == VAR_NULL) {
+			curstate->reg[a].type = REGISTER_VAR_BOOLEAN;
+			if(curstate->reg[b].type == REGISTER_VAR_NULL) {
 				curstate->reg[a].floatval = 1;
 			} else {
 				curstate->reg[a].floatval = curstate->reg[b].floatval == 0 ? 1 : 0;
@@ -678,9 +644,9 @@ lu08 vmRun(vm* vm, readBytes read)
 			break;
 		case OP_UNM://	A B		R(A) := -R(B)
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = VAR_FLOAT;
-			if(curstate->reg[b].type == VAR_NULL) {
-				curstate->reg[a].type = VAR_NULL;
+			curstate->reg[a].type = REGISTER_VAR_FLOAT;
+			if(curstate->reg[b].type == REGISTER_VAR_NULL) {
+				curstate->reg[a].type = REGISTER_VAR_NULL;
 			} else {
 				curstate->reg[a].floatval = -curstate->reg[b].floatval;
 			}
@@ -689,7 +655,7 @@ lu08 vmRun(vm* vm, readBytes read)
 		//FOR LOOPS
 		case OP_FORPREP:
 			//TODO: add checking numeric types in for loops variables
-			curstate->reg[a+3].type = VAR_FLOAT;
+			curstate->reg[a+3].type = REGISTER_VAR_FLOAT;
 			curstate->reg[a].floatval -= curstate->reg[a+2].floatval;
 			vm->pc += (sbx+1)*4; //TODO: why +1???
 			break;

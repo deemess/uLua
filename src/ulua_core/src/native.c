@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "ulua_core/native.h"
+#include "ulua_core/umemory.h"
 
 
 
@@ -27,35 +28,35 @@ void printRegister(readBytes read, vmregister reg)
 	lu08 name[32];
 	switch(reg.type)
 	{
-		case VAR_NATIVE_FUNC:
+		case REGISTER_VAR_NATIVE_FUNC:
 			printf("Native function\t");
 			break;
 			
-		case VAR_BOOLEAN:
+		case REGISTER_VAR_BOOLEAN:
 			if(reg.floatval == 1) printf("true\t"); else printf("false\t");
 			break;
 
-		case VAR_NUMBER:
+		case REGISTER_VAR_NUMBER:
 			printf("%d\t", reg.numval);
 			break;
 
-		case VAR_FLOAT:
+		case REGISTER_VAR_FLOAT:
 			printf("%.0f\t", reg.floatval);
 			break;
 
-		case VAR_STRING:
+		case REGISTER_VAR_STRING:
 			printf("%s\t", (char*)reg.pointer);
 			break;
 
-		case VAR_NULL:
+		case REGISTER_VAR_NULL:
 			printf("nil\t");
 			break;
 
-		case VAR_CLOSURE:
+		case REGISTER_VAR_CLOSURE:
 			printf("luc function at %d\t", reg.numval);
 			break;
 
-		case VAR_FILE_POINTER_STR:
+		case REGISTER_VAR_FILE_POINTER_STR:
 			constpt = reg.numval;
 			read(name, constpt, 2); constpt += 2;
 			size = *(lu16*)(&name[0]);
@@ -63,14 +64,14 @@ void printRegister(readBytes read, vmregister reg)
 			printf("%s\t", name);
 			break;
 
-		case VAR_TABLE:
+		case REGISTER_VAR_TABLE:
 			printf("Table{}\t");
 			break;
 	}
 }
 
 //native print(..) function
-void nativePrint(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
+void nativePrint(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
 {
 	lu08 i=0;
 	//print all variables
@@ -86,48 +87,36 @@ void nativePrint(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
 	printf("\n");
 }
 
+//native print(..) function
+void nativeMemDump(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c) {
+    ulua_mem_dump();
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
-
-
-//Find  free global variable .Return global index
-lu08 getFreeGlobal(vm* vm)
+void putNative(ulua_vm* v, lu08* name, nativeFunc func)
 {
-	lu08 foundGlobal = 0;
-	for(foundGlobal=0; foundGlobal<GLOBALSIZE; foundGlobal++)
-	{
-		if(vm->global[foundGlobal].val.type == VAR_NULL) //find free global
-			break;
-	}
+    ulua_memvar* stringvar = ulua_mem_string_new(name);
+    ulua_memvar* regvar = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
+    vmregister* reg = GCVALUE(vmregister*, regvar);
 
-	return foundGlobal;
-}
-
-void putNative(vm* v, lu08* name, nativeFunc func)
-{
-	int i=0;
-	lu08 freeIndex = getFreeGlobal(v);
 	//set global
-	v->global[freeIndex].val.type = VAR_NATIVE_FUNC;
-	v->global[freeIndex].val.pointer = (void*)(func);
+    reg->type = REGISTER_VAR_NATIVE_FUNC;
+	reg->pointer = (void*)(func);
 
-	//copy name
-	for(i=0; i<GLOBALNAMESIZE && name[i] != 0; i++)
-	{
-		v->global[freeIndex].name[i] = name[i];
-	}
+	ulua_mem_table_put(v->globals_table, stringvar, regvar);
 }
-
 
 //preload native functions in global namespace
-void nativeInit(vm* vm)
+void nativeInit(ulua_vm* vm)
 {
 	//add native "print" function
 	putNative(vm, (lu08*)"print", &nativePrint);
+	putNative(vm, (lu08*)"memdump", &nativeMemDump);
 }
 
 //call native function stored in reg
-void nativeCall(vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
+void nativeCall(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
 {
 	nativeFunc func = (nativeFunc)vm->state[vm->statept].reg[a].pointer;
 	func(vm, read, a, b, c);

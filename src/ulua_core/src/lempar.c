@@ -770,7 +770,7 @@ void Parse(
       **    it is legal to shift the error symbol, then shift
       **    the error symbol.
       **
-      **  * Set the error count to three.
+      **  * Set the error size to three.
       **
       **  * Begin accepting and shifting new tokens.  No new error
       **    processing will occur until three tokens have been

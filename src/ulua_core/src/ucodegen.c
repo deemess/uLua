@@ -673,7 +673,7 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 		f->error_code = E_NULL_INSTRUCTION;
 		return ULUA_NULL;
 	}
-	//count instructions to skip
+	//size instructions to skip
 	tmp = block;
 	count++;
 	while(tmp->next != ULUA_NULL) {
@@ -683,7 +683,7 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 	i->i.unpacked.bx.bx = ++count; // +1 for final jump instruction
 	last = tmp;
 
-	//count expression block
+	//size expression block
 	tmp = a->exprStart;
 	count++;
 	while(tmp->next != ULUA_NULL && tmp->next != block) {
@@ -729,7 +729,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 		f->error_code = E_NULL_INSTRUCTION;
 		return ULUA_NULL;
 	}
-	//count instructions to skip
+	//size instructions to skip
 	tmp = block;
 	while(tmp->next != ULUA_NULL) {
 		count++; 
@@ -760,7 +760,7 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 	while(first->next != block && first->next != ULUA_NULL)
 		first = first->next;
 
-	//count instructions to skip
+	//size instructions to skip
 	if(block != ULUA_NULL) {
 		tmp = block;
 		while(tmp->next != ULUA_NULL) {
@@ -786,7 +786,7 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 
 	//i = (Instruction*)malloc(sizeof(Instruction));
 	//i->i.unpacked.opc = OP_JMP;//skip THEN block
-	//i->i.unpacked.bx.bx = count;
+	//i->i.unpacked.bx.bx = size;
 	//insertInstruction(f, i, tmp);
 
 	return condlist;
@@ -804,7 +804,7 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 	while(first->next != cond && first->next != ULUA_NULL)
 		first = first->next;
 
-	//count instructions to skip
+	//size instructions to skip
 	if(cond != ULUA_NULL) {
 		tmp = cond;
 		while(tmp->next != ULUA_NULL) {
@@ -830,7 +830,7 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 
 	//i = (Instruction*)malloc(sizeof(Instruction));
 	//i->i.unpacked.opc = OP_JMP;//skip THEN block
-	//i->i.unpacked.bx.bx = count;
+	//i->i.unpacked.bx.bx = size;
 	//insertInstruction(f, i, tmp);
 
 	return condlist;

@@ -1,35 +1,12 @@
 #include "ulua_core/basetypes.h"
 #include "ulua_core/vm.h"
-#include "ulua_core/gc.h"
 #include <stdio.h>
 
-void testGC()
-{
-	gcvarpt* num1;
-	gcvarpt* num2; 
-	gcvarpt* num3; 
-	gcvarpt* num4;
 
-	num1 = gcNew(VAR_NUMBER);
-	num2 = gcNew(VAR_BOOLEAN);
-	num3 = gcNew(VAR_FLOAT);
+#define CODE_BUFFER_SIZE (64*1024)-1
 
-	GCVALUE(ls32,num1) = 10;
-	GCVALUE(lu08,num2) = ULUA_TRUE;
-	GCVALUE(float,num3) = 1.5f;
-	GCVALUE(lu08,num2) = ULUA_FALSE;
+static lu08 ram[CODE_BUFFER_SIZE];
 
-	gcDelete(num2);
-
-	num4 = gcNew(VAR_FLOAT);
-	GCVALUE(float,num4) = 9.99f;
-
-	if(GCVALUE(ls32,num1) != 10 || GCVALUE(float,num3) != 1.5f || GCVALUE(float,num4) != 9.99f)
-	{
-		printf("GC test failed!");
-	}
-	//gcDump();
-}
 
 lu08 buffer[64*1024];
 void readBytecode(lu08* buff, lu16 offset, lu16 size) {
@@ -41,7 +18,6 @@ void readBytecode(lu08* buff, lu16 offset, lu16 size) {
 
 int main(int argc, char **argv)
 {
-	vm thread;
 	FILE* file;
 
 	if(argc < 2) 
@@ -54,12 +30,12 @@ int main(int argc, char **argv)
 	file = fopen(argv[1], "rb");
 	fread(buffer, 1, 64*1024, file);
 
-	vmInit(&thread);
+	ulua_memvar* vm = vmInit((lu08*)&ram, (lu16)CODE_BUFFER_SIZE);
 
 	//tests
 	//testGC();
 
-	vmRun(&thread, &readBytecode);
+	vmRun(vm, &readBytecode);
 
 	//gcDump();
 

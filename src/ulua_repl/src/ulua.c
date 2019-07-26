@@ -10,8 +10,9 @@
 #define GETLINE_NO_INPUT 1
 #define GETLINE_TOO_LONG 2
 
-#define CODE_BUFFER_SIZE (64*1024)
+#define CODE_BUFFER_SIZE (64*1024)-1
 
+static lu08 ram[CODE_BUFFER_SIZE];
 static lu08 code[CODE_BUFFER_SIZE];
 static lu08 bdump[CODE_BUFFER_SIZE];
 
@@ -59,7 +60,7 @@ void readBytecode(lu08* buff, lu16 offset, lu16 size) {
 int main(int argc, char **argv) {
 	LexState ls;
 	Function top;
-	vm thread;
+	ulua_memvar* thread;
 	void *parser;
 	lu32 i;
 
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
 	}
 
 	//init vm stucture
-	vmInit(&thread);
+    thread = vmInit((lu08*)&ram, CODE_BUFFER_SIZE);
 
 	//main cycle
 	while(ULUA_TRUE) {
@@ -125,7 +126,7 @@ int main(int argc, char **argv) {
 			dp = 0;
 			dump(&top, (writeBytes) &writeBytecode);
 			//run dump on vm
-			vmRun(&thread, &readBytecode);
+			vmRun(thread, &readBytecode);
 		}
 		//free resources
 		freeFunction(&top);
