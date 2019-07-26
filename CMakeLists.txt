@@ -9,4 +9,4 @@ add_subdirectory(src/ulua_core)
 add_subdirectory(src/ulua_repl)
 add_subdirectory(src/ulua_compiler)
 add_subdirectory(src/ulua_interpreter)
-
+add_subdirectory(src/ulua_test)

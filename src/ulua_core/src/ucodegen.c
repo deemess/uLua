@@ -277,6 +277,9 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 	Instruction* i = ULUA_NULL;
 	Constant* c;
 
+	if(a == ULUA_NULL) //nothing to load
+        return i;
+
 	if(!a->isload) { //make pre loading function
 		if(a->consthold) {//constant
 			if(isloadK) {//make preload
@@ -346,6 +349,8 @@ void freeRegister(Register* r) {
 }
 
 void tryFreeRegister(Register* r) {
+    if(r == ULUA_NULL)
+        return;
 	if(r->isload) { //if register holds some value
 		if(r->varnum > 0) //and refer to variable
 			return; //then keep it

@@ -341,9 +341,13 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 
 			stringvar = ulua_mem_string_new(name);
 			regvar = ulua_mem_table_get(vm->globals_table, stringvar);
-			reg = GCVALUE(vmregister*, regvar);
-			curstate->reg[a].type = reg->type;
-			curstate->reg[a].pointer = reg->pointer;
+			if(regvar != ULUA_NULL) {
+                reg = GCVALUE(vmregister*, regvar);
+                curstate->reg[a].type = reg->type;
+                curstate->reg[a].pointer = reg->pointer;
+            } else {
+			    //TODO: raise an exception (Global not found)
+			}
 			break;
 
 		case OP_GETUPVAL: //R(A) := UpValue[B]

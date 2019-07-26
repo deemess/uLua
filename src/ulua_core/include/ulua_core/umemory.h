@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 //variable accessor
-#define GCVALUE(type,var) ((type)( ((lu08*)var->memblock)+sizeof(ulua_memblock)+1 ))
+#define GCVALUE(type,var) ((type)( ((lu08*)var->memblock)+sizeof(ulua_memblock) ))
 
 //ulua types
 typedef enum ulua_vartype {

@@ -10,10 +10,11 @@ lu16 ulua_mem_freept;
 lu16 ulua_vars_count;
 
 void ulua_mem_dump() {
-    printf("Memory address: 0x%08x size: 0x%08x free: 0x%08x allocated: %d \n", ulua_memory, ulua_memory_size, ulua_memory_free_size, ulua_vars_count);
+    printf("Memory address: 0x%08x size: %d free: %d allocated: %d block header size: %d\n", ulua_memory,
+            ulua_memory_size, ulua_memory_free_size, ulua_vars_count, sizeof(ulua_memblock));
     ulua_memblock* block = ulua_first_block;
     while(block != ULUA_NULL) {
-        printf("   Block start: 0x%08x var: 0x%08x size: 0x%04x ", block, block->header.var, block->header.size);
+        printf("   Block start: 0x%08x var: 0x%08x size: %d ", block, block->header.var, block->header.size);
         switch (block->header.var->type) {
             case ULUA_MEM_TYPE_NULL:
                 printf("NULL\n");
@@ -22,7 +23,7 @@ void ulua_mem_dump() {
                 printf("DATABLOCK\n");
                 break;
             case ULUA_MEM_TYPE_STRING:
-                printf("STRING value: %.*s\n", block->header.size, GCVALUE(lu08*, block->header.var));
+                printf("STRING \"%.*s\"\n", block->header.size, GCVALUE(lu08*, block->header.var));
                 break;
             case ULUA_MEM_TYPE_VMREGISTER:
                 printf("VMREGISTER ");
@@ -72,7 +73,7 @@ void ulua_mem_dump() {
             case ULUA_MEM_TYPE_TABLE:
                 printf("TABLE size: %d\n", GCVALUE(ulua_mem_table*, block->header.var)->size);
                 for(int i=0; i<ULUA_MEM_TABLE_SIZE; i++) {
-                    printf("      List[%d] address: 0x%08x \n", i, GCVALUE(ulua_mem_table*, block->header.var)->list_array[i]);
+                    printf("      List[%d] var: 0x%08x \n", i, GCVALUE(ulua_mem_table*, block->header.var)->list_array[i]);
                 }
                 break;
             case ULUA_MEM_TYPE_TABLE_NODE:
@@ -247,7 +248,7 @@ ulua_memvar* ulua_mem_new(ulua_vartype type, lu16 size) { //allocate memory for 
     } else {
         //normal allocation in the end of heap
         block = (ulua_memblock*)( &ulua_memory[ulua_mem_freept] );
-        ulua_mem_freept += sizeof(ulua_memblock_header) + size;
+        ulua_mem_freept += sizeof(ulua_memblock) + size;
         if(ulua_last_block == ULUA_NULL && ulua_first_block == ULUA_NULL) {
             ulua_last_block = block;
             ulua_first_block = block;
@@ -268,7 +269,7 @@ ulua_memvar* ulua_mem_new(ulua_vartype type, lu16 size) { //allocate memory for 
     var->type = type;
     var->blocked = ULUA_FALSE;
     ulua_vars_count++;
-    ulua_memory_free_size -= ( size + sizeof(ulua_memblock_header) + sizeof(ulua_memvar) );
+    ulua_memory_free_size -= ( size + sizeof(ulua_memblock) + sizeof(ulua_memvar) );
     ulua_mem_lowvar = lowvar;
 
     ulua_mem_dump();
@@ -529,9 +530,9 @@ lu16           ulua_mem_table_hash(ulua_memvar* key) {
             return hashcode;
         case ULUA_MEM_TYPE_VMREGISTER:
             reg = GCVALUE(vmregister*, key);
-            return (int)reg->pointer;
+            return (uintptr_t)reg->pointer;
         default:
-            return (int)key;
+            return (uintptr_t)key;
     }
 }
 ULUA_BOOL      ulua_mem_table_key_equals(ulua_memvar* key1, ulua_memvar* key2) {
