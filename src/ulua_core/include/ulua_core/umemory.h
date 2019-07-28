@@ -23,6 +23,10 @@ typedef enum ulua_vartype {
     ULUA_MEM_TYPE_VM
 } ulua_vartype;
 
+//memory block flags
+#define ULUA_MEM_FLAG_BLOCKED (lu08)0b00000001
+#define ULUA_MEM_FLAG_GC_MARK (lu08)0b00000010
+
 typedef struct ulua_memblock ulua_memblock;
 typedef struct ulua_memvar ulua_memvar;
 
@@ -42,7 +46,7 @@ struct ulua_memblock {
 
 //memory variable structure
 struct ulua_memvar {
-    lu08 blocked;
+    lu08 flags;
     ulua_vartype type;
     ulua_memblock* memblock;
 };
@@ -61,7 +65,7 @@ typedef struct  {
 } ulua_mem_list;
 
 //hashtable structures
-#define ULUA_MEM_TABLE_SIZE 32
+#define ULUA_MEM_TABLE_SIZE 16
 typedef struct {
     ulua_memvar* key;
     ulua_memvar* value;
@@ -106,5 +110,8 @@ ulua_memvar*   ulua_mem_table_put(ulua_memvar* table, ulua_memvar* key, ulua_mem
 ulua_memvar*   ulua_mem_table_get(ulua_memvar* table, ulua_memvar* key); //return value for key
 ulua_memvar*   ulua_mem_table_remove(ulua_memvar* table, ulua_memvar* key); //revome value for key and key node, return value
 void           ulua_mem_table_free(ulua_memvar* table);
+
+//garbage collection functions
+void           ulua_mem_gc(ulua_memvar* gcroot);
 
 #endif /* defined(ULUA_UMEMORY) */

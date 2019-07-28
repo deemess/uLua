@@ -113,7 +113,7 @@ void ulua_defrag() { //make memory defragmentation to compress variables.
     ulua_memblock* iter = ulua_first_block;
     
     while(iter != ULUA_NULL) {
-        if(iter->header.var->blocked == ULUA_TRUE) //do not move blocked memory blocks
+        if((iter->header.var->flags & ULUA_MEM_FLAG_BLOCKED) == ULUA_TRUE) //do not move flags memory blocks
             continue;
         
         if(iter->header.prev == ULUA_NULL) {
@@ -267,12 +267,10 @@ ulua_memvar* ulua_mem_new(ulua_vartype type, lu16 size) { //allocate memory for 
     block->header.var = var;
     var->memblock = block;
     var->type = type;
-    var->blocked = ULUA_FALSE;
+    var->flags = 0;
     ulua_vars_count++;
     ulua_memory_free_size -= ( size + sizeof(ulua_memblock) + sizeof(ulua_memvar) );
     ulua_mem_lowvar = lowvar;
-
-    ulua_mem_dump();
 
     return var;
 }
@@ -282,14 +280,11 @@ lu08* ulua_mem_new_block(lu16 size) { //allocate fixed memory data block. and ma
     if(var == ULUA_NULL)
         return ULUA_NULL;
     
-    var->blocked = ULUA_TRUE;
+    var->flags = var->flags & ULUA_MEM_FLAG_BLOCKED;
     return ((lu08*)&var->memblock)+sizeof(ulua_memblock)+1;
 }
 
 void ulua_mem_free(ulua_memvar *var) { //free variable and allocated memory
-
-    ulua_mem_dump();
-
     if (var == ULUA_NULL)
         return;
 
@@ -322,10 +317,8 @@ void ulua_mem_free(ulua_memvar *var) { //free variable and allocated memory
 
     var->type = ULUA_NULL;
     var->memblock = ULUA_NULL;
-    var->blocked = ULUA_FALSE;
+    var->flags = 0;
     ulua_vars_count--;
-
-    ulua_mem_dump();
 }
 
 void ulua_mem_free_block(lu08 *block) { //free memory block and associated variable with it
@@ -342,7 +335,7 @@ void ulua_mem_free_block(lu08 *block) { //free memory block and associated varia
         return;
     
     //free found var
-    var->blocked = ULUA_FALSE;
+    var->flags = 0;
     ulua_mem_free(var);
 
 }
@@ -636,4 +629,16 @@ void           ulua_mem_table_free(ulua_memvar* table) {
         ulua_mem_list_free(listvar);
     }
     ulua_mem_free(table);
+}
+
+//garbage collection functions
+void           ulua_mem_gc_mark_all(ulua_memvar* node) {
+//    node->flags = node->flags & ULUA_MEM_FLAG_BLOCKED;
+//    switch (node->type) {
+//        case ULUA_MEM_TYPE_VM:
+//            GCVALUE(vm*, node)->
+//    }
+}
+void           ulua_mem_gc(ulua_memvar* gcroot) {
+
 }
