@@ -14,7 +14,8 @@ void ulua_mem_dump() {
             ulua_memory_size, ulua_memory_free_size, ulua_vars_count, sizeof(ulua_memblock));
     ulua_memblock* block = ulua_first_block;
     while(block != ULUA_NULL) {
-        printf("   Block start: 0x%08x var: 0x%08x size: %d ", block, block->header.var, block->header.size);
+        printf("   Block 0x%08x var: 0x%08x size: %d+%d+%d ", block, block->header.var, sizeof(ulua_memblock),
+                sizeof(ulua_memvar), block->header.size);
         switch (block->header.var->type) {
             case ULUA_MEM_TYPE_NULL:
                 printf("NULL\n");
@@ -40,20 +41,14 @@ void ulua_mem_dump() {
                     case REGISTER_VAR_FLOAT:
                         printf("FLOAT ");
                         break;
-                    case REGISTER_VAR_STRING:
-                        printf("STRING ");
-                        break;
                     case REGISTER_VAR_CLOSURE:
                         printf("CLOSURE ");
                         break;
-                    case REGISTER_VAR_FILE_POINTER_STR:
-                        printf("FILE_POINTER_STR ");
-                        break;
-                    case REGISTER_VAR_TABLE:
-                        printf("TABLE ");
-                        break;
                     case REGISTER_VAR_NATIVE_FUNC:
                         printf("NATIVE_FUNC ");
+                        break;
+                    case REGISTER_VAR_MEMVAR:
+                        printf("REGISTER_VAR_MEMVAR ");
                         break;
                 }
                 printf("number: %d float: %.0f pointer: 0x%08x \n", GCVALUE(vmregister*, block->header.var)->numval,

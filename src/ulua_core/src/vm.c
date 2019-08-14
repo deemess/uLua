@@ -106,7 +106,7 @@ lu16 getFuncsPt(readBytes read, lu16 pt)
 
 //skeep function which starts on pt
 //return pointer to the next byte after function
-lu16 skeepFunction(readBytes read, lu16 pt)
+lu16 skipFunction(readBytes read, lu16 pt)
 {
 	lu08 i=0;
 	lu16 codesize;
@@ -119,7 +119,7 @@ lu16 skeepFunction(readBytes read, lu16 pt)
 	funcsize = platformReadWord(read, pt); pt += 2;
 	for(i=0; i<funcsize; i++)
 	{
-		pt = skeepFunction(read, pt);
+		pt = skipFunction(read, pt);
 	}
 	//pt += 3 * 4; //TODO: for now ignore lines, locals and upvalues. we think that thay are all zero size.
 	return pt;
@@ -134,7 +134,7 @@ lu16 getFuncPt(readBytes read, lu16 pt, lu16 N)
 	pt += 2;
 	for(i=0; N>i; i++)
 	{
-		pt = skeepFunction(read, pt);
+		pt = skipFunction(read, pt);
 	}
 	//pt += 16; //function header;
 	return pt;
@@ -386,8 +386,13 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 				break;
 
 			case STRING_TYPE:
-				curstate->reg[a].type = REGISTER_VAR_FILE_POINTER_STR;
-				curstate->reg[a].numval = constpt;
+                codesize = platformReadWord(read, constpt);
+                constpt += 2;
+                read(name, constpt, codesize);
+
+			    stringvar = ulua_mem_string_new(name);
+				curstate->reg[a].type = REGISTER_VAR_MEMVAR;
+				curstate->reg[a].pointer = stringvar;
 				break;
 
 			default:

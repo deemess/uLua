@@ -44,10 +44,6 @@ void printRegister(readBytes read, vmregister reg)
 			printf("%.0f\t", reg.floatval);
 			break;
 
-		case REGISTER_VAR_STRING:
-			printf("%s\t", (char*)reg.pointer);
-			break;
-
 		case REGISTER_VAR_NULL:
 			printf("nil\t");
 			break;
@@ -56,17 +52,15 @@ void printRegister(readBytes read, vmregister reg)
 			printf("luc function at %d\t", reg.numval);
 			break;
 
-		case REGISTER_VAR_FILE_POINTER_STR:
-			constpt = reg.numval;
-			read(name, constpt, 2); constpt += 2;
-			size = *(lu16*)(&name[0]);
-			read(name, constpt, size);
-			printf("%s\t", name);
-			break;
+        case REGISTER_VAR_MEMVAR:
+            switch (((ulua_memvar*)reg.pointer)->type) {
+                case ULUA_MEM_TYPE_STRING:
+                    printf("%.*s\t", ((ulua_memvar*)reg.pointer)->memblock->header.size, GCVALUE(lu08*, ((ulua_memvar*)reg.pointer)));
+                    break;
 
-		case REGISTER_VAR_TABLE:
-			printf("Table{}\t");
-			break;
+            }
+            break;
+
 	}
 }
 
