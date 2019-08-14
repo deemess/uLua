@@ -25,9 +25,9 @@
 #define STATEMAXCOUNT 32
 
 #ifdef DEBUGVM
-	#define DPRINTF(a) printf(a)
+	#define DPRINTF(a, ...) printf(a, ##__VA_ARGS__)
 #else
-	#define DPRINTF(a)
+	#define DPRINTF(a, ...)
 #endif
 
 #endif

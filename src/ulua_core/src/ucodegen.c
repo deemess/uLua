@@ -29,6 +29,7 @@ void initFunction(Function* f, lu08* code) {
 		f->reg[i].isload = ULUA_FALSE;
 		f->reg[i].islocal = ULUA_FALSE;
 		f->reg[i].exprStart = ULUA_NULL;
+		f->reg[i].next = ULUA_NULL;
 	}
 }
 
@@ -346,6 +347,7 @@ void freeRegister(Register* r) {
 	r->isload = ULUA_FALSE;
 	r->islocal = ULUA_FALSE;
 	r->exprStart = ULUA_NULL;
+	r->next = ULUA_NULL;
 }
 
 void tryFreeRegister(Register* r) {
@@ -449,6 +451,15 @@ void unloadRegisters(Function* f) {//unload/mark registers
         if(f->reg[i].varnum > 0) //unload only variable registers
             f->reg[i].isload = ULUA_FALSE;
     }
+}
+
+Register* addRegisterList(Register* a, Register* b) { //add register b to the registerlist a
+    Register* iter = a;
+    while(iter->next != ULUA_NULL) {
+        iter = iter->next;
+    }
+    iter->next = b;
+    return a;
 }
 
 Register* doNot(Function* f, Register* a, Token* t) { //do not\minus logic
@@ -649,6 +660,20 @@ Register* doBoolean(Function* f, Token* t) { //allocate register and load bool v
 	return res;
 }
 
+Register* doTable(Function* f) { //allocate register and load new table in it
+    Register* res;
+    Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+
+    res = getFreeRegister(f);
+    i->i.unpacked.opc = OP_NEWTABLE;
+    i->i.unpacked.a = res->num;
+    i->i.unpacked.bx.l.b = 0; //boolean value
+    i->i.unpacked.bx.l.c = 0; //do not skip next instruction
+    pushInstruction(f, i);
+    res->isload = ULUA_TRUE;
+    return res;
+}
+
 Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make while block
 	Instruction* i;
 	Instruction* tmp;
@@ -839,6 +864,20 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 	//insertInstruction(f, i, tmp);
 
 	return condlist;
+}
+
+Instruction* statSETList(Function* f, Register* a, Register* b, BOOL islocal) { //set statement with list assigment support
+    Register* itera = a;
+    Register* iterb = b;
+    Register* nexta = ULUA_NULL;
+    Register* nextb = ULUA_NULL;
+    while(itera != ULUA_NULL && iterb != ULUA_NULL) {
+        nexta = itera->next;
+        nextb = iterb->next;
+        statSET(f, itera, iterb, islocal);
+        itera = nexta;
+        iterb = nextb;
+    }
 }
 
 Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {

@@ -314,6 +314,12 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 			curstate->reg[a].pointer = gcpointer;
 			break;
 
+        case OP_NEWTABLE:
+            regvar = ulua_mem_table_new();
+            curstate->reg[a].type = REGISTER_VAR_TABLE;
+            curstate->reg[a].pointer = regvar;
+            break;
+
 		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
 			//read global name
 			constpt = getConstPt(read, curstate->constp, sbx);
