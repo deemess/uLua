@@ -30,6 +30,7 @@ typedef enum {
     REGISTER_VAR_CLOSURE,
     REGISTER_VAR_MEMVAR,
     REGISTER_VAR_NATIVE_FUNC,
+    REGISTER_VAR_TABLE
 } vartype;
 
 typedef struct {

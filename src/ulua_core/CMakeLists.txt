@@ -26,4 +26,10 @@ add_library(ulua_core ${ULUA_CORE_SOURCES} )
 
 add_dependencies(ulua_core lemon_run)
 
-target_link_libraries(ulua_core m)
+#target_link_libraries(ulua_core m)
+
+if(NOT MSVC)
+target_link_libraries(Tutorial m)
+endif(NOT MSVC)
+
+
