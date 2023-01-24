@@ -1,4 +1,5 @@
 #include "ulua_core/umemory.h"
+#include "ulua_core/vm.h"
 
 lu08* ulua_memory;
 ulua_memblock* ulua_first_block;
@@ -9,80 +10,219 @@ lu16 ulua_memory_free_size;
 lu16 ulua_mem_freept;
 lu16 ulua_vars_count;
 
+void ulua_mem_dump_memvar(ulua_memblock* block) {
+    switch (block->header.var->type) {
+    case ULUA_MEM_TYPE_NULL:
+        printf("NULL\n");
+        break;
+    case ULUA_MEM_TYPE_DATABLOCK:
+        printf("DATABLOCK\n");
+        break;
+    case ULUA_MEM_TYPE_STRING:
+        printf("STRING \"%.*s\"\n", block->header.size, MEMVARVALUE(lu08*, block->header.var));
+        break;
+    case ULUA_MEM_TYPE_VMREGISTER:
+        printf("VMREGISTER ");
+        switch (MEMVARVALUE(vmregister*, block->header.var)->type) {
+        case REGISTER_VAR_NULL:
+            printf("NULL \n");
+            break;
+        case REGISTER_VAR_BOOLEAN:
+            printf("BOOLEAN ");
+            printf("float: %.0f \n", MEMVARVALUE(vmregister*, block->header.var)->floatval);
+            break;
+        case REGISTER_VAR_NUMBER:
+            printf("NUMBER ");
+            printf("number: %d \n", MEMVARVALUE(vmregister*, block->header.var)->numval);
+            break;
+        case REGISTER_VAR_FLOAT:
+            printf("FLOAT ");
+            printf("float: %.0f \n", MEMVARVALUE(vmregister*, block->header.var)->floatval);
+            break;
+        case REGISTER_VAR_CLOSURE:
+            printf("CLOSURE ");
+            printf("pointer: 0x%08x \n", MEMVARVALUE(vmregister*, block->header.var)->pointer);
+            break;
+        case REGISTER_VAR_NATIVE_FUNC:
+            printf("NATIVE_FUNC ");
+            printf("pointer: 0x%08x \n", MEMVARVALUE(vmregister*, block->header.var)->pointer);
+            break;
+        case REGISTER_VAR_MEMVAR:
+            printf("REGISTER_VAR_MEMVAR ");
+            printf("pointer: 0x%08x \n", MEMVARVALUE(vmregister*, block->header.var)->pointer);
+            break;
+        }
+        break;
+    case ULUA_MEM_TYPE_LIST:
+        printf("LIST size: %d first: 0x%08x last: 0x%08x \n", MEMVARVALUE(ulua_mem_list*, block->header.var)->size,
+            MEMVARVALUE(ulua_mem_list*, block->header.var)->first,
+            MEMVARVALUE(ulua_mem_list*, block->header.var)->last);
+        break;
+    case ULUA_MEM_TYPE_LIST_NODE:
+        printf("LIST_NODE var: 0x%08x prev: 0x%08x next: 0x%08x \n", MEMVARVALUE(ulua_mem_list_node*, block->header.var)->var,
+            MEMVARVALUE(ulua_mem_list_node*, block->header.var)->prev,
+            MEMVARVALUE(ulua_mem_list_node*, block->header.var)->next);
+        break;
+    case ULUA_MEM_TYPE_TABLE:
+        printf("TABLE size: %d ", MEMVARVALUE(ulua_mem_table*, block->header.var)->size);
+        for (int i = 0; i < ULUA_MEM_TABLE_SIZE; i++) {
+            printf(" List[%d] var: 0x%08x", i, MEMVARVALUE(ulua_mem_table*, block->header.var)->list_array[i]);
+        }
+        printf("\n");
+        break;
+    case ULUA_MEM_TYPE_TABLE_NODE:
+        printf("TABLE_NODE key: 0x%08x value: 0x%08x hash: 0x%08x \n", MEMVARVALUE(ulua_mem_table_node*, block->header.var)->key,
+            MEMVARVALUE(ulua_mem_table_node*, block->header.var)->value,
+            MEMVARVALUE(ulua_mem_table_node*, block->header.var)->hash);
+        break;
+    case ULUA_MEM_TYPE_VM:
+        printf("VM \n");
+        break;
+    }
+}
+
 void ulua_mem_dump() {
-    printf("Memory address: 0x%08x size: %d free: %d allocated: %d block header size: %d\n", ulua_memory,
-            ulua_memory_size, ulua_memory_free_size, ulua_vars_count, sizeof(ulua_memblock));
+    printf("Memory address: 0x%08x size: %d used: %d free: %d allocated: %d block header size: %d\n", ulua_memory,
+            ulua_memory_size, ulua_memory_size- ulua_memory_free_size, ulua_memory_free_size, ulua_vars_count, sizeof(ulua_memblock));
     ulua_memblock* block = ulua_first_block;
     while(block != ULUA_NULL) {
         printf("   Block 0x%08x var: 0x%08x size: %d+%d+%d ", block, block->header.var, sizeof(ulua_memblock),
                 sizeof(ulua_memvar), block->header.size);
-        switch (block->header.var->type) {
-            case ULUA_MEM_TYPE_NULL:
-                printf("NULL\n");
-                break;
-            case ULUA_MEM_TYPE_DATABLOCK:
-                printf("DATABLOCK\n");
-                break;
-            case ULUA_MEM_TYPE_STRING:
-                printf("STRING \"%.*s\"\n", block->header.size, GCVALUE(lu08*, block->header.var));
-                break;
-            case ULUA_MEM_TYPE_VMREGISTER:
-                printf("VMREGISTER ");
-                switch (GCVALUE(vmregister*, block->header.var)->type) {
-                    case REGISTER_VAR_NULL:
-                        printf("NULL ");
-                        break;
-                    case REGISTER_VAR_BOOLEAN:
-                        printf("BOOLEAN ");
-                        break;
-                    case REGISTER_VAR_NUMBER:
-                        printf("NUMBER ");
-                        break;
-                    case REGISTER_VAR_FLOAT:
-                        printf("FLOAT ");
-                        break;
-                    case REGISTER_VAR_CLOSURE:
-                        printf("CLOSURE ");
-                        break;
-                    case REGISTER_VAR_NATIVE_FUNC:
-                        printf("NATIVE_FUNC ");
-                        break;
-                    case REGISTER_VAR_MEMVAR:
-                        printf("REGISTER_VAR_MEMVAR ");
-                        break;
-                }
-                printf("number: %d float: %.0f pointer: 0x%08x \n", GCVALUE(vmregister*, block->header.var)->numval,
-                        GCVALUE(vmregister*, block->header.var)->floatval,
-                        GCVALUE(vmregister*, block->header.var)->pointer);
-                break;
-            case ULUA_MEM_TYPE_LIST:
-                printf("LIST size: %d first: 0x%08x last: 0x%08x \n", GCVALUE(ulua_mem_list*, block->header.var)->size,
-                        GCVALUE(ulua_mem_list*, block->header.var)->first,
-                        GCVALUE(ulua_mem_list*, block->header.var)->last);
-                break;
-            case ULUA_MEM_TYPE_LIST_NODE:
-                printf("LIST_NODE var: 0x%08x prev: 0x%08x next: 0x%08x \n", GCVALUE(ulua_mem_list_node*, block->header.var)->var,
-                       GCVALUE(ulua_mem_list_node*, block->header.var)->prev,
-                       GCVALUE(ulua_mem_list_node*, block->header.var)->next);
-                break;
-            case ULUA_MEM_TYPE_TABLE:
-                printf("TABLE size: %d\n", GCVALUE(ulua_mem_table*, block->header.var)->size);
-                for(int i=0; i<ULUA_MEM_TABLE_SIZE; i++) {
-                    printf("      List[%d] var: 0x%08x \n", i, GCVALUE(ulua_mem_table*, block->header.var)->list_array[i]);
-                }
-                break;
-            case ULUA_MEM_TYPE_TABLE_NODE:
-                printf("TABLE_NODE key: 0x%08x value: 0x%08x hash: 0x%08x \n", GCVALUE(ulua_mem_table_node*, block->header.var)->key,
-                       GCVALUE(ulua_mem_table_node*, block->header.var)->value,
-                       GCVALUE(ulua_mem_table_node*, block->header.var)->hash);
-                break;
-            case ULUA_MEM_TYPE_VM:
-                printf("VM \n");
-                break;
-        }
+        ulua_mem_dump_memvar(block);
         block = block->header.next;
     }
     printf("\n");
+}
+
+void ulua_mem_dump_tree_print_level(lu08 level) {
+    for (lu08 i = 0; i < level; i++) {
+        printf(" ");
+    }
+    if (level != 0) {
+        printf("+");
+    }
+    else {
+        printf("-");
+    }
+    printf("-> ");
+}
+
+void ulua_mem_dump_tree_iter_list(ulua_mem_list* memvar, lu08 level, ULUA_BOOL mark, ULUA_BOOL dump) {
+    ulua_memvar* nodememvar = memvar->first;
+    while (nodememvar != ULUA_NULL) {
+        ulua_mem_list_node* node = MEMVARVALUE(ulua_mem_list_node*, nodememvar);
+        ulua_mem_dump_tree_memvar(nodememvar, "NextNode", level + 1, mark, dump);
+        nodememvar = node->next;
+    }
+}
+
+void ulua_mem_dump_tree_iter_table(ulua_mem_table* memvar, lu08 level, ULUA_BOOL mark, ULUA_BOOL dump) {
+    for (lu08 i = 0; i < ULUA_MEM_TABLE_SIZE; i++) {
+        ulua_mem_dump_tree_memvar(memvar->list_array[i], "TableList", level + 1, mark, dump);
+    }
+}
+
+void ulua_mem_dump_tree_memvar(ulua_memvar* memvar, lu08* name, lu08 level, ULUA_BOOL mark, ULUA_BOOL dump/*, ULUA_BOOL clearflag*/) {
+    if(mark == ULUA_TRUE)
+        memvar->flags = memvar->flags | ULUA_MEM_FLAG_MARK; //set MARK flag for memory variable. Once tree is pass, all unmarked memory variables could be deleted
+
+    //if (clearflag == ULUA_TRUE)
+    //    memvar->flags = memvar->flags & (~ULUA_MEM_FLAG_MARK); //clear MARK flag
+
+    if (dump) {
+        ulua_mem_dump_tree_print_level(level);
+        printf("%s 0x%08x ", name, memvar);
+        ulua_mem_dump_memvar(memvar->memblock);
+    }
+    switch (memvar->type) { //TODO: support other composite structures
+        case ULUA_MEM_TYPE_LIST:
+            ulua_mem_dump_tree_iter_list(MEMVARVALUE(ulua_mem_list*, memvar), level + 1, mark, dump);
+            break;
+        case ULUA_MEM_TYPE_TABLE:
+            ulua_mem_dump_tree_iter_table(MEMVARVALUE(ulua_mem_table*, memvar), level + 1, mark, dump);
+            break;
+        case ULUA_MEM_TYPE_LIST_NODE:
+            ulua_mem_dump_tree_memvar(MEMVARVALUE(ulua_mem_list_node*, memvar)->var, "Value", level + 1, mark, dump);
+            break;
+        case ULUA_MEM_TYPE_TABLE_NODE:
+            ulua_mem_dump_tree_memvar(MEMVARVALUE(ulua_mem_table_node*, memvar)->key, "Key", level + 1, mark, dump);
+            ulua_mem_dump_tree_memvar(MEMVARVALUE(ulua_mem_table_node*, memvar)->value, "Value", level + 1, mark, dump);
+            break;
+        case ULUA_MEM_TYPE_VM:
+            //iterate global vars
+            ulua_mem_dump_tree_memvar(MEMVARVALUE(ulua_vm*, memvar)->globals_table, "Globals", level + 1, mark, dump);
+            //TODO: iterate other commposite structures of VM
+            break;
+        case ULUA_MEM_TYPE_VMREGISTER:
+            if(MEMVARVALUE(vmregister*, memvar)->type == REGISTER_VAR_MEMVAR)
+                ulua_mem_dump_tree_memvar((ulua_memvar*)MEMVARVALUE(vmregister*, memvar)->pointer, "VM Register", level + 1, mark, dump);
+            break;
+    }
+}
+
+void ulua_mem_dump_tree() {
+    printf("Memory address: 0x%08x size: %d used: %d free: %d allocated: %d block header size: %d\n", ulua_memory,
+        ulua_memory_size, ulua_memory_size - ulua_memory_free_size, ulua_memory_free_size, ulua_vars_count, sizeof(ulua_memblock));
+    ulua_memblock* block = ulua_first_block;
+    //find VM root block
+    while (block != ULUA_NULL) {
+        if (block->header.var->type != ULUA_MEM_TYPE_VM) {
+            block = block->header.next;
+            continue;
+        }
+        break;
+    }
+    //first pass - print tree
+    //iterate VM structures
+    lu08 level = 0;
+    ulua_mem_dump_tree_memvar(block->header.var, "Lua VM", level, ULUA_TRUE, ULUA_TRUE);
+
+    //second pass - print unused memory variables
+    printf(" ................\n");
+    printf(" .... unused ....\n");
+    printf(" ................\n");
+    block = ulua_first_block;
+    while (block != ULUA_NULL) {
+        if (!(block->header.var->flags & ULUA_MEM_FLAG_MARK)) { //MARK flag is not set - unused memory variable
+            ulua_mem_dump_tree_memvar(block->header.var, "UNUSED", level, ULUA_FALSE, ULUA_TRUE);
+        }
+        block->header.var->flags = block->header.var->flags & (~ULUA_MEM_FLAG_MARK); //clear MARK flag
+        block = block->header.next;
+    }
+
+    printf("\n");
+}
+
+lu16 ulua_mem_gc_collect() {
+    ulua_memblock* block = ulua_first_block;
+    //find VM root block
+    while (block != ULUA_NULL) {
+        if (block->header.var->type != ULUA_MEM_TYPE_VM) {
+            block = block->header.next;
+            continue;
+        }
+        break;
+    }
+    //first pass - mark used variables
+    //iterate VM structures
+    lu08 level = 0;
+    ulua_mem_dump_tree_memvar(block->header.var, "Lua VM", level, ULUA_TRUE, ULUA_FALSE);
+
+    //second pass - free unused memory variables
+    lu16 collected = 0;
+    block = ulua_first_block;
+    while (block != ULUA_NULL) {
+        ulua_memblock* nextblock = block->header.next;
+        if (!(block->header.var->flags & ULUA_MEM_FLAG_MARK)) { //MARK flag is not set - unused memory variable
+            collected += block->header.size;
+            ulua_mem_free(block->header.var);
+        } else {
+            block->header.var->flags = block->header.var->flags & (~ULUA_MEM_FLAG_MARK); //clear MARK flag
+        }
+        block = nextblock;
+    }
+
+    return collected;
 }
 
 void ulua_mem_init(lu08 *memory, lu16 size) { //initialize memory
@@ -345,7 +485,7 @@ ulua_memvar*    ulua_mem_string_new(lu08* chars) {
         c = chars[p];
     }
     ulua_memvar* stringvar = ulua_mem_new(ULUA_MEM_TYPE_STRING, len+1);
-    lu08* string = GCVALUE(lu08*, stringvar);
+    lu08* string = MEMVARVALUE(lu08*, stringvar);
     for(lu16 i=0; i<len; i++) {
         string[i] = chars[i];
     }
@@ -368,13 +508,13 @@ ULUA_BOOL       ulua_mem_string_cmp(lu08* str1, lu08* str2) {
     return ULUA_FALSE;
 }
 ULUA_BOOL       ulua_mem_string_equals(ulua_memvar* str1, ulua_memvar* str2) {
-    return ulua_mem_string_cmp(GCVALUE(lu08*, str1), GCVALUE(lu08*, str2));
+    return ulua_mem_string_cmp(MEMVARVALUE(lu08*, str1), MEMVARVALUE(lu08*, str2));
 }
 
 //list functions
 ulua_memvar* ulua_mem_list_new() {
     ulua_memvar* varlist = ulua_mem_new(ULUA_MEM_TYPE_LIST, sizeof(ulua_mem_list));
-    ulua_mem_list* list = GCVALUE(ulua_mem_list*, varlist);
+    ulua_mem_list* list = MEMVARVALUE(ulua_mem_list*, varlist);
     list->size = 0;
     list->first = ULUA_NULL;
     list->last = ULUA_NULL;
@@ -382,13 +522,13 @@ ulua_memvar* ulua_mem_list_new() {
     return  varlist;
 }
 lu16           ulua_mem_list_size(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
     return l->size;
 }
 ulua_memvar*   ulua_mem_list_add(ulua_memvar* list, ulua_memvar* var) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
     ulua_memvar* nodevar = ulua_mem_new(ULUA_MEM_TYPE_LIST_NODE, sizeof(ulua_mem_list_node));
-    ulua_mem_list_node* node = GCVALUE(ulua_mem_list_node*, nodevar);
+    ulua_mem_list_node* node = MEMVARVALUE(ulua_mem_list_node*, nodevar);
     node->var = var;
     node->next = ULUA_NULL;
     node->prev = ULUA_NULL;
@@ -399,7 +539,7 @@ ulua_memvar*   ulua_mem_list_add(ulua_memvar* list, ulua_memvar* var) {
             l->first = nodevar;
         }
     } else { //normal adding to the end
-        ulua_mem_list_node* lastnode = GCVALUE(ulua_mem_list_node*, l->last);
+        ulua_mem_list_node* lastnode = MEMVARVALUE(ulua_mem_list_node*, l->last);
 
         node->prev = l->last;
         lastnode->next = nodevar;
@@ -411,77 +551,80 @@ ulua_memvar*   ulua_mem_list_add(ulua_memvar* list, ulua_memvar* var) {
     return list;
 }
 ulua_memvar* ulua_mem_list_iter_init(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
     return l->first;
 }
 ulua_memvar* ulua_mem_list_iter_next(ulua_memvar* iter) {
     if(iter == ULUA_NULL)
         return ULUA_NULL;
-    ulua_memvar* iternext = GCVALUE(ulua_mem_list_node*, iter)->next;
+    ulua_memvar* iternext = MEMVARVALUE(ulua_mem_list_node*, iter)->next;
     return iternext;
 }
 ulua_memvar*    ulua_mem_list_iter_value(ulua_memvar* iter){
     if(iter == ULUA_NULL)
         return ULUA_NULL;
-    return GCVALUE(ulua_mem_list_node*, iter)->var;
+    return MEMVARVALUE(ulua_mem_list_node*, iter)->var;
 }
 ulua_memvar*    ulua_mem_list_iter_remove(ulua_memvar* list, ulua_memvar* iter) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
-    ulua_mem_list_node* iternode = GCVALUE(ulua_mem_list_node*, iter);
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
+    ulua_mem_list_node* iternode = MEMVARVALUE(ulua_mem_list_node*, iter);
     ulua_memvar* prevnodevar = iternode->prev;
     ulua_memvar* nextnodevar = iternode->next;
     if(prevnodevar != ULUA_NULL) {
-        GCVALUE(ulua_mem_list_node*, prevnodevar)->next = nextnodevar;
+        MEMVARVALUE(ulua_mem_list_node*, prevnodevar)->next = nextnodevar;
     }
     if(nextnodevar != ULUA_NULL) {
-        GCVALUE(ulua_mem_list_node*, nextnodevar)->prev = prevnodevar;
+        MEMVARVALUE(ulua_mem_list_node*, nextnodevar)->prev = prevnodevar;
     }
     if(l->first == iter) {
         l->first = nextnodevar;
         if(nextnodevar != ULUA_NULL)
-            GCVALUE(ulua_mem_list_node*, nextnodevar)->prev = ULUA_NULL;
+            MEMVARVALUE(ulua_mem_list_node*, nextnodevar)->prev = ULUA_NULL;
     }
     if(l->last == iter) {
         l->last = prevnodevar;
         if(prevnodevar != ULUA_NULL)
-            GCVALUE(ulua_mem_list_node*, prevnodevar)->next = ULUA_NULL;
+            MEMVARVALUE(ulua_mem_list_node*, prevnodevar)->next = ULUA_NULL;
     }
     ulua_mem_free(iter);
     return nextnodevar;
 }
 ulua_memvar*   ulua_mem_list_get_first(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
-    return GCVALUE(ulua_mem_list_node*, l->first)->var;
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
+    return MEMVARVALUE(ulua_mem_list_node*, l->first)->var;
 }
 ulua_memvar*   ulua_mem_list_get_last(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
-    return GCVALUE(ulua_mem_list_node*, l->last)->var;
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
+    return MEMVARVALUE(ulua_mem_list_node*, l->last)->var;
 }
 //ulua_memvar*   ulua_mem_list_get(ulua_memvar* list, lu16 number);
 ulua_memvar*   ulua_mem_list_remove_first(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
     ulua_memvar* firstnodevar = l->first;
-    ulua_mem_list_node* firstnode = GCVALUE(ulua_mem_list_node*, firstnodevar);
+    ulua_mem_list_node* firstnode = MEMVARVALUE(ulua_mem_list_node*, firstnodevar);
     l->first = firstnode->next;
-    GCVALUE(ulua_mem_list_node*, firstnode->next)->prev = ULUA_NULL;
+    MEMVARVALUE(ulua_mem_list_node*, firstnode->next)->prev = ULUA_NULL;
 
     ulua_mem_free(firstnodevar);
+
+    return l->first;
 }
 ulua_memvar*   ulua_mem_list_remove_last(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
     ulua_memvar* lastnodevar = l->last;
-    ulua_mem_list_node* lastnode = GCVALUE(ulua_mem_list_node*, lastnodevar);
+    ulua_mem_list_node* lastnode = MEMVARVALUE(ulua_mem_list_node*, lastnodevar);
     l->last = lastnode->prev;
-    GCVALUE(ulua_mem_list_node*, lastnode->prev)->next = ULUA_NULL;
+    MEMVARVALUE(ulua_mem_list_node*, lastnode->prev)->next = ULUA_NULL;
 
     ulua_mem_free(lastnodevar);
+
+    return l->last;
 }
-//ulua_memvar*   ulua_mem_list_remove(ulua_memvar* list, lu16 number);
-void           ulua_mem_list_free(ulua_memvar* list) {
-    ulua_mem_list* l = GCVALUE(ulua_mem_list*, list);
+void          ulua_mem_list_free(ulua_memvar* list) {
+    ulua_mem_list* l = MEMVARVALUE(ulua_mem_list*, list);
     ulua_memvar* node = l->first;
     while(node != ULUA_NULL) {
-        ulua_memvar* nextnode = GCVALUE(ulua_mem_list_node*, node)->next;
+        ulua_memvar* nextnode = MEMVARVALUE(ulua_mem_list_node*, node)->next;
         ulua_mem_free(node);
         node = nextnode;
     }
@@ -492,7 +635,7 @@ void           ulua_mem_list_free(ulua_memvar* list) {
 //hashtable functions
 ulua_memvar*   ulua_mem_table_new() {
     ulua_memvar* tablevar = ulua_mem_new(ULUA_MEM_TYPE_TABLE, sizeof(ulua_mem_table));
-    ulua_mem_table* table = GCVALUE(ulua_mem_table*, tablevar);
+    ulua_mem_table* table = MEMVARVALUE(ulua_mem_table*, tablevar);
     table->size = 0;
     for(lu16 i=0; i<ULUA_MEM_TABLE_SIZE; i++) {
         table->list_array[i] = ulua_mem_list_new();
@@ -501,8 +644,6 @@ ulua_memvar*   ulua_mem_table_new() {
 }
 lu16           ulua_mem_table_hash(ulua_memvar* key) {
     lu08* string;
-    lu08 c;
-    lu16 p;
     lu16 hashcode = 0;
     vmregister* reg;
     if(key == ULUA_NULL)
@@ -511,13 +652,13 @@ lu16           ulua_mem_table_hash(ulua_memvar* key) {
         case ULUA_MEM_TYPE_NULL:
             return 0;
         case ULUA_MEM_TYPE_STRING:
-            string = GCVALUE(lu08*, key);
+            string = MEMVARVALUE(lu08*, key);
             for(lu16 i=0; i<key->memblock->header.size; i++) {
                 hashcode += string[i];
             }
             return hashcode;
         case ULUA_MEM_TYPE_VMREGISTER:
-            reg = GCVALUE(vmregister*, key);
+            reg = MEMVARVALUE(vmregister*, key);
             return (uintptr_t)reg->pointer;
         default:
             return (uintptr_t)key;
@@ -533,8 +674,8 @@ ULUA_BOOL      ulua_mem_table_key_equals(ulua_memvar* key1, ulua_memvar* key2) {
             case ULUA_MEM_TYPE_STRING:
                 return ulua_mem_string_equals(key1, key2);
             case ULUA_MEM_TYPE_VMREGISTER:
-                reg1 = GCVALUE(vmregister*, key1);
-                reg2 = GCVALUE(vmregister*, key2);
+                reg1 = MEMVARVALUE(vmregister*, key1);
+                reg2 = MEMVARVALUE(vmregister*, key2);
                 if(reg1->type == reg2->type && reg1->pointer == reg2->pointer) {
                     return ULUA_TRUE;
                 }
@@ -547,7 +688,7 @@ ULUA_BOOL      ulua_mem_table_key_equals(ulua_memvar* key1, ulua_memvar* key2) {
     return ULUA_FALSE;
 }
 ulua_memvar*   ulua_mem_table_put(ulua_memvar* table, ulua_memvar* key, ulua_memvar* value) {
-    ulua_mem_table* t = GCVALUE(ulua_mem_table*, table);
+    ulua_mem_table* t = MEMVARVALUE(ulua_mem_table*, table);
     lu16 hashcode = ulua_mem_table_hash(key);
     lu16 index = hashcode % ULUA_MEM_TABLE_SIZE;
     ulua_memvar* listvar = t->list_array[index];
@@ -555,7 +696,7 @@ ulua_memvar*   ulua_mem_table_put(ulua_memvar* table, ulua_memvar* key, ulua_mem
     ulua_memvar* tnodevar = ULUA_NULL;
     ulua_memvar* listiter = ulua_mem_list_iter_init(listvar);
     while(listiter != ULUA_NULL) {//lookup key
-        ulua_mem_table_node* tnode = GCVALUE(ulua_mem_table_node*, ulua_mem_list_iter_value(listiter));
+        ulua_mem_table_node* tnode = MEMVARVALUE(ulua_mem_table_node*, ulua_mem_list_iter_value(listiter));
         if(tnode->hash == hashcode && ulua_mem_table_key_equals(tnode->key, key)) {// found key - update value
             tnode->value = value;
             tnodevar = ulua_mem_list_iter_value(listiter);
@@ -565,7 +706,7 @@ ulua_memvar*   ulua_mem_table_put(ulua_memvar* table, ulua_memvar* key, ulua_mem
     }
     if(tnodevar == ULUA_NULL) {//allocate new node
         tnodevar = ulua_mem_new(ULUA_MEM_TYPE_TABLE_NODE, sizeof(ulua_mem_table_node));
-        ulua_mem_table_node *tnode = GCVALUE(ulua_mem_table_node*, tnodevar);
+        ulua_mem_table_node *tnode = MEMVARVALUE(ulua_mem_table_node*, tnodevar);
         tnode->key = key;
         tnode->value = value;
         tnode->hash = hashcode;
@@ -575,14 +716,14 @@ ulua_memvar*   ulua_mem_table_put(ulua_memvar* table, ulua_memvar* key, ulua_mem
     return table;
 }
 ulua_memvar*   ulua_mem_table_get(ulua_memvar* table, ulua_memvar* key) {
-    ulua_mem_table* t = GCVALUE(ulua_mem_table*, table);
+    ulua_mem_table* t = MEMVARVALUE(ulua_mem_table*, table);
     lu16 hashcode = ulua_mem_table_hash(key);
     lu16 index = hashcode % ULUA_MEM_TABLE_SIZE;
     ulua_memvar* listvar = t->list_array[index];
 
     ulua_memvar* listiter = ulua_mem_list_iter_init(listvar);
     while(listiter != ULUA_NULL) {//lookup key
-        ulua_mem_table_node* tnode = GCVALUE(ulua_mem_table_node*, ulua_mem_list_iter_value(listiter));
+        ulua_mem_table_node* tnode = MEMVARVALUE(ulua_mem_table_node*, ulua_mem_list_iter_value(listiter));
         if(tnode->hash == hashcode && ulua_mem_table_key_equals(tnode->key, key)) {// found key - update value
             return tnode->value;
         }
@@ -591,7 +732,7 @@ ulua_memvar*   ulua_mem_table_get(ulua_memvar* table, ulua_memvar* key) {
     return ULUA_NULL;
 }
 ulua_memvar*   ulua_mem_table_remove(ulua_memvar* table, ulua_memvar* key){
-    ulua_mem_table* t = GCVALUE(ulua_mem_table*, table);
+    ulua_mem_table* t = MEMVARVALUE(ulua_mem_table*, table);
     lu16 hashcode = ulua_mem_table_hash(key);
     lu16 index = hashcode % ULUA_MEM_TABLE_SIZE;
     ulua_memvar* listvar = t->list_array[index];
@@ -600,7 +741,7 @@ ulua_memvar*   ulua_mem_table_remove(ulua_memvar* table, ulua_memvar* key){
     ulua_memvar* listiter = ulua_mem_list_iter_init(listvar);
     while(listiter != ULUA_NULL) {//lookup key
         ulua_memvar* tnodevar = ulua_mem_list_iter_value(listiter);
-        ulua_mem_table_node* tnode = GCVALUE(ulua_mem_table_node*, tnodevar);
+        ulua_mem_table_node* tnode = MEMVARVALUE(ulua_mem_table_node*, tnodevar);
         if(tnode->hash == hashcode && ulua_mem_table_key_equals(tnode->key, key)) {// found key - update value
             value = tnode->value;
             listiter = ulua_mem_list_iter_remove(listvar, listiter);
@@ -613,7 +754,7 @@ ulua_memvar*   ulua_mem_table_remove(ulua_memvar* table, ulua_memvar* key){
     return value;
 }
 void           ulua_mem_table_free(ulua_memvar* table) {
-    ulua_mem_table* t = GCVALUE(ulua_mem_table*, table);
+    ulua_mem_table* t = MEMVARVALUE(ulua_mem_table*, table);
     for(lu16 i=0; i<ULUA_MEM_TABLE_SIZE; i++) {
         ulua_memvar* listvar = t->list_array[i];
         ulua_memvar* listiter = ulua_mem_list_iter_init(listvar);
@@ -624,16 +765,4 @@ void           ulua_mem_table_free(ulua_memvar* table) {
         ulua_mem_list_free(listvar);
     }
     ulua_mem_free(table);
-}
-
-//garbage collection functions
-void           ulua_mem_gc_mark_all(ulua_memvar* node) {
-//    node->flags = node->flags & ULUA_MEM_FLAG_BLOCKED;
-//    switch (node->type) {
-//        case ULUA_MEM_TYPE_VM:
-//            GCVALUE(vm*, node)->
-//    }
-}
-void           ulua_mem_gc(ulua_memvar* gcroot) {
-
 }

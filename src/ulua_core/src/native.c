@@ -55,7 +55,7 @@ void printRegister(readBytes read, vmregister reg)
         case REGISTER_VAR_MEMVAR:
             switch (((ulua_memvar*)reg.pointer)->type) {
                 case ULUA_MEM_TYPE_STRING:
-                    printf("%.*s\t", ((ulua_memvar*)reg.pointer)->memblock->header.size, GCVALUE(lu08*, ((ulua_memvar*)reg.pointer)));
+                    printf("%.*s\t", ((ulua_memvar*)reg.pointer)->memblock->header.size, MEMVARVALUE(lu08*, ((ulua_memvar*)reg.pointer)));
                     break;
 
             }
@@ -81,9 +81,19 @@ void nativePrint(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c)
 	printf("\n");
 }
 
-//native print(..) function
+//native memdump(..) function
 void nativeMemDump(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c) {
     ulua_mem_dump();
+}
+
+//native memdumptree(..) function
+void nativeMemDumpTree(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c) {
+	ulua_mem_dump_tree();
+}
+
+//native gc(..) function
+void nativeGC(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c) {
+	ulua_mem_gc_collect();
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -92,7 +102,7 @@ void putNative(ulua_vm* v, lu08* name, nativeFunc func)
 {
     ulua_memvar* stringvar = ulua_mem_string_new(name);
     ulua_memvar* regvar = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
-    vmregister* reg = GCVALUE(vmregister*, regvar);
+    vmregister* reg = MEMVARVALUE(vmregister*, regvar);
 
 	//set global
     reg->type = REGISTER_VAR_NATIVE_FUNC;
@@ -104,9 +114,11 @@ void putNative(ulua_vm* v, lu08* name, nativeFunc func)
 //preload native functions in global namespace
 void nativeInit(ulua_vm* vm)
 {
-	//add native "print" function
+	//add native functions
 	putNative(vm, (lu08*)"print", &nativePrint);
 	putNative(vm, (lu08*)"memdump", &nativeMemDump);
+	putNative(vm, (lu08*)"memdumptree", &nativeMemDumpTree);
+	putNative(vm, (lu08*)"gc", &nativeGC);
 }
 
 //call native function stored in reg

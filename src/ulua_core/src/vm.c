@@ -51,12 +51,12 @@ ulua_memvar* vmInit(lu08* memory, lu16 memory_size)
     ulua_memvar* v = ulua_mem_new(ULUA_MEM_TYPE_VM, sizeof(ulua_vm));
 
     //reset structure
-    initStructVM(GCVALUE(ulua_vm*, v));
+    initStructVM(MEMVARVALUE(ulua_vm*, v));
 
-    GCVALUE(ulua_vm*, v)->memory = memory;
-    GCVALUE(ulua_vm*, v)->memory_size = memory_size;
+    MEMVARVALUE(ulua_vm*, v)->memory = memory;
+    MEMVARVALUE(ulua_vm*, v)->memory_size = memory_size;
 	//pre load native functions in global namespace
-	nativeInit(GCVALUE(ulua_vm*, v));
+	nativeInit(MEMVARVALUE(ulua_vm*, v));
 
 	return v;
 }
@@ -205,7 +205,7 @@ void clearRegister(vmregister* reg)
 
 lu08 vmRun(ulua_memvar* memvm, readBytes read)
 {
-    ulua_vm* vm = GCVALUE(ulua_vm*, memvm);
+    ulua_vm* vm = MEMVARVALUE(ulua_vm*, memvm);
 
 	lu08 a = 0;
 	lu08 b = 0;
@@ -272,11 +272,11 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 		case OP_CLOSURE: //Create closure and put it into R(A)
 			//create closure in GC
 			gcpointer = ulua_mem_new(REGISTER_VAR_CLOSURE, sizeof(vmclosure));
-			GCVALUE(vmclosure*, gcpointer)->funcp = getFuncPt(read, curstate->funcp, sbx);
-			GCVALUE(vmclosure*, gcpointer)->upvalcount = platformReadByte(read, GCVALUE(vmclosure*, gcpointer)->funcp + 3*4);
+			MEMVARVALUE(vmclosure*, gcpointer)->funcp = getFuncPt(read, curstate->funcp, sbx);
+			MEMVARVALUE(vmclosure*, gcpointer)->upvalcount = platformReadByte(read, MEMVARVALUE(vmclosure*, gcpointer)->funcp + 3*4);
 
 			//init upvalues
-			for(i=0; i < GCVALUE(vmclosure*, gcpointer)->upvalcount; i++)
+			for(i=0; i < MEMVARVALUE(vmclosure*, gcpointer)->upvalcount; i++)
 			{
 				//TODO: implement upvalues
 				//u32 nextint = platformReadDWord(read, vm->pc);
@@ -330,7 +330,7 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 
 			stringvar = ulua_mem_string_new(name);
 			regvar = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
-			reg = GCVALUE(vmregister*, regvar);
+			reg = MEMVARVALUE(vmregister*, regvar);
 			reg->type = curstate->reg[a].type;
 			reg->pointer = curstate->reg[a].pointer;
 
@@ -348,7 +348,7 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 			stringvar = ulua_mem_string_new(name);
 			regvar = ulua_mem_table_get(vm->globals_table, stringvar);
 			if(regvar != ULUA_NULL) {
-                reg = GCVALUE(vmregister*, regvar);
+                reg = MEMVARVALUE(vmregister*, regvar);
                 curstate->reg[a].type = reg->type;
                 curstate->reg[a].pointer = reg->pointer;
             } else {
@@ -358,14 +358,14 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 
 		case OP_GETUPVAL: //R(A) := UpValue[B]
 			clearRegister(&curstate->reg[a]);
-			curstate->reg[a].type = GCVALUE(vmclosure*, curstate->closure)->upval[b].type;
-			curstate->reg[a].pointer = GCVALUE(vmclosure*, curstate->closure)->upval[b].pointer;
+			curstate->reg[a].type = MEMVARVALUE(vmclosure*, curstate->closure)->upval[b].type;
+			curstate->reg[a].pointer = MEMVARVALUE(vmclosure*, curstate->closure)->upval[b].pointer;
 			break;
 
 		case OP_SETUPVAL: //UpValue[B] := R(A)
-			clearRegister(&GCVALUE(vmclosure*, curstate->closure)->upval[b]);
-			GCVALUE(vmclosure*, curstate->closure)->upval[b].type = curstate->reg[a].type;
-			GCVALUE(vmclosure*, curstate->closure)->upval[b].pointer = curstate->reg[a].pointer;
+			clearRegister(&MEMVARVALUE(vmclosure*, curstate->closure)->upval[b]);
+			MEMVARVALUE(vmclosure*, curstate->closure)->upval[b].type = curstate->reg[a].type;
+			MEMVARVALUE(vmclosure*, curstate->closure)->upval[b].pointer = curstate->reg[a].pointer;
 			break;
 		
 		case OP_LOADK: //A Bx	R(A) := Kst(Bx)		
@@ -433,7 +433,7 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 				//set pc = call function address
 				//TODO: check reg type
 				gcpointer = (ulua_memvar*)curstate->reg[a].pointer;
-				vm->pc = GCVALUE(vmclosure*,gcpointer)->funcp;
+				vm->pc = MEMVARVALUE(vmclosure*,gcpointer)->funcp;
 				vm->pc += 16; //skip functino header
 
 				//prepare state
@@ -698,7 +698,7 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 				tmp.floatval = platformReadNumber(read, constpt);
 			} else {
 				tmp.floatval = curstate->reg[b].floatval;
-				tmp.type = curstate->reg[b].type;;
+				tmp.type = curstate->reg[b].type;
 			}
 			if(c > CG_REG_COUNT) {
 				constpt = getConstPt(read, curstate->constp, c - CG_REG_COUNT);

@@ -20,11 +20,6 @@ typedef struct vmclosure {
 } vmclosure;
 
 
-typedef struct vmglobal {
-    char		name[GLOBALNAMESIZE];
-    vmregister	val;
-} vmglobal;
-
 typedef struct vmstate {
     ulua_memvar* closure;
     lu16	pc;
@@ -44,7 +39,6 @@ typedef struct vm {
     threadstate	status;
 
     //global variables
-    //vmglobal global[GLOBALSIZE];
     ulua_memvar*    globals_table;
 
     //states (call stack)

@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 //variable accessor
-#define GCVALUE(type,var) ((type)( ((lu08*)var->memblock)+sizeof(ulua_memblock) ))
+#define MEMVARVALUE(type,var) ((type)( ((lu08*)var->memblock)+sizeof(ulua_memblock) ))
 
 //ulua types
 typedef enum ulua_vartype {
@@ -25,7 +25,7 @@ typedef enum ulua_vartype {
 
 //memory block flags
 #define ULUA_MEM_FLAG_BLOCKED (lu08)0b00000001
-#define ULUA_MEM_FLAG_GC_MARK (lu08)0b00000010
+#define ULUA_MEM_FLAG_MARK (lu08)0b00000010
 
 typedef struct ulua_memblock ulua_memblock;
 typedef struct ulua_memvar ulua_memvar;
@@ -42,6 +42,7 @@ typedef struct ulua_memblock_header {
 struct ulua_memblock {
     ulua_memblock_header header;
     //data is stored right after header
+    //data ...
 };
 
 //memory variable structure
@@ -83,6 +84,8 @@ lu08* ulua_mem_new_block(lu16 size); //allocate fixed memory data block. and mar
 void ulua_mem_free(ulua_memvar *var); //free variable and allocated memory
 void ulua_mem_free_block(lu08 *block); //free memory block and associated variable with it
 void ulua_mem_dump(); //dump all memory
+void ulua_mem_dump_tree(); //dump all memory in tree view
+void ulua_mem_dump_tree_memvar(ulua_memvar* memvar, lu08* name, lu08 level, ULUA_BOOL mark, ULUA_BOOL dump); //make tree dump for memory variable and all child variables
 
 //string functions
 ulua_memvar*    ulua_mem_string_new(lu08* chars);
@@ -111,7 +114,7 @@ ulua_memvar*   ulua_mem_table_get(ulua_memvar* table, ulua_memvar* key); //retur
 ulua_memvar*   ulua_mem_table_remove(ulua_memvar* table, ulua_memvar* key); //revome value for key and key node, return value
 void           ulua_mem_table_free(ulua_memvar* table);
 
-//garbage collection functions
-void           ulua_mem_gc(ulua_memvar* gcroot);
+//garbage collection function
+lu16           ulua_mem_gc_collect();
 
 #endif /* defined(ULUA_UMEMORY) */
