@@ -24,8 +24,19 @@ static int getLine (char *prmpt, lu08 *buff, int sz) {
         printf ("%s", prmpt);
         fflush (stdout);
     }
-    if (fgets ((char*)buff, sz, stdin) == ULUA_NULL)
-        return GETLINE_NO_INPUT;
+	int readline;
+	lu08* p = buff;
+	do {
+		readline = 0;
+		if (fgets((char*)p, sz, stdin) == ULUA_NULL)
+			return GETLINE_NO_INPUT;
+		if (p[strlen((char*)p) - 2] == '\\') {
+			p[strlen((char*)p) - 2] = ' ';
+			p += strlen((char*)p);
+			readline = 1;
+		}
+	} while (readline);
+	
 
     // If it was too long, there'll be no newline. In that case, we flush
     // to end of line so that excess doesn't affect the next call.
@@ -37,7 +48,7 @@ static int getLine (char *prmpt, lu08 *buff, int sz) {
     }
 
     // Otherwise remove newline and give string back to caller.
-    buff[strlen((char*)buff)-1] = '\0';
+    //buff[strlen((char*)buff)-1] = '\0';
     return GETLINE_OK;
 }
 
