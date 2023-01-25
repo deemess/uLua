@@ -123,8 +123,9 @@ void ulua_mem_dump_tree_iter_table(ulua_mem_table* memvar, lu08 level, ULUA_BOOL
 }
 
 void ulua_mem_dump_tree_memvar(ulua_memvar* memvar, lu08* name, lu08 level, ULUA_BOOL mark, ULUA_BOOL dump/*, ULUA_BOOL clearflag*/) {
-    if(mark == ULUA_TRUE)
-        memvar->flags = memvar->flags | ULUA_MEM_FLAG_MARK; //set MARK flag for memory variable. Once tree is pass, all unmarked memory variables could be deleted
+    if (mark == ULUA_TRUE)
+        SETBIT(memvar->flags, ULUA_MEM_FLAG_MARK);
+        //memvar->flags = memvar->flags | ULUA_MEM_FLAG_MARK; //set MARK flag for memory variable. Once tree is pass, all unmarked memory variables could be deleted
 
     //if (clearflag == ULUA_TRUE)
     //    memvar->flags = memvar->flags & (~ULUA_MEM_FLAG_MARK); //clear MARK flag
@@ -183,10 +184,13 @@ void ulua_mem_dump_tree() {
     printf(" ................\n");
     block = ulua_first_block;
     while (block != ULUA_NULL) {
-        if (!(block->header.var->flags & ULUA_MEM_FLAG_MARK)) { //MARK flag is not set - unused memory variable
+        if (!(block->header.var->flags & ULUA_MEM_FLAG_MARK) &&
+            !(block->header.var->flags & ULUA_MEM_FLAG_BLOCKED)) { //MARK flag is not set and unblocked - unused memory variable
             ulua_mem_dump_tree_memvar(block->header.var, "UNUSED", level, ULUA_FALSE, ULUA_TRUE);
         }
-        block->header.var->flags = block->header.var->flags & (~ULUA_MEM_FLAG_MARK); //clear MARK flag
+        //clear MARK flag
+        RESBIT(block->header.var->flags, ULUA_MEM_FLAG_MARK);
+        //block->header.var->flags = block->header.var->flags & (~ULUA_MEM_FLAG_MARK); 
         block = block->header.next;
     }
 
@@ -213,11 +217,14 @@ lu16 ulua_mem_gc_collect() {
     block = ulua_first_block;
     while (block != ULUA_NULL) {
         ulua_memblock* nextblock = block->header.next;
-        if (!(block->header.var->flags & ULUA_MEM_FLAG_MARK)) { //MARK flag is not set - unused memory variable
+        if (!(block->header.var->flags & ULUA_MEM_FLAG_MARK) &&
+            !(block->header.var->flags & ULUA_MEM_FLAG_BLOCKED)) { //MARK flag is not set and unblocked - unused memory variable
             collected += block->header.size;
             ulua_mem_free(block->header.var);
         } else {
-            block->header.var->flags = block->header.var->flags & (~ULUA_MEM_FLAG_MARK); //clear MARK flag
+            //clear MARK flag
+            RESBIT(block->header.var->flags, ULUA_MEM_FLAG_MARK);
+            //block->header.var->flags = block->header.var->flags & (~ULUA_MEM_FLAG_MARK); 
         }
         block = nextblock;
     }
@@ -415,8 +422,9 @@ lu08* ulua_mem_new_block(lu16 size) { //allocate fixed memory data block. and ma
     if(var == ULUA_NULL)
         return ULUA_NULL;
     
-    var->flags = var->flags & ULUA_MEM_FLAG_BLOCKED;
-    return ((lu08*)&var->memblock)+sizeof(ulua_memblock)+1;
+    SETBIT(var->flags, ULUA_MEM_FLAG_BLOCKED);
+    //var->flags = var->flags & ULUA_MEM_FLAG_BLOCKED;
+    return MEMVARVALUE(lu08*, var); // ((lu08*)&var->memblock)+sizeof(ulua_memblock)+1;
 }
 
 void ulua_mem_free(ulua_memvar *var) { //free variable and allocated memory
@@ -457,22 +465,14 @@ void ulua_mem_free(ulua_memvar *var) { //free variable and allocated memory
 }
 
 void ulua_mem_free_block(lu08 *block) { //free memory block and associated variable with it
-    lu16 varcount = ulua_vars_count;
-    ulua_memvar* var = (ulua_memvar*)( &ulua_memory[ulua_memory_size-1] - sizeof(ulua_memvar) );
-
-    //find var for that block
-    while(((lu08*)&var->memblock)+sizeof(ulua_memblock)+1 != block && varcount > 0 ) {
-        var =(ulua_memvar*) ( (lu08*)var - sizeof(ulua_memvar) );
-        if(var->type != ULUA_MEM_TYPE_NULL) varcount--;
-    }
-    
-    if(((lu08*)&var->memblock) +sizeof(ulua_memblock)+1 != block)
+    ulua_memvar* var = VALUEMEMVAR(block);
+    //check if var is aiming to the same block
+    if (MEMVARVALUE(lu08*,var) != block)
         return;
-    
+
     //free found var
     var->flags = 0;
     ulua_mem_free(var);
-
 }
 
 //string functions

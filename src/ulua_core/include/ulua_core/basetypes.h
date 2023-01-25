@@ -17,6 +17,10 @@ typedef lu08 ULUA_BOOL;
 #define ULUA_TRUE  1
 #define ULUA_FALSE 0
 
+//bit operation
+#define SETBIT(var,bit) var = var | bit
+#define RESBIT(var,bit) var = var & (~bit)
+
 //callback functions type
 typedef void (*readBytes)(lu08* buff, lu16 offset, lu16 size);
 

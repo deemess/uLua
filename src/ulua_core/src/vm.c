@@ -49,14 +49,15 @@ ulua_memvar* vmInit(lu08* memory, lu16 memory_size)
     ulua_mem_init(memory, memory_size);
     //allocate memory for vm struct
     ulua_memvar* v = ulua_mem_new(ULUA_MEM_TYPE_VM, sizeof(ulua_vm));
+	ulua_vm* vm = MEMVARVALUE(ulua_vm*, v);
 
     //reset structure
-    initStructVM(MEMVARVALUE(ulua_vm*, v));
+    initStructVM(vm);
 
-    MEMVARVALUE(ulua_vm*, v)->memory = memory;
-    MEMVARVALUE(ulua_vm*, v)->memory_size = memory_size;
+    vm->memory = memory;
+    vm->memory_size = memory_size;
 	//pre load native functions in global namespace
-	nativeInit(MEMVARVALUE(ulua_vm*, v));
+	nativeInit(vm);
 
 	return v;
 }

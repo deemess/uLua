@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 		if(strcmp("exit()", (char*)code) == 0)
 			break;
 		//init Parser
-		parser = ParseAlloc (malloc); 
+		parser = ParseAlloc(ulua_mem_new_block);
 		//init top level function
 		initFunction(&top, (lu08*)code);
         //init Lexer
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 		}
 		//free resources
 		freeFunction(&top);
-		ParseFree(parser, free);
+		ParseFree(parser, ulua_mem_free_block);
 	}
 	return 0;
 }

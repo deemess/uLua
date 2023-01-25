@@ -5,7 +5,10 @@
 #include <stdio.h>
 
 //variable accessor
+//get value from memory variable
 #define MEMVARVALUE(type,var) ((type)( ((lu08*)var->memblock)+sizeof(ulua_memblock) ))
+//get memory variable from value 
+#define VALUEMEMVAR(v) ((ulua_memblock*) (((lu08*)v)-sizeof(ulua_memblock)) )->header.var
 
 //ulua types
 typedef enum ulua_vartype {
