@@ -81,7 +81,9 @@ int main(int argc, char **argv) {
 		if(strcmp("exit()", (char*)code) == 0)
 			break;
 		//init Parser
+		//ulua_mem_dump();
 		parser = ParseAlloc(ulua_mem_new_block);
+		//ulua_mem_dump();
 		//init top level function
 		initFunction(&top, (lu08*)code);
         //init Lexer
@@ -125,12 +127,20 @@ int main(int argc, char **argv) {
 			//get binary dump
 			dp = 0;
 			dump(&top, (writeBytes) &writeBytecode);
+			//free resources
+			//ulua_mem_dump();
+			freeFunction(&top);
+			//ulua_mem_dump();
+			ParseFree(parser, ulua_mem_free_block);
+			//ulua_mem_dump();
 			//run dump on vm
 			vmRun(thread, &readBytecode);
 		}
-		//free resources
-		freeFunction(&top);
-		ParseFree(parser, ulua_mem_free_block);
+		else {
+			//free resources
+			freeFunction(&top);
+			ParseFree(parser, ulua_mem_free_block);
+		}
 	}
 	return 0;
 }

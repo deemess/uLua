@@ -1,9 +1,9 @@
-#include <stdlib.h>
 #include <stdio.h>
 #include "ulua_core/ucodegen.h"
 #include "ulua_core/udebug.h"
 #include "ulua_core/opcodes.h"
 #include "ulua_core/uparser.h"
+#include "ulua_core/umemory.h"
 
 void initFunction(Function* f, lu08* code) {
 	lu08 i;
@@ -37,8 +37,10 @@ void freeFunction(Function* f) {
     Instruction* i;
     Instruction* li;
     Constant* c;
-    Constant* lc;
-    Function* sf;
+	Constant* lc;
+	Constant* v;
+	Constant* lv;
+	Function* sf;
     Function* lsf;
     
     //free all instructions
@@ -46,24 +48,32 @@ void freeFunction(Function* f) {
     while(i != ULUA_NULL) {
         li = i;
         i = i->next;
-        free(li);
-    }
+        ulua_mem_free_block(li);
+	}
 	f->instr = ULUA_NULL;
     //free all constants
-    c = f->consts;
+	c = f->consts;
     while(c != ULUA_NULL) {
         lc = c;
         c = c->next;
-        free(lc);
+		ulua_mem_free_block(lc);
     }
 	f->consts = ULUA_NULL;
+	//free all vars
+	v = f->vars;
+	while (v != ULUA_NULL) {
+		lv = v;
+		v = v->next;
+		ulua_mem_free_block(lv);
+	}
+	f->consts = ULUA_NULL;
     //free all subfunctions
-    sf = f->subfuncs;
+	sf = f->subfuncs;
     while (sf != ULUA_NULL) {
         freeFunction(sf);
         lsf = sf;
         sf = sf->next;
-        free(lsf);
+		ulua_mem_free_block(lsf);
     }
 	f->subfuncs = ULUA_NULL;
 }
@@ -100,13 +110,13 @@ Constant* pushConst(Function* f, Constant* c) {
 
 	last = f->consts;
 	if(constEqueals(f, last, c)) {
-		free(c);
+		ulua_mem_free_block(c);
 		return last;
 	}
 	while(last->next != ULUA_NULL) {
 		last = last->next;
 		if(constEqueals(f, last, c)) {
-			free(c);
+			ulua_mem_free_block(c);
 			return last;
 		}
 	}
@@ -129,13 +139,13 @@ Constant* pushVar(Function* f, Constant* c) {
 
 	last = f->vars;
 	if(constEqueals(f, last, c)) {
-		free(c);
+		ulua_mem_free_block(c);
 		return last;
 	}
 	while(last->next != ULUA_NULL) {
 		last = last->next;
 		if(constEqueals(f, last, c)) {
-			free(c);
+			ulua_mem_free_block(c);
 			return last;
 		}
 	}
@@ -146,7 +156,7 @@ Constant* pushVar(Function* f, Constant* c) {
 }
 
 Constant* pushVarName(Function* f, SString* str) {
-	Constant* c = (Constant*)malloc(sizeof(Constant));
+	Constant* c = (Constant*)ulua_mem_new_block(sizeof(Constant));
 
 	c->num = 0;
 	c->isglobal = ULUA_TRUE;
@@ -284,7 +294,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 	if(!a->isload) { //make pre loading function
 		if(a->consthold) {//constant
 			if(isloadK) {//make preload
-				i = (Instruction*)malloc(sizeof(Instruction));
+				i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 				i->i.unpacked.opc = OP_LOADK;
 				i->i.unpacked.a = ta->num;
 				i->i.unpacked.bx.bx = a->constnum;
@@ -305,7 +315,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 				//put global name to constant pool
 				c = getVarByNum(f, a->varnum);
 				c = pushConstString(f, &c->val_string);
-				i = (Instruction*)malloc(sizeof(Instruction));
+				i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 				i->i.unpacked.opc = OP_GETGLOBAL;
 				i->i.unpacked.bx.bx = c->num;
 				i->i.unpacked.a = ta->num;
@@ -322,7 +332,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 		}
 	} else {
 		if(a->num != ta->num) {//move function to target register
-			i = (Instruction*)malloc(sizeof(Instruction));
+			i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 			i->i.unpacked.opc = OP_MOVE;
 			i->i.unpacked.a = ta->num;
 			i->i.unpacked.bx.l.b = a->num;
@@ -363,7 +373,7 @@ void tryFreeRegister(Register* r) {
 //public functions ---------------------------------------------------------------------
 
 Constant* pushConstString(Function* f, SString* str) {
-	Constant* c = (Constant*)malloc(sizeof(Constant));
+	Constant* c = (Constant*)ulua_mem_new_block(sizeof(Constant));
 	
 	c->num = 0;
 	c->isglobal = ULUA_TRUE;
@@ -378,7 +388,7 @@ Constant* pushConstString(Function* f, SString* str) {
 }
 
 Constant* pushConstNumber(Function* f, float number) {
-	Constant* c = (Constant*)malloc(sizeof(Constant));
+	Constant* c = (Constant*)ulua_mem_new_block(sizeof(Constant));
 	
 	c->num = 0;
 	c->isglobal = ULUA_TRUE;
@@ -469,7 +479,7 @@ Register* doNot(Function* f, Register* a, Token* t) { //do not\minus logic
 	checkLoad(f, a, a, ULUA_TRUE, ULUA_NULL);
 	res = getFreeRegister(f);
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = t->token == TK_NOT ? OP_NOT : OP_UNM;
 	i->i.unpacked.a = res->num;
 	i->i.unpacked.bx.l.b = a->num;
@@ -490,26 +500,26 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 	checkLoad(f, b, b, ULUA_TRUE, ULUA_NULL);
 	res = getFreeRegister(f);
 	
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_LOADBOOL;
 	i->i.unpacked.a = res->num;
 	i->i.unpacked.bx.l.b = t->token == TK_OR ? 0 : 1;//load false in result register for OR else true for AND
 	i->i.unpacked.bx.l.c = 0;
 	pushInstruction(f,i);
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_TESTSET;//load false in result register
 	i->i.unpacked.a = res->num;
 	i->i.unpacked.bx.l.b = a->num;
 	i->i.unpacked.bx.l.c = t->token == TK_OR ? 0 : 1; // false for OR instruction and true for AND instruction
 	pushInstruction(f,i);
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_JMP;//skip next check
 	i->i.unpacked.bx.bx = 1;
 	pushInstruction(f,i);
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_MOVE;//load false in result register
 	i->i.unpacked.a = res->num;
 	i->i.unpacked.bx.l.b = b->num;
@@ -524,7 +534,7 @@ Register* doLogic(Function* f, Register* a, Register* b, Token* t) {
 
 Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	Register* res;
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	res = getFreeRegister(f);
 	
 	checkLoad(f, a, a, ULUA_FALSE, ULUA_NULL);
@@ -565,13 +575,13 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 	pushInstruction(f, i);
 
 	//generate instructions to load true and false
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_LOADBOOL;
 	i->i.unpacked.a = res->num;
 	i->i.unpacked.bx.l.b = 1; //true
 	i->i.unpacked.bx.l.c = 1; //skip next instruction
 	pushInstruction(f, i);
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_LOADBOOL;
 	i->i.unpacked.a = res->num;
 	i->i.unpacked.bx.l.b = 0; //false
@@ -587,7 +597,7 @@ Register* doCompare(Function* f, Register* a, Register* b, Token* t) {
 
 Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	Register* r;
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	
 	checkLoad(f, a, a, ULUA_FALSE, ULUA_NULL);
 	checkLoad(f, b, b, ULUA_FALSE, ULUA_NULL);
@@ -634,7 +644,7 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 
 Register* doNil(Function* f) { //allocate register and load nil in it
 	Register* res;
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 
 	res = getFreeRegister(f);
 	i->i.unpacked.opc = OP_LOADNIL;
@@ -648,7 +658,7 @@ Register* doNil(Function* f) { //allocate register and load nil in it
 
 Register* doBoolean(Function* f, Token* t) { //allocate register and load bool value in it
 	Register* res;
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 
 	res = getFreeRegister(f);
 	i->i.unpacked.opc = OP_LOADBOOL;
@@ -662,7 +672,7 @@ Register* doBoolean(Function* f, Token* t) { //allocate register and load bool v
 
 Register* doTable(Function* f) { //allocate register and load new table in it
     Register* res;
-    Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+    Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 
     res = getFreeRegister(f);
     i->i.unpacked.opc = OP_NEWTABLE;
@@ -684,14 +694,14 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 	checkLoad(f, a, a, ULUA_TRUE, block);
 
 	//make register test and skip WHILE block if true
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_TEST;//load false in result register
 	i->i.unpacked.a = a->num;
 	i->i.unpacked.bx.l.b = 0;
 	i->i.unpacked.bx.l.c = 1; // if false for OR instruction and true for AND instruction
 	insertInstruction(f, i, block);
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_JMP;//skip while block block
 	i->i.unpacked.bx.bx = 1;
 	insertInstruction(f, i, block);
@@ -720,7 +730,7 @@ Instruction* statWHILE(Function* f, Register* a, Instruction* block) { //make wh
 		count++; 
 		tmp = tmp->next;
 	}
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_JMP;//repeat while iteration from expression start
 	i->i.unpacked.bx.bx = -count; //repeat while block + expressions
 
@@ -741,7 +751,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	checkLoad(f, a, a, ULUA_TRUE, block);
 
 	//make register test and skip THEN block if false
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_TEST;//load false in result register
 	i->i.unpacked.a = a->num;
 	i->i.unpacked.bx.l.b = 0;
@@ -749,7 +759,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	insertInstruction(f, i, block);
 	first = i;
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_JMP;//skip THEN block
 	i->i.unpacked.bx.bx = 1;
 	insertInstruction(f, i, block);
@@ -767,7 +777,7 @@ Instruction* statTHEN(Function* f, Register* a, Instruction* block) {
 	}
 	i->i.unpacked.bx.bx = count+1;
 
-	i = (Instruction*)malloc(sizeof(Instruction));
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_JMP;//exit from if - will be amended in the next
 	i->i.unpacked.bx.bx = 0;
 
@@ -814,7 +824,7 @@ Instruction* statELSE(Function* f, Instruction* condlist, Instruction* block) { 
 		jmp->i.unpacked.bx.bx = count + countprejump;
 	}
 
-	//i = (Instruction*)malloc(sizeof(Instruction));
+	//i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	//i->i.unpacked.opc = OP_JMP;//skip THEN block
 	//i->i.unpacked.bx.bx = size;
 	//insertInstruction(f, i, tmp);
@@ -858,7 +868,7 @@ Instruction* statELSEIF(Function* f, Instruction* condlist, Instruction* cond){ 
 		jmp->i.unpacked.bx.bx = count + countprejump;
 	}
 
-	//i = (Instruction*)malloc(sizeof(Instruction));
+	//i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	//i->i.unpacked.opc = OP_JMP;//skip THEN block
 	//i->i.unpacked.bx.bx = size;
 	//insertInstruction(f, i, tmp);
@@ -890,7 +900,7 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 		tryFreeRegister(b);
 	} else {//global variable
 		checkLoad(f, b, a, ULUA_TRUE, ULUA_NULL);
-		i = (Instruction*)malloc(sizeof(Instruction));
+		i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 		c = getVarByNum(f, a->varnum);
 		c = pushConstString(f, &c->val_string);
 		//register or preloaded constant
@@ -908,7 +918,7 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	//TODO: support more than 1 arg function call
 	Register* ta;
 	Register* tb;
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	
 	//allocate registers for call
 	ta = getFreeRegisters(f, 1);
@@ -936,7 +946,7 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 }
 
 Instruction*  doReturn(Function* f)  {
-	Instruction* i = (Instruction*)malloc(sizeof(Instruction));
+	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_RETURN;
 	i->i.unpacked.a = 0;
 	i->i.unpacked.bx.l.b = 1;//TODO: support multiple return result

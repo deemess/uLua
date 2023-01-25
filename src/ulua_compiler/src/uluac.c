@@ -4,10 +4,12 @@
 #include "ulua_core/uparser_static.h"
 #include "ulua_core/ucodegen.h"
 #include "ulua_core/udebug.h"
+#include "ulua_core/umemory.h"
 
 #define CODE_BUFFER_SIZE 64*1024
 
 static lu08 code[CODE_BUFFER_SIZE];
+static lu08 ram[CODE_BUFFER_SIZE];
 
 FILE* ofile;
 
@@ -35,8 +37,13 @@ int main(int argc, char **argv) {
 	}
 
 	//read file
-	for(i=0; i<CODE_BUFFER_SIZE; i++)
-		code[i]=0;
+	for (i = 0; i < CODE_BUFFER_SIZE; i++) {
+		code[i] = 0;
+		ram[i] = 0;
+	}
+
+	//init memory manager
+	ulua_mem_init(&ram, CODE_BUFFER_SIZE);
 
 	file = fopen(argv[1], "r");
 	codelen = (lu32)fread(code, 1, CODE_BUFFER_SIZE, file);
@@ -44,7 +51,7 @@ int main(int argc, char **argv) {
 	fclose(file);
 
 	//init Parser
-	parser = ParseAlloc (malloc); 
+	parser = ParseAlloc (ulua_mem_new_block); 
 
 	//init Lexer
 	setInput(&ls, (lu08*)code);
@@ -82,6 +89,6 @@ int main(int argc, char **argv) {
 	dump(&top, &writeToFile);
 	fclose(ofile);
 
-	ParseFree(parser, free);
+	ParseFree(parser, ulua_mem_free_block);
 	return 0;
 }

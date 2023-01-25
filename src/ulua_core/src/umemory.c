@@ -436,6 +436,7 @@ void ulua_mem_free(ulua_memvar *var) { //free variable and allocated memory
         var->memblock->header.next->header.prev = var->memblock->header.prev;
         
     } else if (var->memblock->header.prev != ULUA_NULL && var->memblock->header.next == ULUA_NULL) {
+        var->memblock->header.prev->header.next = ULUA_NULL;
         //last block - update free pointer
         ulua_mem_freept = ( (lu08*)var->memblock->header.prev + var->memblock->header.prev->header.size + sizeof(ulua_memblock_header)) - ulua_memory;
         ulua_last_block = var->memblock->header.prev;
