@@ -660,9 +660,18 @@ lu16           ulua_mem_table_hash(ulua_memvar* key) {
             return hashcode;
         case ULUA_MEM_TYPE_VMREGISTER:
             reg = MEMVARVALUE(vmregister*, key);
-            return (uintptr_t)reg->pointer;
+            if (reg->type == REGISTER_VAR_FLOAT || reg->type == REGISTER_VAR_BOOLEAN) {
+                return (lu16)(int)reg->floatval;
+            } else if (reg->type == REGISTER_VAR_MEMVAR && ((ulua_memvar*)reg->pointer)->type == ULUA_MEM_TYPE_STRING) {
+                string = MEMVARVALUE(lu08*, ((ulua_memvar*)reg->pointer));
+                for (lu16 i = 0; i < ((ulua_memvar*)reg->pointer)->memblock->header.size; i++) {
+                    hashcode += string[i];
+                }
+                return hashcode;
+            }
+            return (lu16)reg->pointer;
         default:
-            return (uintptr_t)key;
+            return (lu16)key;
     }
 }
 ULUA_BOOL      ulua_mem_table_key_equals(ulua_memvar* key1, ulua_memvar* key2) {
@@ -671,14 +680,34 @@ ULUA_BOOL      ulua_mem_table_key_equals(ulua_memvar* key1, ulua_memvar* key2) {
     if(key1 == ULUA_NULL || key2 == ULUA_NULL)
         return ULUA_FALSE;
     if(key1->type == key2->type) {
-        switch (key1->type) {
+        switch (key1->type) { //TODO: support other MEM_TYPEs
             case ULUA_MEM_TYPE_STRING:
                 return ulua_mem_string_equals(key1, key2);
             case ULUA_MEM_TYPE_VMREGISTER:
                 reg1 = MEMVARVALUE(vmregister*, key1);
                 reg2 = MEMVARVALUE(vmregister*, key2);
-                if(reg1->type == reg2->type && reg1->pointer == reg2->pointer) {
-                    return ULUA_TRUE;
+                if(reg1->type == reg2->type){
+                    switch (reg1->type)
+                    {
+                        case REGISTER_VAR_FLOAT:
+                        case REGISTER_VAR_BOOLEAN:
+                            return reg1->floatval == reg2->floatval;
+                            break;
+                        case REGISTER_VAR_NUMBER:
+                            return reg1->numval == reg2->numval;
+                            break;
+                        case REGISTER_VAR_MEMVAR:
+                            if (((ulua_memvar*)reg1->pointer)->type == ULUA_MEM_TYPE_STRING &&
+                                ((ulua_memvar*)reg2->pointer)->type == ULUA_MEM_TYPE_STRING) {
+                                return ulua_mem_string_equals((ulua_memvar*)reg1->pointer, (ulua_memvar*)reg2->pointer);
+                            }
+                            return reg1->pointer == reg2->pointer;
+                            break;
+                        default:
+                            return reg1->pointer == reg2->pointer;
+                            break;
+                    }
+                    return ULUA_FALSE;
                 }
             default:
                 if(key1 == key2)
@@ -712,8 +741,8 @@ ulua_memvar*   ulua_mem_table_put(ulua_memvar* table, ulua_memvar* key, ulua_mem
         tnode->value = value;
         tnode->hash = hashcode;
         ulua_mem_list_add(listvar, tnodevar);
+        t->size++;
     }
-    t->size++;
     return table;
 }
 ulua_memvar*   ulua_mem_table_get(ulua_memvar* table, ulua_memvar* key) {
@@ -747,11 +776,11 @@ ulua_memvar*   ulua_mem_table_remove(ulua_memvar* table, ulua_memvar* key){
             value = tnode->value;
             listiter = ulua_mem_list_iter_remove(listvar, listiter);
             ulua_mem_free(tnodevar);
+            t->size--;
             break;
         }
         listiter = ulua_mem_list_iter_next(listiter);
     }
-    t->size--;
     return value;
 }
 void           ulua_mem_table_free(ulua_memvar* table) {

@@ -106,7 +106,6 @@ int main(int argc, char **argv) {
 				printf("Error: %d\n", getLastULexError());
 				printf("Token:");
 				printToken(&ls.t, code);
-                freeFunction(&top);
 				break;
 			}
 			Parse(parser, ls.t.token, ls.t, &top);
@@ -114,7 +113,6 @@ int main(int argc, char **argv) {
 				printf("Syntax error: %d on line: %d token ", top.error_code, ls.linenumber);
 				printToken(&ls.t, code);
 				printf("\n");
-                freeFunction(&top);
 				break;
 			}
 			next(&ls);

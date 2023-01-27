@@ -41,7 +41,8 @@ void printRegister(readBytes read, vmregister reg)
 			break;
 
 		case REGISTER_VAR_FLOAT:
-			printf("%.0f\t", reg.floatval);
+			//printf("%.6f\t", reg.floatval);
+			printf("%f\t", reg.floatval);
 			break;
 
 		case REGISTER_VAR_NULL:
@@ -86,7 +87,7 @@ void nativeMemDump(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c) {
     ulua_mem_dump();
 }
 
-//native memdumptree(..) function
+//native memtree(..) function
 void nativeMemDumpTree(ulua_vm* vm, readBytes read, lu08 a, lu16 b, lu16 c) {
 	ulua_mem_dump_tree();
 }
@@ -117,7 +118,7 @@ void nativeInit(ulua_vm* vm)
 	//add native functions
 	putNative(vm, (lu08*)"print", &nativePrint);
 	putNative(vm, (lu08*)"memdump", &nativeMemDump);
-	putNative(vm, (lu08*)"memdumptree", &nativeMemDumpTree);
+	putNative(vm, (lu08*)"memtree", &nativeMemDumpTree);
 	putNative(vm, (lu08*)"gc", &nativeGC);
 }
 

@@ -317,11 +317,48 @@ lu08 vmRun(ulua_memvar* memvm, readBytes read)
 
         case OP_NEWTABLE:
             regvar = ulua_mem_table_new();
-            curstate->reg[a].type = REGISTER_VAR_TABLE;
-            curstate->reg[a].pointer = regvar;
+            //curstate->reg[a].type = REGISTER_VAR_TABLE;
+			curstate->reg[a].type = REGISTER_VAR_MEMVAR;
+			curstate->reg[a].pointer = regvar;
             break;
 
-		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
+		case OP_GETTABLE:
+			if (curstate->reg[b].type == REGISTER_VAR_MEMVAR && ((ulua_memvar*)curstate->reg[b].pointer)->type == ULUA_MEM_TYPE_TABLE) {
+				regvar = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
+				reg = MEMVARVALUE(vmregister*, regvar);
+				reg->type = curstate->reg[c].type;
+				reg->pointer = curstate->reg[c].pointer;
+				regvar = ulua_mem_table_get(((ulua_memvar*)curstate->reg[b].pointer), regvar);
+				if (regvar != ULUA_NULL) {
+					reg = MEMVARVALUE(vmregister*, regvar);
+					curstate->reg[a].type = reg->type;
+					curstate->reg[a].numval = reg->numval;
+				} else {
+					curstate->reg[a].type = REGISTER_VAR_NULL;
+					curstate->reg[a].numval = 0;
+				}
+			} else {
+				printf("ERROR: OP_GETTABLE: B is not reference to a Table!");
+			}
+			break;
+
+		case OP_SETTABLE:
+			if (curstate->reg[a].type == REGISTER_VAR_MEMVAR && ((ulua_memvar*)curstate->reg[a].pointer)->type == ULUA_MEM_TYPE_TABLE) {
+				regvar = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
+				reg = MEMVARVALUE(vmregister*, regvar);
+				reg->type = curstate->reg[b].type;
+				reg->pointer = curstate->reg[b].pointer;
+				gcpointer = ulua_mem_new(ULUA_MEM_TYPE_VMREGISTER, sizeof(vmregister));
+				reg = MEMVARVALUE(vmregister*, gcpointer);
+				reg->type = curstate->reg[c].type;
+				reg->pointer = curstate->reg[c].pointer;
+				ulua_mem_table_put(((ulua_memvar*)curstate->reg[a].pointer), regvar, gcpointer);
+			}
+			else {
+				printf("ERROR: OP_GETTABLE: B is not reference to a Table!");
+			}
+
+		break;		case OP_SETGLOBAL: //	A Bx	Gbl[Kst(Bx)] := R(A)
 			//read global name
 			constpt = getConstPt(read, curstate->constp, sbx);
 			type = platformReadByte(read, constpt++);

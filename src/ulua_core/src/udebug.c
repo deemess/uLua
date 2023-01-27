@@ -250,8 +250,10 @@ void printIntruction(Function *f, Instruction* i) {
 				printf("%d\t%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.l.b, i->i.unpacked.bx.l.c);
 				break;
 			case OP_GETTABLE:/*	A B C	R(A) := R(B)[RK(C)]				*/
+				printf("%d\t%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.l.b, i->i.unpacked.bx.l.c);
 				break;
 			case OP_SETTABLE:/*	A B C	R(A)[RK(B)] := RK(C)				*/
+				printf("%d\t%d\t%d", i->i.unpacked.a, i->i.unpacked.bx.l.b, i->i.unpacked.bx.l.c);
 				break;
 			case OP_SELF:/*	A B C	R(A+1) := R(B); R(A) := R(B)[RK(C)]		*/
 				break;

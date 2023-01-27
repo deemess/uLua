@@ -22,6 +22,8 @@ struct Register {
 	BOOL	isfree;//is register used or not
 	BOOL	isload;//is register holds any value
 	BOOL	islocal;//is register local variable
+	BOOL	istable;//is it table
+	Register* tablekey;//if register is table this holds register for table key, if not then NULL
 	lu08	constnum;//constant number (0 for defauld - no constant)
 	lu08	varnum;//if register refer to variable - holds var number in constant pool
 	BOOL	consthold;//is register refer to constant

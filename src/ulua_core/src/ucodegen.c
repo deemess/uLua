@@ -30,6 +30,8 @@ void initFunction(Function* f, lu08* code) {
 		f->reg[i].islocal = ULUA_FALSE;
 		f->reg[i].exprStart = ULUA_NULL;
 		f->reg[i].next = ULUA_NULL;
+		f->reg[i].istable = ULUA_FALSE;
+		f->reg[i].tablekey = ULUA_NULL;
 	}
 }
 
@@ -284,12 +286,67 @@ Instruction* addInstruction(Function* f, Instruction* i, Instruction* after) {
 	return after;
 }
 
+Instruction* checkLoadRegister(Function* f, Register* a, BOOL loadTableValue) {
+	Instruction* i = ULUA_NULL;
+	Constant* c;
+
+	if (a == ULUA_NULL) //nothing to load
+		return i;
+
+	if (a->istable)
+		checkLoadRegister(f, a->tablekey, ULUA_TRUE);
+
+	if (!a->isload) { //make pre loading function
+		if (a->consthold) {//constant
+				i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+				i->i.unpacked.opc = OP_LOADK;
+				i->i.unpacked.a = a->num;
+				i->i.unpacked.bx.bx = a->constnum;
+				pushInstruction(f, i);
+				a->isload = ULUA_TRUE;
+		}
+		else {
+			if (!a->islocal) {//global variable
+				//put global name to constant pool
+				c = getVarByNum(f, a->varnum);
+				c = pushConstString(f, &c->val_string);
+				i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+				i->i.unpacked.opc = OP_GETGLOBAL;
+				i->i.unpacked.bx.bx = c->num;
+				i->i.unpacked.a = a->num;
+				pushInstruction(f, i);
+
+				if (a->istable && loadTableValue) {
+					i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+					i->i.unpacked.opc = OP_GETTABLE;
+					i->i.unpacked.bx.l.c = a->tablekey->num;
+					i->i.unpacked.bx.l.b = a->num;
+					i->i.unpacked.a = a->num;
+					pushInstruction(f, i);
+				}
+				a->isload = ULUA_TRUE;
+			}
+			else {//uninitialized local variable - error
+				f->error_code = E_NOTINIT_LOCAL;
+			}
+		}
+	}
+	return i;
+}
+
+
 Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Instruction* before) {
 	Instruction* i = ULUA_NULL;
 	Constant* c;
 
 	if(a == ULUA_NULL) //nothing to load
         return i;
+
+	if (a->istable)
+		checkLoad(f, a->tablekey, a->tablekey, ULUA_TRUE, ULUA_NULL);
+
+	if (ta->istable)
+		checkLoad(f, ta->tablekey, ta->tablekey, ULUA_TRUE, ULUA_NULL);
 
 	if(!a->isload) { //make pre loading function
 		if(a->consthold) {//constant
@@ -318,7 +375,7 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 				i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 				i->i.unpacked.opc = OP_GETGLOBAL;
 				i->i.unpacked.bx.bx = c->num;
-				i->i.unpacked.a = ta->num;
+				i->i.unpacked.a = a->num;
 				if(before != ULUA_NULL) {
 					insertInstruction(f,i,before);
 				} else {
@@ -326,6 +383,15 @@ Instruction* checkLoad(Function* f, Register* a, Register* ta, BOOL isloadK, Ins
 				}
 				ta->varnum = a->varnum;
 				ta->isload = ULUA_TRUE;
+
+				if (a->istable) {
+					i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+					i->i.unpacked.opc = OP_GETTABLE;
+					i->i.unpacked.bx.l.c = a->tablekey->num;
+					i->i.unpacked.bx.l.b = a->num;
+					i->i.unpacked.a = a->num;
+					pushInstruction(f, i);
+				}
 			} else {//uninitialized local variable - error
 				f->error_code = E_NOTINIT_LOCAL;
 			}
@@ -358,6 +424,8 @@ void freeRegister(Register* r) {
 	r->islocal = ULUA_FALSE;
 	r->exprStart = ULUA_NULL;
 	r->next = ULUA_NULL;
+	r->istable = ULUA_FALSE;
+	r->tablekey = ULUA_NULL;
 }
 
 void tryFreeRegister(Register* r) {
@@ -599,8 +667,10 @@ Register* doMath(Function* f, Register* a, Register* b, Token* t) {
 	Register* r;
 	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	
-	checkLoad(f, a, a, ULUA_FALSE, ULUA_NULL);
-	checkLoad(f, b, b, ULUA_FALSE, ULUA_NULL);
+	//checkLoad(f, a, a, ULUA_FALSE, ULUA_NULL);
+	//checkLoad(f, b, b, ULUA_FALSE, ULUA_NULL);
+	checkLoadRegister(f, a, ULUA_TRUE);
+	checkLoadRegister(f, b, ULUA_TRUE);
 
 	//r = a->islocal ? getFreeRegister(f) : a;
 	r = getFreeRegister(f);
@@ -895,22 +965,50 @@ Instruction* statSET(Function* f, Register* a, Register* b, BOOL islocal) {
 	Constant* c;
 
 	if(islocal) { //local variable - just load
-		i = checkLoad(f, b, a, ULUA_TRUE, ULUA_NULL);
-		a->islocal = ULUA_TRUE;
-		tryFreeRegister(b);
+		i = checkLoadRegister(f, b, ULUA_TRUE);
+		i = checkLoadRegister(f, a, ULUA_FALSE);
+		if (a->istable) {
+			i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+			i->i.unpacked.opc = OP_SETTABLE;
+			i->i.unpacked.bx.l.c = b->num;
+			i->i.unpacked.bx.l.b = a->tablekey->num;
+			i->i.unpacked.a = a->num;
+			pushInstruction(f, i);
+		}
+		else {
+			i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+			i->i.unpacked.opc = OP_MOVE;
+			i->i.unpacked.a = a->num;
+			i->i.unpacked.bx.l.b = b->num;
+			pushInstruction(f, i);
+			a->islocal = ULUA_TRUE;
+		}
 	} else {//global variable
-		checkLoad(f, b, a, ULUA_TRUE, ULUA_NULL);
-		i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
-		c = getVarByNum(f, a->varnum);
-		c = pushConstString(f, &c->val_string);
-		//register or preloaded constant
-		i->i.unpacked.opc = OP_SETGLOBAL;
-		i->i.unpacked.a = a->num;//register number
-		i->i.unpacked.bx.bx = c->num;//global const name number
+		if (a->istable) {
+			i = checkLoadRegister(f, b, ULUA_TRUE);
+			i = checkLoadRegister(f, a, ULUA_FALSE);
+			i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+			i->i.unpacked.opc = OP_SETTABLE;
+			i->i.unpacked.bx.l.c = b->num;
+			i->i.unpacked.bx.l.b = a->tablekey->num;
+			i->i.unpacked.a = a->num;
+			pushInstruction(f, i);
+		}
+		else {
+			i = checkLoadRegister(f, b, ULUA_TRUE);
+			i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+			c = getVarByNum(f, a->varnum);
+			c = pushConstString(f, &c->val_string);
+			//register or preloaded constant
+			i->i.unpacked.opc = OP_SETGLOBAL;
+			i->i.unpacked.a = b->num;//register number
+			i->i.unpacked.bx.bx = c->num;//global const name number
 
-		tryFreeRegister(b);
-		pushInstruction(f,i);
+			pushInstruction(f, i);
+		}
 	}
+
+	tryFreeRegister(b);
 	return i;
 }
 
@@ -918,18 +1016,36 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 	//TODO: support more than 1 arg function call
 	Register* ta;
 	Register* tb;
-	Instruction* i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+	Instruction* i;
 	
-	//allocate registers for call
-	ta = getFreeRegisters(f, 1);
-	tb = &f->reg[ta->num + 1];
+	checkLoadRegister(f, a, ULUA_TRUE);
+	checkLoadRegister(f, b, ULUA_TRUE);
 
-	//FUNCTION A reg
-	checkLoad(f,a,ta,ULUA_TRUE, ULUA_NULL);
+	if (b != ULUA_NULL && b->num - a->num != 1) { //make sequiential registers
+		//allocate registers for call
+		ta = getFreeRegisters(f, 1);
+		tb = &f->reg[ta->num + 1];
+		i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+		i->i.unpacked.opc = OP_MOVE;
+		i->i.unpacked.a = ta->num;
+		i->i.unpacked.bx.l.b = a->num;
+		pushInstruction(f, i);		i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
+		i->i.unpacked.opc = OP_MOVE;
+		i->i.unpacked.a = tb->num;
+		i->i.unpacked.bx.l.b = b->num;
+		pushInstruction(f, i);
+	} else {
+		ta = a;
+		tb = b;
+	}
 
-	//ARGUMENTS B reg
-	checkLoad(f,b,tb,ULUA_TRUE, ULUA_NULL);
+	////FUNCTION A reg
+	//checkLoad(f,a,ta,ULUA_TRUE, ULUA_NULL);
 
+	////ARGUMENTS B reg
+	//checkLoad(f,b,tb,ULUA_TRUE, ULUA_NULL);
+
+	i = (Instruction*)ulua_mem_new_block(sizeof(Instruction));
 	i->i.unpacked.opc = OP_CALL;
 	i->i.unpacked.a = ta->num;
 	i->i.unpacked.bx.l.b = 2;
@@ -938,7 +1054,7 @@ Instruction* functionCALL(Function* f, Register* a, Register* b) {
 
 	//free all registers
 	freeRegister(ta);
-	freeRegister(tb);
+	if(tb != ULUA_NULL) freeRegister(tb);
 	tryFreeRegister(a);
 	tryFreeRegister(b);
 

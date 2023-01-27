@@ -1387,81 +1387,97 @@ static void yy_reduce(
 #line 297 "src/uparser.y"
 {
 	DPRINTF("P_PREFEXP_SLPAREN_EXP_SRPAREN\n");
+
+	yymsp[-3].minor.yy88->istable = ULUA_TRUE;
+	yymsp[-3].minor.yy88->tablekey = yymsp[-1].minor.yy88;
+	yygotominor.yy88 = yymsp[-3].minor.yy88;
+
+	//if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
-#line 1392 "src/uparser.c"
+#line 1398 "src/uparser.c"
         break;
       case 59: /* var ::= prefixexp DOT NAME */
-#line 300 "src/uparser.y"
+#line 306 "src/uparser.y"
 {
+	Constant* c;
+	Register* r;
 	DPRINTF("P_PREFEXP_DOT_NAME %.*s\n", yymsp[0].minor.yy0.semInfo.bplen, &f->code[yymsp[0].minor.yy0.semInfo.bp]);
 
+	c = pushVarName(f, &yymsp[0].minor.yy0.semInfo);
+	r = getVarRegister(f,c);
+	
+	yymsp[-2].minor.yy88->istable = ULUA_TRUE;
+	yymsp[-2].minor.yy88->tablekey = r;
+	yygotominor.yy88 = yymsp[-2].minor.yy88;
+
+	//if(yygotominor.yy88->exprStart == ULUA_NULL) yygotominor.yy88->exprStart = f->currentStat;
 }
-#line 1400 "src/uparser.c"
+#line 1416 "src/uparser.c"
         break;
       case 60: /* prefixexp ::= var */
-#line 305 "src/uparser.y"
+#line 321 "src/uparser.y"
 {
 	DPRINTF("P_PREFEXP_VAR\n");
 	yygotominor.yy88 = yymsp[0].minor.yy88;
 }
-#line 1408 "src/uparser.c"
+#line 1424 "src/uparser.c"
         break;
       case 61: /* prefixexp ::= functioncall */
-#line 309 "src/uparser.y"
+#line 325 "src/uparser.y"
 {
 	DPRINTF("P_PREFEXP_FCALL\n");
 }
-#line 1415 "src/uparser.c"
+#line 1431 "src/uparser.c"
         break;
       case 62: /* prefixexp ::= OPEN exp RPAREN */
-#line 312 "src/uparser.y"
+#line 328 "src/uparser.y"
 {
     DPRINTF("P_PREFEXP_EXP\n");
 	yygotominor.yy88 = yymsp[-1].minor.yy88;
 }
-#line 1423 "src/uparser.c"
+#line 1439 "src/uparser.c"
         break;
       case 63: /* functioncall ::= prefixexp args */
-#line 317 "src/uparser.y"
+#line 333 "src/uparser.y"
 {
     DPRINTF("P_FCALL_ARGS\n");
 	yygotominor.yy15 = functionCALL(f, yymsp[-1].minor.yy88, yymsp[0].minor.yy88);
 }
-#line 1431 "src/uparser.c"
+#line 1447 "src/uparser.c"
         break;
       case 64: /* functioncall ::= prefixexp COLON NAME args */
-#line 321 "src/uparser.y"
+#line 337 "src/uparser.y"
 {
 	DPRINTF("P_FCALL_NAME_ARGS %.*s\n", yymsp[-1].minor.yy0.semInfo.bplen, &f->code[yymsp[-1].minor.yy0.semInfo.bp]);
 }
-#line 1438 "src/uparser.c"
+#line 1454 "src/uparser.c"
         break;
       case 65: /* args ::= LPAREN RPAREN */
-#line 325 "src/uparser.y"
+#line 341 "src/uparser.y"
 {
     DPRINTF("P_ARGS_EMPTY\n");
 	yygotominor.yy88 = ULUA_NULL;
 }
-#line 1446 "src/uparser.c"
+#line 1462 "src/uparser.c"
         break;
       case 66: /* args ::= LPAREN explist1 RPAREN */
-#line 329 "src/uparser.y"
+#line 345 "src/uparser.y"
 {
     DPRINTF("P_ARGS_EXPLIST\n");
 	yygotominor.yy88 = yymsp[-1].minor.yy88;
 }
-#line 1454 "src/uparser.c"
+#line 1470 "src/uparser.c"
         break;
       case 67: /* args ::= tableconstructor */
-#line 333 "src/uparser.y"
+#line 349 "src/uparser.y"
 {
     DPRINTF("P_ARGS_TABLECONSTRUCTOR\n");
     yygotominor.yy88 = yymsp[0].minor.yy88;
 }
-#line 1462 "src/uparser.c"
+#line 1478 "src/uparser.c"
         break;
       case 68: /* args ::= STRING */
-#line 337 "src/uparser.y"
+#line 353 "src/uparser.y"
 {
 	Constant* c;
 	Register* r;
@@ -1473,16 +1489,65 @@ static void yy_reduce(
 	r->constnum = c->num;
 	yygotominor.yy88 = r;
 }
-#line 1477 "src/uparser.c"
+#line 1493 "src/uparser.c"
         break;
       case 75: /* tableconstructor ::= LBRACE RBRACE */
-#line 355 "src/uparser.y"
+#line 371 "src/uparser.y"
 {
     	DPRINTF("P_TABLECONSTRUCTOR_LBRACE_RBRACE\n");
 
 	yygotominor.yy88 = doTable(f);
 }
-#line 1486 "src/uparser.c"
+#line 1502 "src/uparser.c"
+        break;
+      case 76: /* tableconstructor ::= LBRACE fieldlist RBRACE */
+#line 376 "src/uparser.y"
+{
+    DPRINTF("P_TABLECONSTRUCTOR_LBRACE_FIELDLIST_RBRACE\n");
+}
+#line 1509 "src/uparser.c"
+        break;
+      case 77: /* tableconstructor ::= LBRACE fieldlist COMMA|SEMICOL RBRACE */
+#line 379 "src/uparser.y"
+{
+    DPRINTF("P_TABLECONSTRUCTOR_LBRACE_FIELDLIST_COMMA_SEMICOL_RBRACE\n");
+}
+#line 1516 "src/uparser.c"
+        break;
+      case 78: /* fieldlist ::= field */
+#line 383 "src/uparser.y"
+{
+    DPRINTF("P_FIELDLIST_FIELD\n");
+}
+#line 1523 "src/uparser.c"
+        break;
+      case 79: /* fieldlist ::= fieldlist COMMA|SEMICOL field */
+#line 386 "src/uparser.y"
+{
+    DPRINTF("P_FIELDLIST_FIELDLIST_COMMA_SEMICOL_FIELD\n");
+}
+#line 1530 "src/uparser.c"
+        break;
+      case 80: /* field ::= exp */
+#line 390 "src/uparser.y"
+{
+    DPRINTF("P_FIELD_EXP\n");
+}
+#line 1537 "src/uparser.c"
+        break;
+      case 81: /* field ::= NAME SET exp */
+#line 393 "src/uparser.y"
+{
+    DPRINTF("P_FIELD_NAME_SET_EXP\n");
+}
+#line 1544 "src/uparser.c"
+        break;
+      case 82: /* field ::= SLPAREN exp SRPAREN SET exp */
+#line 396 "src/uparser.y"
+{
+    DPRINTF("P_FIELD_SLPAREN_EXP_SRPAREN_SET_EXP\n");
+}
+#line 1551 "src/uparser.c"
         break;
       default:
       /* (12) stat ::= repetition DO block END */ yytestcase(yyruleno==12);
@@ -1503,13 +1568,6 @@ static void yy_reduce(
       /* (72) parlist ::= namelist */ yytestcase(yyruleno==72);
       /* (73) parlist ::= DOTS */ yytestcase(yyruleno==73);
       /* (74) parlist ::= namelist COMMA DOTS */ yytestcase(yyruleno==74);
-      /* (76) tableconstructor ::= LBRACE fieldlist RBRACE */ yytestcase(yyruleno==76);
-      /* (77) tableconstructor ::= LBRACE fieldlist COMMA|SEMICOL RBRACE */ yytestcase(yyruleno==77);
-      /* (78) fieldlist ::= field */ yytestcase(yyruleno==78);
-      /* (79) fieldlist ::= fieldlist COMMA|SEMICOL field */ yytestcase(yyruleno==79);
-      /* (80) field ::= exp */ yytestcase(yyruleno==80);
-      /* (81) field ::= NAME SET exp */ yytestcase(yyruleno==81);
-      /* (82) field ::= SLPAREN exp SRPAREN SET exp */ yytestcase(yyruleno==82);
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
@@ -1572,7 +1630,7 @@ static void yy_syntax_error(
 #line 41 "src/uparser.y"
 
   f->error_code = E_SYNTAX_ERROR;
-#line 1576 "src/uparser.c"
+#line 1634 "src/uparser.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1594,7 +1652,7 @@ static void yy_accept(
 #line 37 "src/uparser.y"
 
 	f->parsed = ULUA_TRUE;
-#line 1598 "src/uparser.c"
+#line 1656 "src/uparser.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

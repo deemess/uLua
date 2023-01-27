@@ -294,12 +294,28 @@ var(A) ::= NAME(B) . {
 	A = getVarRegister(f,c);
 	if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
-var ::= prefixexp SLPAREN exp SRPAREN . {
+var(A) ::= prefixexp(B) SLPAREN exp(C) SRPAREN . {
 	DPRINTF("P_PREFEXP_SLPAREN_EXP_SRPAREN\n");
+
+	B->istable = ULUA_TRUE;
+	B->tablekey = C;
+	A = B;
+
+	//if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
-var ::= prefixexp DOT NAME(C) . {
+var(A) ::= prefixexp(B) DOT NAME(C) . {
+	Constant* c;
+	Register* r;
 	DPRINTF("P_PREFEXP_DOT_NAME %.*s\n", C.semInfo.bplen, &f->code[C.semInfo.bp]);
 
+	c = pushVarName(f, &C.semInfo);
+	r = getVarRegister(f,c);
+	
+	B->istable = ULUA_TRUE;
+	B->tablekey = r;
+	A = B;
+
+	//if(A->exprStart == ULUA_NULL) A->exprStart = f->currentStat;
 }
 
 prefixexp(A)  ::= var(B) . {
@@ -357,12 +373,26 @@ tableconstructor(A) ::= LBRACE RBRACE . {
 
 	A = doTable(f);
 }
-tableconstructor ::= LBRACE fieldlist RBRACE .
-tableconstructor ::= LBRACE fieldlist COMMA|SEMICOL RBRACE .
+tableconstructor ::= LBRACE fieldlist RBRACE . {
+    DPRINTF("P_TABLECONSTRUCTOR_LBRACE_FIELDLIST_RBRACE\n");
+}
+tableconstructor ::= LBRACE fieldlist COMMA|SEMICOL RBRACE . {
+    DPRINTF("P_TABLECONSTRUCTOR_LBRACE_FIELDLIST_COMMA_SEMICOL_RBRACE\n");
+}
 
-fieldlist   ::= field .
-fieldlist   ::= fieldlist COMMA|SEMICOL field .
+fieldlist   ::= field . {
+    DPRINTF("P_FIELDLIST_FIELD\n");
+}
+fieldlist   ::= fieldlist COMMA|SEMICOL field . {
+    DPRINTF("P_FIELDLIST_FIELDLIST_COMMA_SEMICOL_FIELD\n");
+}
             
-field       ::= exp .
-field       ::= NAME SET exp .
-field       ::= SLPAREN exp SRPAREN SET exp .
+field       ::= exp . {
+    DPRINTF("P_FIELD_EXP\n");
+}
+field       ::= NAME SET exp . {
+    DPRINTF("P_FIELD_NAME_SET_EXP\n");
+}
+field       ::= SLPAREN exp SRPAREN SET exp . {
+    DPRINTF("P_FIELD_SLPAREN_EXP_SRPAREN_SET_EXP\n");
+}
